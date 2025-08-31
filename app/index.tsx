@@ -32,7 +32,7 @@ export default function WelcomeScreen() {
 
   const handleContinue = () => {
     if (canContinue) {
-      router.push("/income");
+      router.push("/onboarding/income");
     }
   };
 

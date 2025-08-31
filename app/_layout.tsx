@@ -12,10 +12,10 @@ export default function RootLayout() {
     <Provider store={store}>
       <Stack screenOptions={{ headerShown: false, gestureEnabled: true }}>
         <Stack.Screen name="index" />
-        <Stack.Screen name="income" />
-        <Stack.Screen name="create-group" />
-        <Stack.Screen name="expenses" />
-        <Stack.Screen name="summary" />
+        <Stack.Screen name="onboarding/income" />
+        <Stack.Screen name="onboarding/create-group" />
+        <Stack.Screen name="onboarding/expenses" />
+        <Stack.Screen name="onboarding/summary" />
       </Stack>
     </Provider>
   );

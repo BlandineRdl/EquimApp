@@ -149,10 +149,10 @@ export const selectOnboardingProgressByRoute = createSelector(
     // Définition centralisée des étapes (ordre = progression)
     const steps = [
       { path: "/", label: "pseudo" },
-      { path: "/income", label: "income" },
-      { path: "/create-group", label: "group" },
-      { path: "/expenses", label: "expenses" },
-      { path: "/summary", label: "summary" },
+      { path: "/onboarding/income", label: "income" },
+      { path: "/onboarding/create-group", label: "group" },
+      { path: "/onboarding/expenses", label: "expenses" },
+      { path: "/onboarding/summary", label: "summary" },
     ];
 
     // Trouver l'index exact de l'étape courante

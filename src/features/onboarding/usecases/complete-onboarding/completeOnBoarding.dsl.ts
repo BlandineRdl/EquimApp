@@ -129,7 +129,7 @@ export const loadOnboardingDsl = (): OnboardingDsl => {
     }): Promise<void> {
       const state = store.getState();
 
-      expect(state.group.entities).toEqual({
+      expect(state.groups.entities).toEqual({
         "group-1": expect.objectContaining({
           id: "group-1",
           name: expectedData.name,

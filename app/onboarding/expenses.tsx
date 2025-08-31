@@ -12,14 +12,14 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
-import { selectExpensesUI } from "../src/features/onboarding/presentation/onboarding.selectors";
+import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { selectExpensesUI } from "../../src/features/onboarding/presentation/onboarding.selectors";
 import {
   addCustomExpense,
   removeCustomExpense,
   updateExpenseAmount
-} from "../src/features/onboarding/store/onboarding.slice";
-import { useAppDispatch } from "../src/store/buildReduxStore";
+} from "../../src/features/onboarding/store/onboarding.slice";
+import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function ExpensesScreen() {
   const dispatch = useAppDispatch();
@@ -55,11 +55,11 @@ export default function ExpensesScreen() {
   };
 
   const handleFinalize = () => {
-    router.push("/summary");
+    router.push("/onboarding/summary");
   };
 
   const handleSkip = () => {
-    router.push("/summary");
+    router.push("/onboarding/summary");
   };
 
   return (

@@ -12,15 +12,15 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import {
   selectIncomeUI,
-} from "../src/features/onboarding/presentation/onboarding.selectors";
+} from "../../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurIncome,
   setMonthlyIncome,
-} from "../src/features/onboarding/store/onboarding.slice";
-import { useAppDispatch } from "../src/store/buildReduxStore";
+} from "../../src/features/onboarding/store/onboarding.slice";
+import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function IncomeScreen() {
   const dispatch = useAppDispatch();
@@ -35,7 +35,7 @@ export default function IncomeScreen() {
 
   const handleContinue = () => {
     if (canContinue) {
-      router.push("/create-group");
+      router.push("/onboarding/create-group");
     }
   };
 

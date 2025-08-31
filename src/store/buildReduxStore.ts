@@ -15,14 +15,29 @@ export interface Dependencies {
   onboardingGateway: OnboardingGateway;
 }
 
+// Configuration conditionnelle pour éviter l'erreur dans les tests
+const isTestEnvironment = process.env.NODE_ENV === "test";
+
+// Import conditionnel pour éviter l'erreur dans les tests
+let devToolsEnhancer: any = () => (next: any) => next;
+
+if (!isTestEnvironment) {
+  try {
+    devToolsEnhancer = require("redux-devtools-expo-dev-plugin").default;
+  } catch (error) {
+    console.warn("Redux DevTools Expo plugin not available:", error);
+    devToolsEnhancer = () => (next: any) => next;
+  }
+}
+
 export const initReduxStore = (dependencies: Partial<Dependencies>) => {
   return configureStore({
     reducer: {
       onboarding: onboardingReducer,
       user: userReducer,
-      group: groupReducer,
+      groups: groupReducer,
     },
-    devTools: true,
+    devTools: !isTestEnvironment,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         thunk: {
@@ -31,6 +46,10 @@ export const initReduxStore = (dependencies: Partial<Dependencies>) => {
           },
         },
       }),
+    enhancers: (getDefaultEnhancers) =>
+      isTestEnvironment
+        ? getDefaultEnhancers()
+        : getDefaultEnhancers().concat(devToolsEnhancer()),
   });
 };
 

@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -9,10 +9,15 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
-import { selectOnboardingSummary } from "../src/features/onboarding/presentation/onboarding.selectors";
+import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { selectOnboardingSummary } from "../../src/features/onboarding/presentation/onboarding.selectors";
+import { completeOnboarding } from "../../src/features/onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
+import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function SummaryScreen() {
+  const dispatch = useAppDispatch();
+  const [isCreating, setIsCreating] = useState(false);
+  
   const {
     pseudo,
     monthlyIncome,
@@ -22,8 +27,22 @@ export default function SummaryScreen() {
     isComplete,
   } = useSelector(selectOnboardingSummary);
 
-  const handleCreateAccount = () => {
-    router.push("/home");
+  const handleCreateAccount = async () => {
+    if (isCreating) return;
+    
+    setIsCreating(true);
+    try {
+      // Déclencher l'action completeOnboarding
+      await dispatch(completeOnboarding()).unwrap();
+      
+      // Rediriger vers l'accueil après succès
+      router.push("/home");
+    } catch (error) {
+      console.error("Erreur lors de la création du compte:", error);
+      // Garder l'utilisateur sur la page en cas d'erreur
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (

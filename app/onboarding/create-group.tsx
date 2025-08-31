@@ -12,15 +12,15 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import {
   selectGroupUI,
-} from "../src/features/onboarding/presentation/onboarding.selectors";
+} from "../../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurGroupName,
   setGroupName,
-} from "../src/features/onboarding/store/onboarding.slice";
-import { useAppDispatch } from "../src/store/buildReduxStore";
+} from "../../src/features/onboarding/store/onboarding.slice";
+import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function CreateGroupScreen() {
   const dispatch = useAppDispatch();
@@ -34,7 +34,7 @@ export default function CreateGroupScreen() {
 
   const handleContinue = () => {
     if (canContinue) {
-      router.push("/expenses");
+      router.push("/onboarding/expenses");
     }
   };
 
