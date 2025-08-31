@@ -1,4 +1,4 @@
-import { router, usePathname } from "expo-router";
+import { router } from "expo-router";
 import React from "react";
 import {
   KeyboardAvoidingView,
@@ -12,11 +12,8 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
-
-import {
-  selectOnboardingUI
-} from "../src/features/onboarding/adapters/primary/onboarding.selectors";
-import { OnboardingProgressBar } from "../src/features/onboarding/adapters/primary/OnboardingProgressBar.component";
+import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { selectOnboardingUI } from "../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurPseudo,
   setPseudo,
@@ -25,7 +22,6 @@ import { useAppDispatch } from "../src/store/buildReduxStore";
 
 export default function WelcomeScreen() {
   const dispatch = useAppDispatch();
-  const pathname = usePathname();
 
   const { pseudo, error, canContinue, hasError } =
     useSelector(selectOnboardingUI);

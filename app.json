@@ -7,10 +7,31 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "equim",
-    "platforms": ["ios", "android"],
-    "plugins": ["expo-router"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "plugins": [
+      "expo-router"
+    ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1adf1451-4c82-4e3f-a62c-868caade39b2"
+      }
+    },
+    "owner": "blackksun",
+    "android": {
+      "package": "com.blackksun.equimapp"
+    },
+    "ios": {
+      "bundleIdentifier": "com.blackksun.equimapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     }
   }
 }

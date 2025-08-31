@@ -1,10 +1,11 @@
 import { Stack } from "expo-router";
 import React from "react";
 import { Provider } from "react-redux";
+import { InMemoryOnboardingGateway } from "../src/features/onboarding/infra/inMemoryOnBoarding.gateway";
 import { initReduxStore } from "../src/store/buildReduxStore";
 
-//const userGateway = new InMemoryUserGateway();
-const store = initReduxStore();
+const onboardingGateway = new InMemoryOnboardingGateway();
+const store = initReduxStore({ onboardingGateway });
 
 export default function RootLayout() {
   return (

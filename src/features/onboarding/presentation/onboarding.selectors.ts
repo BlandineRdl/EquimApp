@@ -1,5 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
-import type { AppState } from "../../../../store/appState";
+import type { AppState } from "../../../store/appState";
 
 const selectOnboardingState = (state: AppState) => state.onboarding;
 

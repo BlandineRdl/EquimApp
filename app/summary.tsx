@@ -1,15 +1,16 @@
+import { router } from "expo-router";
 import React from "react";
 import {
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { OnboardingProgressBar } from "../src/features/onboarding/adapters/primary/OnboardingProgressBar.component";
-import { selectOnboardingSummary } from "../src/features/onboarding/adapters/primary/onboarding.selectors";
+import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { selectOnboardingSummary } from "../src/features/onboarding/presentation/onboarding.selectors";
 
 export default function SummaryScreen() {
   const {
@@ -22,9 +23,7 @@ export default function SummaryScreen() {
   } = useSelector(selectOnboardingSummary);
 
   const handleCreateAccount = () => {
-    // Ici on créera le use case pour finaliser la création
-    // Pour l'instant, on navigue vers le dashboard
-   // router.push("/dashboard");
+    router.push("/home");
   };
 
   return (

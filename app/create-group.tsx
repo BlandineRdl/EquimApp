@@ -1,4 +1,4 @@
-import { router, usePathname } from "expo-router";
+import { router } from "expo-router";
 import React from "react";
 import {
   KeyboardAvoidingView,
@@ -12,11 +12,10 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
+import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import {
   selectGroupUI,
-  selectOnboardingProgressByRoute,
-} from "../src/features/onboarding/adapters/primary/onboarding.selectors";
-import { OnboardingProgressBar } from "../src/features/onboarding/adapters/primary/OnboardingProgressBar.component";
+} from "../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurGroupName,
   setGroupName,
@@ -25,14 +24,9 @@ import { useAppDispatch } from "../src/store/buildReduxStore";
 
 export default function CreateGroupScreen() {
   const dispatch = useAppDispatch();
-  const pathname = usePathname();
 
   const { groupName, error, canContinue, hasError } =
     useSelector(selectGroupUI);
-
-  const { progressPercentage } = useSelector((state) =>
-    selectOnboardingProgressByRoute(state, pathname)
-  );
 
   const handleGroupNameChange = (text: string) => {
     dispatch(setGroupName(text));

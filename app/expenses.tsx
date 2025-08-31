@@ -1,23 +1,23 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { selectExpensesUI } from "../src/features/onboarding/adapters/primary/onboarding.selectors";
-import { OnboardingProgressBar } from "../src/features/onboarding/adapters/primary/OnboardingProgressBar.component";
+import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { selectExpensesUI } from "../src/features/onboarding/presentation/onboarding.selectors";
 import {
-    addCustomExpense,
-    removeCustomExpense,
-    updateExpenseAmount
+  addCustomExpense,
+  removeCustomExpense,
+  updateExpenseAmount
 } from "../src/features/onboarding/store/onboarding.slice";
 import { useAppDispatch } from "../src/store/buildReduxStore";
 
@@ -33,10 +33,10 @@ export default function ExpensesScreen() {
     canContinue 
   } = useSelector(selectExpensesUI);
 
-  const handleExpenseAmountChange = (index: number, amount: string) => {
+  const handleExpenseAmountChange = (id: string, amount: string) => {
     // Nettoyer l'input (seulement chiffres et point décimal)
     const cleanAmount = amount.replace(/[^0-9.]/g, '');
-    dispatch(updateExpenseAmount({ index, amount: cleanAmount }));
+    dispatch(updateExpenseAmount({ id, amount: cleanAmount }));
   };
 
   const handleAddCustomExpense = () => {
@@ -50,8 +50,8 @@ export default function ExpensesScreen() {
     }
   };
 
-  const handleRemoveExpense = (index: number) => {
-    dispatch(removeCustomExpense(index));
+  const handleRemoveExpense = (id: string) => {
+    dispatch(removeCustomExpense(id));
   };
 
   const handleFinalize = () => {
@@ -89,8 +89,8 @@ export default function ExpensesScreen() {
 
             {expenses
               .filter((expense) => !expense.isCustom)
-              .map((expense, index) => (
-                <View key={index} style={styles.expenseRow}>
+              .map((expense) => (
+                <View key={expense.id} style={styles.expenseRow}>
                   <Text style={styles.expenseLabel}>{expense.label}</Text>
                   <View style={styles.expenseInputContainer}>
                     <TextInput
@@ -98,7 +98,7 @@ export default function ExpensesScreen() {
                       placeholder="Ex: 800"
                       value={expense.amount}
                       onChangeText={(text) =>
-                        handleExpenseAmountChange(index, text)
+                        handleExpenseAmountChange(expense.id, text)
                       }
                       keyboardType="decimal-pad"
                       maxLength={8}
@@ -114,28 +114,25 @@ export default function ExpensesScreen() {
             {/* Afficher les dépenses personnalisées ajoutées */}
             {expenses
               .filter((expense) => expense.isCustom)
-              .map((expense, originalIndex) => {
-                const actualIndex = expenses.findIndex((e) => e === expense);
-                return (
-                  <View
-                    key={`custom-${originalIndex}`}
-                    style={styles.customExpenseRow}
-                  >
-                    <Text style={styles.expenseLabel}>{expense.label}</Text>
-                    <View style={styles.expenseInputContainer}>
-                      <Text style={styles.expenseAmount}>
-                        {expense.amount}€
-                      </Text>
-                      <TouchableOpacity
-                        style={styles.removeButton}
-                        onPress={() => handleRemoveExpense(actualIndex)}
-                      >
-                        <Text style={styles.removeButtonText}>×</Text>
-                      </TouchableOpacity>
-                    </View>
+              .map((expense) => (
+                <View
+                  key={expense.id}
+                  style={styles.customExpenseRow}
+                >
+                  <Text style={styles.expenseLabel}>{expense.label}</Text>
+                  <View style={styles.expenseInputContainer}>
+                    <Text style={styles.expenseAmount}>
+                      {expense.amount}€
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => handleRemoveExpense(expense.id)}
+                    >
+                      <Text style={styles.removeButtonText}>×</Text>
+                    </TouchableOpacity>
                   </View>
-                );
-              })}
+                </View>
+              ))}
 
             {/* Formulaire pour ajouter une nouvelle dépense */}
             <View style={styles.addExpenseForm}>

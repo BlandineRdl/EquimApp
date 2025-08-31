@@ -1,4 +1,4 @@
-import { router, usePathname } from "expo-router";
+import { router } from "expo-router";
 import React from "react";
 import {
   KeyboardAvoidingView,
@@ -12,11 +12,10 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
+import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import {
   selectIncomeUI,
-  selectOnboardingProgressByRoute,
-} from "../src/features/onboarding/adapters/primary/onboarding.selectors";
-import { OnboardingProgressBar } from "../src/features/onboarding/adapters/primary/OnboardingProgressBar.component";
+} from "../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurIncome,
   setMonthlyIncome,
@@ -25,14 +24,10 @@ import { useAppDispatch } from "../src/store/buildReduxStore";
 
 export default function IncomeScreen() {
   const dispatch = useAppDispatch();
-  const pathname = usePathname();
 
   const { monthlyIncome, error, canContinue, hasError } =
     useSelector(selectIncomeUI);
 
-  const { progressPercentage } = useSelector((state) =>
-    selectOnboardingProgressByRoute(state, pathname)
-  );
   const handleIncomeChange = (text: string) => {
     const cleanText = text.replace(/[^0-9.]/g, "");
     dispatch(setMonthlyIncome(cleanText));
