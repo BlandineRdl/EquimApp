@@ -4,6 +4,16 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Type de build'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+        - preview
+        - production
 
 jobs:
   build:
@@ -57,3 +67,21 @@ jobs:
         run: pnpm test:run
         env:
           NODE_ENV: test
+
+      - name: 🍎 Build Preview (iOS) - Auto  
+        if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+        run: eas build --platform ios --profile preview --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🍎 Build Preview (iOS) - Manuel
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'preview'
+        run: eas build --platform ios --profile preview --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🚀 Build Production - Manuel
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'production'
+        run: eas build --platform all --profile production --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
