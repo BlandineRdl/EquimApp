@@ -1,0 +1,1 @@
+/Users/blacksun/Dev/personal/EquimApp/aidd-docs/AGENTS.md

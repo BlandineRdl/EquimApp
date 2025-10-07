@@ -77,7 +77,7 @@ export const onboardingSlice = createSlice({
     },
 
     // Reset onboarding
-    resetOnboarding: (state) => {
+    resetOnboarding: (_state) => {
       return initialState;
     },
   },

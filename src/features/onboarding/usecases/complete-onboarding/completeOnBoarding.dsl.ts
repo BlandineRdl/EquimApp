@@ -4,6 +4,7 @@ import {
   type Dependencies,
   initReduxStore,
 } from "../../../../store/buildReduxStore";
+import { InMemoryGroupGateway } from "../../../group/infra/inMemoryGroup.gateway";
 import { InMemoryOnboardingGateway } from "../../infra/inMemoryOnBoarding.gateway";
 import { completeOnboarding } from "./completeOnboarding.usecase";
 
@@ -22,7 +23,6 @@ export interface OnboardingDsl {
   andUserAddsCustomExpense(data: {
     label: string;
     amount: string;
-    category: string;
   }): Promise<void>;
 
   whenCompletingOnboarding(): Promise<void>;
@@ -37,12 +37,14 @@ export interface OnboardingDsl {
   thenGroupIsCreated(expectedData: {
     name: string;
     totalBudget: number;
+    membersCount?: number;
   }): Promise<void>;
 }
 
 export const loadOnboardingDsl = (): OnboardingDsl => {
-  const gateway = new InMemoryOnboardingGateway();
-  const store = initReduxStore({ onboardingGateway: gateway });
+  const groupGateway = new InMemoryGroupGateway();
+  const gateway = new InMemoryOnboardingGateway(groupGateway);
+  const store = initReduxStore({ onboardingGateway: gateway, groupGateway });
 
   const dispatch: ThunkDispatch<AppState, Dependencies, Action> =
     store.dispatch;
@@ -85,14 +87,12 @@ export const loadOnboardingDsl = (): OnboardingDsl => {
     async andUserAddsCustomExpense(data: {
       label: string;
       amount: string;
-      category: string;
     }): Promise<void> {
       dispatch({
         type: "onboarding/addCustomExpense",
         payload: {
           label: data.label,
           amount: data.amount,
-          category: data.category,
         },
       });
     },
@@ -126,16 +126,26 @@ export const loadOnboardingDsl = (): OnboardingDsl => {
     async thenGroupIsCreated(expectedData: {
       name: string;
       totalBudget: number;
+      membersCount?: number;
     }): Promise<void> {
       const state = store.getState();
 
+      const expectedGroup = {
+        id: "group-1",
+        name: expectedData.name,
+        totalMonthlyBudget: expectedData.totalBudget,
+        members: expect.any(Array),
+      };
+
       expect(state.groups.entities).toEqual({
-        "group-1": expect.objectContaining({
-          id: "group-1",
-          name: expectedData.name,
-          totalMonthlyBudget: expectedData.totalBudget,
-        }),
+        "group-1": expect.objectContaining(expectedGroup),
       });
+
+      if (expectedData.membersCount !== undefined) {
+        // Vérifier le nombre de membres si spécifié
+        const group = state.groups.entities["group-1"];
+        expect(group.members).toHaveLength(expectedData.membersCount);
+      }
     },
   };
 };

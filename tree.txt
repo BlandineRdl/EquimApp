@@ -1,0 +1,75 @@
+.
+├── app
+│   ├── _layout.tsx
+│   ├── group
+│   │   └── details.tsx
+│   ├── home.tsx
+│   ├── index.tsx
+│   └── onboarding
+│       ├── create-group.tsx
+│       ├── expenses.tsx
+│       ├── income.tsx
+│       └── summary.tsx
+├── app.json
+├── assets
+│   ├── adaptive-icon.png
+│   ├── favicon.png
+│   ├── icon.png
+│   └── splash-icon.png
+├── babel.config.js
+├── biome.json
+├── eas.json
+├── expo-env.d.ts
+├── package.json
+├── pnpm-lock.yaml
+├── src
+│   ├── features
+│   │   ├── group
+│   │   │   ├── domain
+│   │   │   │   └── group.model.ts
+│   │   │   ├── infra
+│   │   │   ├── ports
+│   │   │   ├── presentation
+│   │   │   │   ├── selectGroup.selector.ts
+│   │   │   │   └── selectGroupDetails.selector.ts
+│   │   │   ├── store
+│   │   │   │   └── group.slice.ts
+│   │   │   └── usecases
+│   │   ├── onboarding
+│   │   │   ├── domain
+│   │   │   │   ├── expense.model.ts
+│   │   │   │   └── onboarding.model.ts
+│   │   │   ├── infra
+│   │   │   │   └── inMemoryOnBoarding.gateway.ts
+│   │   │   ├── ports
+│   │   │   │   └── onboarding.gateway.ts
+│   │   │   ├── presentation
+│   │   │   │   ├── onboarding.selectors.ts
+│   │   │   │   └── OnboardingProgressBar.component.tsx
+│   │   │   ├── store
+│   │   │   │   └── onboarding.slice.ts
+│   │   │   └── usecases
+│   │   │       └── complete-onboarding
+│   │   │           ├── completeOnBoarding.dsl.ts
+│   │   │           ├── completeOnBoarding.spec.ts
+│   │   │           └── completeOnboarding.usecase.ts
+│   │   └── user
+│   │       ├── domain
+│   │       │   └── user.model.ts
+│   │       ├── infra
+│   │       ├── ports
+│   │       │   └── user.gateway.ts
+│   │       ├── presentation
+│   │       │   └── selectUser.selector.ts
+│   │       ├── store
+│   │       │   └── user.slice.ts
+│   │       └── usecases
+│   │           └── loadUserProfile.usecase.ts
+│   └── store
+│       ├── appState.ts
+│       └── buildReduxStore.ts
+├── tree.txt
+├── tsconfig.json
+└── vitest.config.ts
+
+30 directories, 43 files

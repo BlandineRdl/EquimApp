@@ -1,9 +1,13 @@
 import type { Group } from "../../group/domain/group.model";
+import type { GroupGateway } from "../../group/ports/group.gateway";
 import type { User } from "../../user/domain/user.model";
 import type { OnboardingData } from "../domain/onboarding.model";
 import type { OnboardingGateway } from "../ports/onboarding.gateway";
+
 export class InMemoryOnboardingGateway implements OnboardingGateway {
   private storedResult: { user: User; group: Group } | null = null;
+
+  constructor(private groupGateway: GroupGateway) {}
 
   async completeOnboarding(data: OnboardingData): Promise<{
     user: User;
@@ -30,7 +34,24 @@ export class InMemoryOnboardingGateway implements OnboardingGateway {
         isCustom: expense.isCustom,
       })),
       totalMonthlyBudget: data.group.totalMonthlyBudget,
+      members: [
+        {
+          id: user.id,
+          pseudo: user.pseudo,
+          monthlyIncome: user.monthlyIncome,
+        },
+      ],
     };
+
+    if (
+      "seed" in this.groupGateway &&
+      typeof (this.groupGateway as GroupGateway & { seed?: unknown }).seed ===
+        "function"
+    ) {
+      (
+        this.groupGateway as GroupGateway & { seed: (groups: Group[]) => void }
+      ).seed([group]);
+    }
 
     return { user, group };
   }

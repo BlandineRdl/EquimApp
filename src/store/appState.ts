@@ -1,6 +1,15 @@
-import type { Group } from "../features/group/domain/group.model";
+import type {
+  Group,
+  InvitationDetails,
+} from "../features/group/domain/group.model";
 import type { OnboardingExpense } from "../features/onboarding/domain/onboarding.model";
 import type { User } from "../features/user/domain/user.model";
+
+interface AddMemberForm {
+  groupId: string;
+  pseudo: string;
+  monthlyIncome: string;
+}
 
 export interface AppState {
   onboarding: {
@@ -25,5 +34,18 @@ export interface AppState {
     ids: string[];
     loading: boolean;
     error: string | null;
+    addMemberForm?: AddMemberForm;
+    invitation: {
+      generateLink: {
+        loading: boolean;
+        link: string | null;
+        error: string | null;
+      };
+      details: {
+        loading: boolean;
+        data: InvitationDetails | null;
+        error: string | null;
+      };
+    };
   };
 }

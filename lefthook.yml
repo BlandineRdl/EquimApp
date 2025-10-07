@@ -1,0 +1,6 @@
+pre-commit:
+  parallel: true
+  commands:
+    # AIDD
+    aidd-generate-docs:
+      run: cd aidd && npm run project:docs ; cd ../ && git add aidd-generated || true

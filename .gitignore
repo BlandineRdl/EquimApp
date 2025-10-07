@@ -35,3 +35,13 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+# <AIDD-PRIVACY>
+#
+# You might want to ignore the following files and directories:
+#
+aidd* # AIDD installation folder
+aidd/
+aidd-docs/
+aidd-generated/
+
+# </AIDD-PRIVACY>

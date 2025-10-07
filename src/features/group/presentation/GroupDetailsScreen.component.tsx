@@ -1,0 +1,635 @@
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ArrowLeft, Calendar, Plus, Users } from "lucide-react-native";
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSelector } from "react-redux";
+import type { AppState } from "../../../store/appState";
+import { useAppDispatch } from "../../../store/buildReduxStore";
+import {
+  closeAddMemberForm,
+  openAddMemberForm,
+  updateAddMemberForm,
+} from "../store/group.slice";
+import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
+import { selectAddMemberUI } from "./selectGroup.selector";
+import {
+  selectGroupDetails,
+  selectGroupExpenses,
+  selectGroupStats,
+} from "./selectGroupDetails.selector";
+
+export const GroupDetailsScreen = () => {
+  const { groupId } = useLocalSearchParams<{ groupId: string }>();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+
+  const { isOpen, form, canSubmit } = useSelector(selectAddMemberUI);
+
+  const groupDetails = useSelector((state: AppState) =>
+    groupId ? selectGroupDetails(state, groupId) : null,
+  );
+  const groupStats = useSelector((state: AppState) =>
+    groupId ? selectGroupStats(state, groupId) : null,
+  );
+  const expenses = useSelector((state: AppState) =>
+    groupId ? selectGroupExpenses(state, groupId) : [],
+  );
+
+  // Loading state
+  if (!groupDetails || !groupStats) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loading}>
+          <Text>Chargement...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const { group, members } = groupDetails;
+
+  // Fonctions pour gérer la modal
+  const openModal = () => {
+    dispatch(openAddMemberForm(groupId));
+  };
+
+  const closeAddMemberModal = () => {
+    dispatch(closeAddMemberForm());
+  };
+
+  const handleAddMember = () => {
+    if (form && canSubmit) {
+      dispatch(
+        addMemberToGroup({
+          groupId: form.groupId,
+          memberData: {
+            pseudo: form.pseudo.trim(),
+            monthlyIncome: parseFloat(form.monthlyIncome),
+          },
+        }),
+      );
+    }
+  };
+
+  const onPseudoChange = (text: string) =>
+    dispatch(updateAddMemberForm({ pseudo: text }));
+
+  const onIncomeChange = (text: string) =>
+    dispatch(updateAddMemberForm({ monthlyIncome: text }));
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <ArrowLeft size={20} color="#000" />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerLabel}>Groupe</Text>
+          <Text style={styles.headerTitle}>{group.name}</Text>
+        </View>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Total mensuel */}
+        <View style={styles.totalCard}>
+          <View style={styles.totalCardContent}>
+            <View style={styles.totalHeader}>
+              <Calendar size={16} color="#666" />
+              <Text style={styles.totalLabel}>Total mensuel</Text>
+            </View>
+            <View style={styles.totalRight}>
+              <Text style={styles.totalAmount}>
+                {groupStats.totalBudget.toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                €
+              </Text>
+              <Text style={styles.totalSubtext}>
+                {groupStats.expensesCount} dépenses
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Dépenses configurées */}
+        <View style={styles.expensesCard}>
+          <Text style={styles.expensesCardTitle}>
+            Dépenses configurées ({groupStats.expensesCount})
+          </Text>
+
+          {expenses.map((expense, index) => (
+            <View
+              key={expense.id}
+              style={[
+                styles.expenseItem,
+                index < expenses.length - 1 && styles.expenseItemWithBorder,
+              ]}
+            >
+              <View style={styles.expenseInfo}>
+                <Text style={styles.expenseLabel}>{expense.label}</Text>
+                <Text style={styles.expenseFrequency}>{expense.frequency}</Text>
+              </View>
+              <Text style={styles.expenseAmount}>
+                {parseFloat(expense.amount).toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                €
+              </Text>
+            </View>
+          ))}
+
+          {expenses.length > 1 && (
+            <TouchableOpacity style={styles.showMoreButton}>
+              <Text style={styles.showMoreText}>
+                Voir plus ({expenses.length - 1} autres)
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Membres et quotes-parts */}
+        <View style={styles.membersCard}>
+          <View style={styles.membersHeader}>
+            <View style={styles.membersTitle}>
+              <Users size={16} color="#000" />
+              <Text style={styles.membersCardTitle}>
+                Membres et quotes-parts
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.addMemberButton}
+              onPress={openModal}
+            >
+              <Plus size={16} color="#666" />
+              <Users size={16} color="#666" style={{ marginLeft: 4 }} />
+            </TouchableOpacity>
+          </View>
+
+          {members.map((member, index) => (
+            <View
+              key={member.id}
+              style={[
+                styles.memberItem,
+                index < members.length - 1 && styles.memberItemWithBorder,
+              ]}
+            >
+              <View style={styles.memberInfo}>
+                <View style={styles.memberFirstRow}>
+                  <Text style={styles.memberName}>{member.pseudo}</Text>
+                  <Text style={styles.revenueLabel}>
+                    Revenu:{" "}
+                    {member.monthlyIncome.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    €/mois
+                  </Text>
+                </View>
+                <View style={styles.quotePart}>
+                  <Text style={styles.quotePartLabel}>Quote-part</Text>
+                  <View style={styles.quotePartValues}>
+                    <Text style={styles.sharePercentage}>
+                      {member.sharePercentage}%
+                    </Text>
+                    <Text style={styles.shareAmount}>
+                      {member.shareAmount.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          ))}
+
+          {/* Explication du calcul */}
+          <View style={styles.calculationNote}>
+            <Text style={styles.calculationBullet}>•</Text>
+            <Text style={styles.calculationText}>
+              <Text style={styles.calculationBold}>Calcul équitable</Text>
+              {"\n"}Les quotes-parts sont calculées proportionnellement aux
+              revenus de chaque membre. Total des revenus du groupe :{" "}
+              {groupDetails.totalIncome.toLocaleString("fr-FR")} €/mois.
+            </Text>
+          </View>
+        </View>
+
+        {/* Bottom spacing */}
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
+
+      {/* Modal d'ajout de membre */}
+      {isOpen && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Ajouter un membre</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Pseudo"
+              value={form?.pseudo}
+              onChangeText={onPseudoChange}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Revenu mensuel (€)"
+              keyboardType="numeric"
+              value={form?.monthlyIncome}
+              onChangeText={onIncomeChange}
+            />
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={handleAddMember}
+            >
+              <Text style={styles.modalButtonText}>Ajouter</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={closeAddMemberModal}
+            >
+              <Text style={styles.modalButtonTextCancel}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerLabel: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "400",
+  },
+  headerTitle: {
+    fontSize: 20,
+    color: "#000",
+    fontWeight: "600",
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  totalCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  totalCardContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  totalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#000",
+    marginLeft: 8,
+  },
+  totalRight: {
+    alignItems: "flex-end",
+  },
+  totalAmount: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 2,
+  },
+  totalSubtext: {
+    fontSize: 14,
+    color: "#666",
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+    marginBottom: 12,
+  },
+  expensesCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  expensesCardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+    marginBottom: 16,
+  },
+  expensesContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    overflow: "hidden",
+  },
+  expenseItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  expenseItemWithBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+    paddingBottom: 12,
+    marginBottom: 12,
+  },
+  expenseInfo: {
+    flex: 1,
+  },
+  expenseLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#000",
+    marginBottom: 2,
+  },
+  expenseFrequency: {
+    fontSize: 14,
+    color: "#666",
+  },
+  expenseAmount: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+  },
+  showMoreButton: {
+    paddingVertical: 16,
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    marginTop: 8,
+  },
+  showMoreText: {
+    fontSize: 14,
+    color: "#666",
+    fontWeight: "500",
+  },
+  membersCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  membersHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  membersTitle: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  membersCardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+    marginLeft: 8,
+  },
+  addMemberButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  membersContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    overflow: "hidden",
+    marginBottom: 16,
+  },
+  memberItem: {
+    paddingVertical: 16,
+  },
+  memberItemWithBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+    paddingBottom: 16,
+    marginBottom: 16,
+  },
+  memberInfo: {
+    flex: 1,
+  },
+  memberFirstRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  memberName: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#000",
+  },
+  memberRevenue: {
+    marginBottom: 4,
+  },
+  revenueLabel: {
+    fontSize: 14,
+    color: "#666",
+  },
+  quotePart: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  quotePartLabel: {
+    fontSize: 14,
+    color: "#666",
+  },
+  quotePartValues: {
+    alignItems: "flex-end",
+  },
+  memberShare: {
+    alignItems: "flex-end",
+  },
+  sharePercentage: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 2,
+  },
+  shareAmount: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#10b981",
+  },
+  calculationNote: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  calculationBullet: {
+    fontSize: 16,
+    color: "#666",
+    marginRight: 8,
+    marginTop: 1,
+  },
+  calculationText: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+    flex: 1,
+  },
+  calculationBold: {
+    fontWeight: "600",
+    color: "#000",
+  },
+  bottomSpacing: {
+    height: 40,
+  },
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#000",
+  },
+  modalInput: {
+    width: "100%",
+    height: 50,
+    borderColor: "#e0e0e0",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 15,
+    fontSize: 16,
+    color: "#000",
+  },
+  modalButton: {
+    backgroundColor: "#10b981",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalButtonCancel: {
+    backgroundColor: "#e0e0e0",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    width: "100%",
+    alignItems: "center",
+  },
+  modalButtonTextCancel: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});

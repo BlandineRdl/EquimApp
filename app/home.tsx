@@ -1,5 +1,5 @@
+import { useRouter } from "expo-router";
 import {
-    ArrowRightLeft,
     BarChart3,
     ChevronRight,
     Home,
@@ -8,26 +8,42 @@ import {
     QrCode,
     Settings,
     UserPlus,
-    Users
+    Users,
 } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
     SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import { useSelector } from "react-redux";
+import { GroupsHome } from "../src/features/group/presentation/groupsHome.component";
+import { InviteModal } from "../src/features/group/presentation/InviteModal.component";
 import { selectAllGroups } from "../src/features/group/presentation/selectGroup.selector";
 import { selectUserProfile } from "../src/features/user/presentation/selectUser.selector";
+
+
 
 export default function HomeScreen() {
     const user = useSelector(selectUserProfile);
     const groups = useSelector(selectAllGroups);
-    console.log(user);
-    console.log(groups);
+    const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
+    const router = useRouter();
+
+    const openInviteModal = () => {
+        setIsInviteModalVisible(true);
+    };
+
+    const closeInviteModal = () => {
+        setIsInviteModalVisible(false);
+    };
+
+    const navigateToGroupDetails = (groupId: string) => {
+        router.push({ pathname: "/group/[groupId]" as "/group/[groupId]", params: { groupId } });
+    };
 
     // Loading state
     if (!user) {
@@ -57,49 +73,10 @@ export default function HomeScreen() {
                 {/* Mon groupe Section */}
                 <Text style={styles.sectionTitle}>Mon groupe</Text>
 
-                {groups.map((group) => (
-                    <View key={group.id} style={styles.groupCard}>
-                        {/* Group Header */}
-                        <View style={styles.groupHeader}>
-                            <View style={styles.groupIconContainer}>
-                                <Users size={16} color="#0284c7" />
-                            </View>
-                            <Text style={styles.groupName}>{group.name}</Text>
-                        </View>
-
-                        <Text style={styles.membersText}>Membres: lolo</Text>
-
-                        {/* Budget Section */}
-                        <View style={styles.budgetSection}>
-                            <Text style={styles.budgetLabel}>Dépenses mensuelles</Text>
-                            <Text style={styles.budgetAmount}>
-                                {group.totalMonthlyBudget.toLocaleString('fr-FR', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })} €
-                            </Text>
-                            <Text style={styles.expensesCount}>
-                                {group.expenses.length} dépenses configurées
-                            </Text>
-                        </View>
-
-                        {/* View Button */}
-                        <TouchableOpacity style={styles.viewButton}>
-                            <ArrowRightLeft size={14} color="#374151" style={{ marginRight: 6 }} />
-
-                            <Text style={styles.viewButtonText}>Voir</Text>
-                        </TouchableOpacity>
-
-                        {/* Invite Section */}
-                        <View style={styles.inviteSection}>
-                            <Text style={styles.inviteText}>Inviter des membres au groupe</Text>
-                            <TouchableOpacity style={styles.inviteButton}>
-                                <UserPlus size={14} color="#fff" style={{ marginRight: 6 }} />
-                                <Text style={styles.inviteButtonText}>Inviter</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                ))}
+                <GroupsHome
+                    onNavigateToGroupDetails={navigateToGroupDetails}
+                    onOpenInviteModal={openInviteModal}
+                />
 
                 {/* Quick Actions Grid */}
                 <View style={styles.quickActionsGrid}>
@@ -113,7 +90,7 @@ export default function HomeScreen() {
                         <Text style={styles.gridActionButtonSecondaryText}>Créer un groupe</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.gridActionButtonSecondary}>
+                    <TouchableOpacity style={styles.gridActionButtonSecondary} onPress={openInviteModal}>
                         <UserPlus size={16} color="#374151" style={{ marginRight: 8 }} />
                         <Text style={styles.gridActionButtonSecondaryText}>Inviter</Text>
                     </TouchableOpacity>
@@ -193,6 +170,14 @@ export default function HomeScreen() {
                     <Text style={styles.navText}>Réglages</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Modal d'invitation */}
+            <InviteModal
+                isVisible={isInviteModalVisible}
+                onClose={closeInviteModal}
+                groupId={groups[0]?.id}
+                groupName={groups[0]?.name}
+            />
         </SafeAreaView>
     );
 }
@@ -273,10 +258,19 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         color: "#000",
     },
-    membersText: {
-        fontSize: 14,
-        color: "#666",
+    membersContainer: {
         marginBottom: 16,
+    },
+    membersText: {
+        fontSize: 12,
+        color: "#6b7280",
+        fontWeight: "600",
+    },
+    memberNames: {
+        fontSize: 11,
+        color: "#9ca3af",
+        fontStyle: "italic",
+        marginTop: 2,
     },
     budgetSection: {
         marginBottom: 16,

@@ -18,11 +18,6 @@ export const selectGroupById = createSelector(
   (groupsState, groupId) => groupSelectors.selectById(groupsState, groupId),
 );
 
-export const selectGroupIds = createSelector(
-  [selectGroupsState],
-  (groupsState) => groupSelectors.selectIds(groupsState),
-);
-
 // Selectors pour l'état de chargement
 export const selectGroupsLoading = createSelector(
   [selectGroupsState],
@@ -40,17 +35,6 @@ export const selectGroupsCount = createSelector(
   (groups) => groups.length,
 );
 
-export const selectHasGroups = createSelector(
-  [selectGroupsCount],
-  (count) => count > 0,
-);
-
-export const selectTotalMonthlyBudget = createSelector(
-  [selectAllGroups],
-  (groups) =>
-    groups.reduce((total, group) => total + group.totalMonthlyBudget, 0),
-);
-
 // Selector pour l'UI de l'écran d'accueil
 export const selectGroupsUI = createSelector(
   [selectAllGroups, selectGroupsLoading, selectGroupsError, selectGroupsCount],
@@ -62,5 +46,23 @@ export const selectGroupsUI = createSelector(
     hasGroups: count > 0,
     isEmpty: count === 0 && !loading,
     sectionTitle: count > 1 ? "Mes groupes" : "Mon groupe",
+  }),
+);
+
+export const selectAddMemberForm = createSelector(
+  [selectGroupsState],
+  (groupsState) => groupsState.addMemberForm,
+);
+
+export const selectAddMemberUI = createSelector(
+  [selectAddMemberForm, selectGroupsLoading, selectGroupsError],
+  (form, loading, error) => ({
+    isOpen: !!form,
+    form,
+    loading,
+    error,
+    canSubmit: form
+      ? form.pseudo.trim() && parseFloat(form.monthlyIncome) > 0
+      : false,
   }),
 );

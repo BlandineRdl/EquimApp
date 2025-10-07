@@ -44,6 +44,7 @@ describe("Feature: Complete Onboarding", () => {
       await onboardingDsl.thenGroupIsCreated({
         name: "Foyer",
         totalBudget: 1100,
+        membersCount: 1,
       });
     });
   });
@@ -64,7 +65,6 @@ describe("Feature: Complete Onboarding", () => {
       await onboardingDsl.andUserAddsCustomExpense({
         label: "Netflix",
         amount: "15",
-        category: "personal",
       });
 
       await onboardingDsl.whenCompletingOnboarding();
@@ -79,6 +79,7 @@ describe("Feature: Complete Onboarding", () => {
       await onboardingDsl.thenGroupIsCreated({
         name: "Solo",
         totalBudget: 1215,
+        membersCount: 1,
       });
     });
   });
@@ -109,6 +110,7 @@ describe("Feature: Complete Onboarding", () => {
       await onboardingDsl.thenGroupIsCreated({
         name: "Budget Strict",
         totalBudget: 600,
+        membersCount: 1,
       });
     });
   });
