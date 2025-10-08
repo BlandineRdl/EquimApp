@@ -19,8 +19,7 @@ export const generateInviteLink = createAsyncThunk<
       throw new Error("Groupe non trouvé");
     }
 
-    // @ts-expect-error - Method renamed to generateInvitation, needs refactor
-    const inviteLink = await groupGateway.generateInviteLink(groupId);
-    return inviteLink;
+    const result = await groupGateway.generateInvitation(groupId);
+    return result.link;
   },
 );

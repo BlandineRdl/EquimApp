@@ -20,13 +20,17 @@ export const acceptInvitation = createAsyncThunk<
 >(
   "groups/acceptInvitation",
   async ({ token, pseudo, monthlyIncome }, { extra: { groupGateway } }) => {
+    console.log("🎯 [acceptInvitation] Starting with token:", token, "pseudo:", pseudo, "income:", monthlyIncome);
+
     // Validate token
-    if (!token || !token.startsWith(INVITATION_TOKEN_PREFIX)) {
+    if (!token || !token.trim()) {
+      console.error("❌ [acceptInvitation] Invalid token");
       throw new Error("Token d'invitation invalide");
     }
 
     // Validate member data
     if (!pseudo.trim()) {
+      console.error("❌ [acceptInvitation] Invalid pseudo");
       throw new Error("Le pseudo ne peut pas être vide");
     }
 
@@ -63,7 +67,9 @@ export const acceptInvitation = createAsyncThunk<
     }
 
     // Now accept invitation
+    console.log("🚀 [acceptInvitation] Calling gateway.acceptInvitation with token:", token);
     const result = await groupGateway.acceptInvitation(token);
+    console.log("✅ [acceptInvitation] Success, groupId:", result.groupId);
     return { groupId: result.groupId };
   },
 );

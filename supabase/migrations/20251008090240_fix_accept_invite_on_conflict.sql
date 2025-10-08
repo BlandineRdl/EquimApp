@@ -1,5 +1,5 @@
--- RPC function to atomically accept a group invitation
--- Validates token, adds user to group, marks invitation as consumed, calculates shares
+-- Fix accept_invite RPC to handle partial unique index on group_members
+-- The ON CONFLICT clause doesn't work with partial indexes, so we check manually
 
 CREATE OR REPLACE FUNCTION public.accept_invite(p_token TEXT)
 RETURNS JSON
@@ -64,6 +64,3 @@ BEGIN
   );
 END;
 $$;
-
--- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION public.accept_invite(TEXT) TO authenticated;

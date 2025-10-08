@@ -29,16 +29,15 @@ export default function SummaryScreen() {
 
   const handleCreateAccount = async () => {
     if (isCreating) return;
-    
+
     setIsCreating(true);
     try {
-      // Déclencher l'action completeOnboarding
-      await dispatch(completeOnboarding()).unwrap();
-      
-      // Rediriger vers l'accueil après succès
-      router.push("/home");
+      console.log("🚀 Starting completeOnboarding...");
+      const result = await dispatch(completeOnboarding()).unwrap();
+      console.log("✅ completeOnboarding succeeded:", result);
+      // Navigation automatique vers /home via _layout.tsx qui détecte profile
     } catch (error) {
-      console.error("Erreur lors de la création du compte:", error);
+      console.error("❌ Erreur lors de la création du compte:", error);
       // Garder l'utilisateur sur la page en cas d'erreur
     } finally {
       setIsCreating(false);

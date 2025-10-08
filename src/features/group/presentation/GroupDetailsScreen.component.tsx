@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Calendar, Plus, Trash2, Users } from "lucide-react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   RefreshControl,
   SafeAreaView,
@@ -52,6 +52,14 @@ export const GroupDetailsScreen = () => {
   const expenses = useSelector((state: AppState) =>
     groupId ? selectGroupExpenses(state, groupId) : [],
   );
+
+  // Load group on mount
+  useEffect(() => {
+    if (groupId) {
+      console.log("📋 [GroupDetails] Loading group:", groupId);
+      dispatch(loadGroupById(groupId));
+    }
+  }, [groupId, dispatch]);
 
   // Loading state
   if (!groupDetails || !groupStats) {
@@ -275,7 +283,14 @@ export const GroupDetailsScreen = () => {
             >
               <View style={styles.memberInfo}>
                 <View style={styles.memberFirstRow}>
-                  <Text style={styles.memberName}>{member.pseudo}</Text>
+                  <View style={styles.memberNameRow}>
+                    <Text style={styles.memberName}>{member.pseudo}</Text>
+                    {member.userId === group.creatorId && (
+                      <View style={styles.creatorBadge}>
+                        <Text style={styles.creatorBadgeText}>Créateur</Text>
+                      </View>
+                    )}
+                  </View>
                   <View style={styles.memberFirstRowRight}>
                     <Text style={styles.revenueLabel}>
                       Revenu:{" "}
@@ -650,10 +665,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  memberNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   memberName: {
     fontSize: 16,
     fontWeight: "500",
     color: "#000",
+  },
+  creatorBadge: {
+    backgroundColor: "#10b981",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  creatorBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
   },
   removeMemberButton: {
     padding: 4,

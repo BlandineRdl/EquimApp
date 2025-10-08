@@ -15,7 +15,7 @@ export const getInvitationDetails = createAsyncThunk<
   "groups/getInvitationDetails",
   // @ts-expect-error - Return type mismatch needs refactor
   async ({ token }, { extra: { groupGateway } }) => {
-    if (!token || !token.startsWith(INVITATION_TOKEN_PREFIX)) {
+    if (!token || !token.trim()) {
       throw new Error("Token d'invitation invalide");
     }
 

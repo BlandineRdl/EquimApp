@@ -280,35 +280,20 @@ export class SupabaseGroupGateway implements GroupGateway {
 		groupId: string,
 	): Promise<{ token: string; link: string }> {
 		try {
-			// Get current user
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
-			if (!user) throw new Error("Not authenticated");
-
-			// Generate cryptographic token (32 bytes base64url)
-			const tokenBytes = new Uint8Array(32);
-			crypto.getRandomValues(tokenBytes);
-			let token = btoa(String.fromCharCode(...tokenBytes))
-				.replace(/\+/g, "-")
-				.replace(/\//g, "_")
-				.replace(/=/g, "");
-
-			// Insert invitation with 7-day expiry
-			const expiresAt = new Date();
-			expiresAt.setDate(expiresAt.getDate() + 7);
-
-			const { error } = await supabase.from("invitations").insert({
-				group_id: groupId,
-				token,
-				created_by: user.id,
-				expires_at: expiresAt.toISOString(),
+			// Call RPC to generate secure token server-side
+			const { data, error } = await supabase.rpc("generate_invitation", {
+				p_group_id: groupId,
 			});
 
 			if (error) {
 				throw createUserFriendlyError(error);
 			}
 
+			if (!data || !data.token) {
+				throw new Error("Token d'invitation non généré");
+			}
+
+			const token = data.token;
 			const link = `equimapp://invite/${token}`;
 
 			return { token, link };
@@ -350,20 +335,24 @@ export class SupabaseGroupGateway implements GroupGateway {
 		token: string,
 	): Promise<{ groupId: string; shares: Shares }> {
 		try {
+			console.log("🔍 [Gateway] Calling accept_invite RPC with token:", token);
 			const { data, error } = await supabase.rpc("accept_invite", {
 				p_token: token,
 			});
 
 			if (error) {
+				console.error("❌ [Gateway] RPC error:", error);
 				throw createUserFriendlyError(error);
 			}
 
+			console.log("✅ [Gateway] RPC success, data:", data);
 			const result = data as any;
 			return {
 				groupId: result.group_id,
 				shares: result.shares,
 			};
 		} catch (error) {
+			console.error("❌ [Gateway] Catch error:", error);
 			throw createUserFriendlyError(error);
 		}
 	}

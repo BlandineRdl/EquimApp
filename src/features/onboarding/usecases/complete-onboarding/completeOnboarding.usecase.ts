@@ -7,7 +7,7 @@ import type {
 } from "../../ports/OnboardingGateway";
 
 export const completeOnboarding = createAsyncThunk<
-  CompleteOnboardingResult,
+  CompleteOnboardingResult & { profile: { pseudo: string; income: number } },
   void,
   {
     state: AppState;
@@ -35,6 +35,15 @@ export const completeOnboarding = createAsyncThunk<
       })),
     };
 
-    return onboardingGateway.completeOnboarding(onboardingInput);
+    const result = await onboardingGateway.completeOnboarding(onboardingInput);
+
+    // Add profile data to the result for the user slice
+    return {
+      ...result,
+      profile: {
+        pseudo: onboarding.pseudo.trim(),
+        income: parseFloat(onboarding.monthlyIncome) || 0,
+      },
+    };
   },
 );

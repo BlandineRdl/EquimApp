@@ -2,6 +2,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { User } from "../domain/user.model";
 import { loadUserProfile } from "../usecases/loadUserProfile.usecase";
+import { completeOnboarding } from "../../onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
 
 interface UserState {
   profile: User | null;
@@ -36,6 +37,19 @@ export const userSlice = createSlice({
       .addCase(loadUserProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to load profile";
+      })
+      // Listen to completeOnboarding to set profile immediately
+      .addCase(completeOnboarding.fulfilled, (state, action) => {
+        // Profile was just created - set it from the payload
+        console.log("🎯 completeOnboarding.fulfilled received in user slice!");
+        console.log("📦 Payload:", action.payload);
+        state.loading = false;
+        state.profile = {
+          id: action.payload.profileId,
+          pseudo: action.payload.profile.pseudo,
+          income: action.payload.profile.income,
+        };
+        console.log("✅ Profile set in state:", state.profile);
       });
   },
 });

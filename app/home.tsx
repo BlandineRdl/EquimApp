@@ -1,17 +1,17 @@
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import {
     BarChart3,
     ChevronRight,
     Home,
+    Link2,
     Lightbulb,
     Plus,
-    QrCode,
     Settings,
-    UserPlus,
     Users,
 } from "lucide-react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
+    RefreshControl,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -22,6 +22,7 @@ import {
 import { useSelector } from "react-redux";
 import { GroupsHome } from "../src/features/group/presentation/groupsHome.component";
 import { InviteModal } from "../src/features/group/presentation/InviteModal.component";
+import { JoinGroupModal } from "../src/features/group/presentation/JoinGroupModal.component";
 import { selectAllGroups } from "../src/features/group/presentation/selectGroup.selector";
 import { selectUserProfile } from "../src/features/user/presentation/selectUser.selector";
 import { loadUserGroups } from "../src/features/group/usecases/load-groups/loadGroups.usecase";
@@ -34,13 +35,17 @@ export default function HomeScreen() {
     const user = useSelector(selectUserProfile);
     const groups = useSelector(selectAllGroups);
     const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
+    const [isJoinModalVisible, setIsJoinModalVisible] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const router = useRouter();
 
-    // Load user groups on mount
-    useEffect(() => {
-        console.log("🏠 Home screen mounted, loading groups...");
-        dispatch(loadUserGroups());
-    }, [dispatch]);
+    // Load user groups on mount and when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            console.log("🏠 Home screen focused, loading groups...");
+            dispatch(loadUserGroups());
+        }, [dispatch])
+    );
 
     const openInviteModal = () => {
         setIsInviteModalVisible(true);
@@ -49,6 +54,33 @@ export default function HomeScreen() {
     const closeInviteModal = () => {
         setIsInviteModalVisible(false);
     };
+
+    const openJoinModal = () => {
+        setIsJoinModalVisible(true);
+    };
+
+    const closeJoinModal = () => {
+        setIsJoinModalVisible(false);
+    };
+
+    const handleJoinGroup = (inviteLink: string) => {
+        // Extract token from link (equimapp://invite/TOKEN)
+        const token = inviteLink.split("/").pop();
+        if (token) {
+            // Navigate to accept invitation screen with token
+            router.push(`/group/accept-invitation?token=${token}`);
+            closeJoinModal();
+        }
+    };
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        console.log("🔄 Refreshing groups...");
+        await dispatch(loadUserGroups()).unwrap().catch((err) => {
+            console.error("Error refreshing groups:", err);
+        });
+        setRefreshing(false);
+    }, [dispatch]);
 
     const navigateToGroupDetails = (groupId: string) => {
         router.push({ pathname: "/group/[groupId]" as "/group/[groupId]", params: { groupId } });
@@ -67,7 +99,18 @@ export default function HomeScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <ScrollView
+                style={styles.scrollView}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor="#10b981"
+                        colors={["#10b981"]}
+                    />
+                }
+            >
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
@@ -87,26 +130,16 @@ export default function HomeScreen() {
                     onOpenInviteModal={openInviteModal}
                 />
 
-                {/* Quick Actions Grid */}
+                {/* Quick Actions */}
                 <View style={styles.quickActionsGrid}>
                     <TouchableOpacity style={styles.gridActionButton}>
-                        <Plus size={16} color="#fff" style={{ marginRight: 8 }} />
-                        <Text style={styles.gridActionButtonText}>Nouvelle dépense</Text>
+                        <Plus size={20} color="#fff" style={{ marginRight: 8 }} />
+                        <Text style={styles.gridActionButtonText}>Créer un groupe</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.gridActionButtonSecondary}>
-                        <BarChart3 size={16} color="#374151" style={{ marginRight: 8 }} />
-                        <Text style={styles.gridActionButtonSecondaryText}>Créer un groupe</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.gridActionButtonSecondary} onPress={openInviteModal}>
-                        <UserPlus size={16} color="#374151" style={{ marginRight: 8 }} />
-                        <Text style={styles.gridActionButtonSecondaryText}>Inviter</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.gridActionButtonSecondary}>
-                        <QrCode size={16} color="#374151" style={{ marginRight: 8 }} />
-                        <Text style={styles.gridActionButtonSecondaryText}>Scanner</Text>
+                    <TouchableOpacity style={styles.gridActionButtonSecondary} onPress={openJoinModal}>
+                        <Link2 size={20} color="#374151" style={{ marginRight: 8 }} />
+                        <Text style={styles.gridActionButtonSecondaryText}>Rejoindre un groupe</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -168,6 +201,13 @@ export default function HomeScreen() {
                 onClose={closeInviteModal}
                 groupId={groups[0]?.id}
                 groupName={groups[0]?.name}
+            />
+
+            {/* Modal pour rejoindre un groupe */}
+            <JoinGroupModal
+                isVisible={isJoinModalVisible}
+                onClose={closeJoinModal}
+                onJoin={handleJoinGroup}
             />
         </SafeAreaView>
     );

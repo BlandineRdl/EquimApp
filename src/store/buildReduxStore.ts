@@ -9,6 +9,7 @@ import type { AuthGateway } from "../features/auth/ports/AuthGateway";
 import authReducer from "../features/auth/store/authSlice";
 import type { GroupGateway } from "../features/group/ports/GroupGateway";
 import { groupReducer } from "../features/group/store/group.slice";
+import { groupListeners } from "../features/group/store/group.listeners";
 import { notificationListeners } from "../features/notification/store/notification.listeners";
 import { notificationReducer } from "../features/notification/store/notification.slice";
 import type { OnboardingGateway } from "../features/onboarding/ports/OnboardingGateway";
@@ -62,7 +63,9 @@ export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
             groupGateway: dependencies.groupGateway,
           },
         },
-      }).prepend(notificationListeners.middleware),
+      })
+        .prepend(notificationListeners.middleware)
+        .prepend(groupListeners.middleware),
     // @ts-expect-error - Redux DevTools Expo plugin type mismatch
     enhancers: (getDefaultEnhancers) => {
       if (isTestEnvironment) {
