@@ -1,5 +1,6 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { logger } from "../lib/logger";
 
 interface Props {
 	children: ReactNode;
@@ -33,8 +34,8 @@ export class ErrorBoundary extends Component<Props, State> {
 	}
 
 	componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-		// Log error to console in development
-		console.error("ErrorBoundary caught an error:", error, errorInfo);
+		// Log error
+		logger.error("ErrorBoundary caught an error", error, { errorInfo });
 
 		// TODO: Log to error reporting service (e.g., Sentry)
 		// logErrorToService(error, errorInfo);
@@ -56,11 +57,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
 			// Default fallback UI
 			return (
-				<View style={styles.container}>
+				<View
+					style={styles.container}
+					accessibilityLiveRegion="assertive"
+					accessible={true}
+					accessibilityLabel="Erreur survenue"
+				>
 					<View style={styles.content}>
 						<Text style={styles.emoji}>⚠️</Text>
-						<Text style={styles.title}>Oups, une erreur est survenue</Text>
-						<Text style={styles.message}>
+						<Text style={styles.title} accessibilityRole="header">Oups, une erreur est survenue</Text>
+						<Text
+							style={styles.message}
+							accessibilityLiveRegion="polite"
+						>
 							{this.state.error.message || "Une erreur inattendue s'est produite"}
 						</Text>
 						{__DEV__ && (

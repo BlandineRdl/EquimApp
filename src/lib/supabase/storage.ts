@@ -4,6 +4,7 @@
  * - Expo Go: Uses in-memory storage (sessions don't persist)
  */
 import Constants from "expo-constants";
+import { logger } from "../logger";
 
 // Check if we're in a Development Build or Expo Go
 const isExpoGo = Constants.appOwnership === "expo";
@@ -21,7 +22,7 @@ if (!isExpoGo) {
 	try {
 		SecureStore = require("expo-secure-store");
 	} catch (e) {
-		console.warn("expo-secure-store not available, using in-memory storage");
+		logger.warn("expo-secure-store not available, using in-memory storage");
 	}
 }
 
@@ -39,7 +40,7 @@ export const ExpoSecureStoreAdapter = {
 			const value = memoryStorage.get(key);
 			return value || null;
 		} catch (error) {
-			console.error("Error getting item from storage:", error);
+			logger.error("Error getting item from storage", error);
 			return null;
 		}
 	},
@@ -53,7 +54,7 @@ export const ExpoSecureStoreAdapter = {
 			// Fallback to memory storage in Expo Go
 			memoryStorage.set(key, value);
 		} catch (error) {
-			console.error("Error setting item in storage:", error);
+			logger.error("Error setting item in storage", error);
 		}
 	},
 	async removeItem(key: string) {
@@ -66,7 +67,7 @@ export const ExpoSecureStoreAdapter = {
 			// Fallback to memory storage in Expo Go
 			memoryStorage.delete(key);
 		} catch (error) {
-			console.error("Error removing item from storage:", error);
+			logger.error("Error removing item from storage", error);
 		}
 	},
 };

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 
+import { logger } from "../../../lib/logger";
 import { setupAuthDeepLinking } from "../../../lib/supabase/auth";
 import type { AppState } from "../../../store/appState";
 import { useAppDispatch } from "../../../store/buildReduxStore";
@@ -44,9 +45,9 @@ export function useAuthInit() {
 
 	// Load user profile when authenticated
 	useEffect(() => {
-		console.log("👤 Auth status changed - isAuthenticated:", isAuthenticated);
+		logger.debug("Auth status changed", { isAuthenticated });
 		if (isAuthenticated) {
-			console.log("✅ User authenticated, loading profile...");
+			logger.info("User authenticated, loading profile");
 			dispatch(loadUserProfile());
 		}
 	}, [isAuthenticated, dispatch]);

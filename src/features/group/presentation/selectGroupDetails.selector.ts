@@ -1,4 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
+import { logger } from "../../../lib/logger";
 import type { AppState } from "../../../store/appState";
 import type { GroupMember as StoreGroupMember } from "../domain/group.model";
 import type { MemberShare } from "../ports/GroupGateway";
@@ -31,8 +32,8 @@ export const selectGroupDetails = createSelector(
     const totalExpenses = group.shares?.totalExpenses || 0;
 
     // DEBUG: Log pour voir ce qui arrive du backend
-    console.log('🔍 DEBUG shares from backend:', JSON.stringify(group.shares, null, 2));
-    console.log('🔍 DEBUG members:', members.map(m => ({ id: m.id, pseudo: m.pseudo })));
+    logger.debug('DEBUG shares from backend', { shares: group.shares });
+    logger.debug('DEBUG members', { members: members.map(m => ({ id: m.id, pseudo: m.pseudo })) });
 
     const sharesByMemberId = new Map(
       group.shares?.shares.map((share: MemberShare) => [share.memberId, share]) || []
@@ -41,7 +42,7 @@ export const selectGroupDetails = createSelector(
     // Mapper les membres avec leurs shares
     const membersWithShares: GroupMemberWithShare[] = members.map((member) => {
       const share = sharesByMemberId.get(member.id);
-      console.log(`🔍 Member ${member.pseudo} (id: ${member.id}) -> share:`, share);
+      logger.debug(`Member mapping`, { pseudo: member.pseudo, id: member.id, share });
       return {
         ...member,
         sharePercentage: share?.sharePercentage || 0,

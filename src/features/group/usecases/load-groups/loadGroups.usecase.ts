@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { logger } from "../../../../lib/logger";
 import type { AppState } from "../../../../store/appState";
 import type { Group } from "../../domain/group.model";
 import type { GroupGateway } from "../../ports/GroupGateway";
@@ -17,16 +18,16 @@ export const loadUserGroups = createAsyncThunk<
     throw new Error("User not authenticated");
   }
 
-  console.log("📦 Loading groups for user:", user.id);
+  logger.debug("Loading groups for user", { userId: user.id });
 
   // First, get group summaries
   const groupSummaries = await groupGateway.getGroupsByUserId(user.id);
-  console.log("📊 Found groups:", groupSummaries.length);
+  logger.debug("Found groups", { count: groupSummaries.length });
 
   // Then, load full details for each group (to get members and expenses)
   const fullGroups = await Promise.all(
     groupSummaries.map(async (summary) => {
-      console.log("🔍 Loading details for group:", summary.name);
+      logger.debug("Loading details for group", { name: summary.name });
       const fullGroup = await groupGateway.getGroupById(summary.id);
       // Convert GroupFull to Group by adding computed totalMonthlyBudget
       const group: Group = {
@@ -37,6 +38,6 @@ export const loadUserGroups = createAsyncThunk<
     })
   );
 
-  console.log("✅ Loaded full groups:", fullGroups.length);
+  logger.info("Loaded full groups", { count: fullGroups.length });
   return fullGroups;
 });

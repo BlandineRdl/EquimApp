@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	ActivityIndicator,
 	KeyboardAvoidingView,
@@ -18,6 +18,9 @@ import type { AppState } from "../../src/store/appState";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 import { signInWithEmail } from "../../src/features/auth/usecases/signInWithEmail.usecase";
 import { verifyOtp } from "../../src/features/auth/usecases/verifyOtp.usecase";
+import { RateLimiter } from "../../src/lib/rateLimiter";
+
+const rateLimiter = new RateLimiter('auth-signin', 5, 1000);
 
 export default function SignInScreen() {
 	const dispatch = useAppDispatch();
@@ -27,9 +30,10 @@ export default function SignInScreen() {
 	const [otp, setOtp] = useState("");
 	const [emailSent, setEmailSent] = useState(false);
 	const [resendTimer, setResendTimer] = useState(0);
+	const [rateLimitError, setRateLimitError] = useState<string | null>(null);
 
 	// Countdown timer for resend button
-	React.useEffect(() => {
+	useEffect(() => {
 		if (resendTimer > 0) {
 			const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
 			return () => clearTimeout(timer);
@@ -37,21 +41,47 @@ export default function SignInScreen() {
 	}, [resendTimer]);
 
 	const handleSignIn = async () => {
+		setRateLimitError(null);
+
+		// Check rate limit
+		const { allowed, retryAfter } = await rateLimiter.canAttempt();
+		if (!allowed) {
+			setRateLimitError(
+				`Trop de tentatives. Veuillez réessayer dans ${retryAfter} secondes.`
+			);
+			return;
+		}
+
 		try {
 			await dispatch(signInWithEmail(email)).unwrap();
+			await rateLimiter.recordSuccess();
 			setEmailSent(true);
 			setResendTimer(30); // 30 seconds cooldown
 		} catch (err) {
+			await rateLimiter.recordFailure();
 			// Error is handled by Redux slice and displayed in UI
 		}
 	};
 
 	const handleResendCode = async () => {
+		setRateLimitError(null);
+
+		// Check rate limit
+		const { allowed, retryAfter } = await rateLimiter.canAttempt();
+		if (!allowed) {
+			setRateLimitError(
+				`Trop de tentatives. Veuillez réessayer dans ${retryAfter} secondes.`
+			);
+			return;
+		}
+
 		try {
 			await dispatch(signInWithEmail(email)).unwrap();
+			await rateLimiter.recordSuccess();
 			setOtp(""); // Clear current OTP input
 			setResendTimer(30); // Reset timer
 		} catch (err) {
+			await rateLimiter.recordFailure();
 			// Error is handled by Redux slice
 		}
 	};
@@ -202,7 +232,24 @@ export default function SignInScreen() {
 							editable={!isLoading}
 						/>
 
-						{error && <Text style={styles.errorText}>{error}</Text>}
+						{error && (
+							<Text
+								style={styles.errorText}
+								accessibilityLiveRegion="assertive"
+								accessibilityRole="alert"
+							>
+								{error}
+							</Text>
+						)}
+						{rateLimitError && (
+							<Text
+								style={styles.errorText}
+								accessibilityLiveRegion="assertive"
+								accessibilityRole="alert"
+							>
+								{rateLimitError}
+							</Text>
+						)}
 
 						{/* Info box */}
 						<View style={styles.infoBox}>

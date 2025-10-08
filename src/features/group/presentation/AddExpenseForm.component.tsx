@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 
-interface AddExpenseFormProps {
+export interface AddExpenseFormProps {
   onSubmit: (expense: { name: string; amount: number }) => void;
   onCancel: () => void;
   currency?: string;

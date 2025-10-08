@@ -5,6 +5,7 @@ import {
   type ThunkDispatch,
 } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
+import { logger } from "../lib/logger";
 import type { AuthGateway } from "../features/auth/ports/AuthGateway";
 import authReducer from "../features/auth/store/authSlice";
 import type { GroupGateway } from "../features/group/ports/GroupGateway";
@@ -38,7 +39,7 @@ if (!isTestEnvironment) {
   try {
     devToolsEnhancer = require("redux-devtools-expo-dev-plugin").default;
   } catch (error) {
-    console.warn("Redux DevTools Expo plugin not available:", error);
+    logger.warn("Redux DevTools Expo plugin not available");
     devToolsEnhancer = () => (next) => next;
   }
 }

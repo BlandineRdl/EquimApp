@@ -1,6 +1,7 @@
 import * as Linking from "expo-linking";
 import type { Session } from "@supabase/supabase-js";
 
+import { logger } from "../logger";
 import { supabase } from "./client";
 
 /**
@@ -10,7 +11,7 @@ export async function getSession(): Promise<Session | null> {
 	const { data, error } = await supabase.auth.getSession();
 
 	if (error) {
-		console.error("Error getting session:", error);
+		logger.error("Error getting session", error);
 		return null;
 	}
 
@@ -75,7 +76,7 @@ async function handleAuthRedirect(url: string) {
 		});
 
 		if (error) {
-			console.error("Error setting session from deep link:", error);
+			logger.error("Error setting session from deep link", error);
 		}
 	}
 }

@@ -1,5 +1,6 @@
 // src/features/user/store/user.slice.ts
 import { createSlice } from "@reduxjs/toolkit";
+import { logger } from "../../../lib/logger";
 import type { User } from "../domain/user.model";
 import { loadUserProfile } from "../usecases/loadUserProfile.usecase";
 import { completeOnboarding } from "../../onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
@@ -41,15 +42,15 @@ export const userSlice = createSlice({
       // Listen to completeOnboarding to set profile immediately
       .addCase(completeOnboarding.fulfilled, (state, action) => {
         // Profile was just created - set it from the payload
-        console.log("🎯 completeOnboarding.fulfilled received in user slice!");
-        console.log("📦 Payload:", action.payload);
+        logger.debug("completeOnboarding.fulfilled received in user slice");
+        logger.debug("Payload", { payload: action.payload });
         state.loading = false;
         state.profile = {
           id: action.payload.profileId,
           pseudo: action.payload.profile.pseudo,
           income: action.payload.profile.income,
         };
-        console.log("✅ Profile set in state:", state.profile);
+        logger.debug("Profile set in state", { profile: state.profile });
       });
   },
 });

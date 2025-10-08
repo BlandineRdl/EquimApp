@@ -1,5 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
 
+import { logger } from "../../../lib/logger";
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
 
@@ -68,7 +69,7 @@ export class SupabaseAuthGateway implements AuthGateway {
 
 			return data.session;
 		} catch (error) {
-			console.error("Error getting session:", error);
+			logger.error("Error getting session", error);
 			return null;
 		}
 	}

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { X } from "lucide-react-native";
 
-interface JoinGroupModalProps {
+export interface JoinGroupModalProps {
   isVisible: boolean;
   onClose: () => void;
   onJoin: (inviteLink: string) => void;

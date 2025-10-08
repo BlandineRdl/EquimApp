@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { logger } from "../../../lib/logger";
 import type { AppState } from "../../../store/appState";
 import type { UserGateway } from "../ports/UserGateway";
 
@@ -11,23 +12,23 @@ export const loadUserProfile = createAsyncThunk<
 	void,
 	{ state: AppState; extra: { userGateway: UserGateway } }
 >("user/loadProfile", async (_, { getState, extra: { userGateway } }) => {
-	console.log("📋 loadUserProfile usecase started");
+	logger.debug("loadUserProfile usecase started");
 	const userId = getState().auth.userId;
-	console.log("📋 Current userId from state:", userId);
+	logger.debug("Current userId from state", { userId });
 
 	if (!userId) {
-		console.error("❌ No userId in state!");
+		logger.error("No userId in state");
 		throw new Error("User not authenticated");
 	}
 
 	const profile = await userGateway.getProfileById(userId);
 
 	if (!profile) {
-		console.log("ℹ️ No profile found - user needs onboarding");
+		logger.info("No profile found - user needs onboarding");
 		return null; // User needs onboarding
 	}
 
-	console.log("✅ Profile loaded in usecase:", profile.pseudo);
+	logger.info("Profile loaded in usecase", { pseudo: profile.pseudo });
 	return {
 		id: profile.id,
 		pseudo: profile.pseudo,

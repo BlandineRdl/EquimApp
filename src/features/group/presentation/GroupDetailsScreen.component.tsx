@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
+import { logger } from "../../../lib/logger";
 import type { AppState } from "../../../store/appState";
 import { useAppDispatch } from "../../../store/buildReduxStore";
 import {
@@ -56,7 +57,7 @@ export const GroupDetailsScreen = () => {
   // Load group on mount
   useEffect(() => {
     if (groupId) {
-      console.log("📋 [GroupDetails] Loading group:", groupId);
+      logger.debug("[GroupDetails] Loading group", { groupId });
       dispatch(loadGroupById(groupId));
     }
   }, [groupId, dispatch]);
@@ -109,7 +110,7 @@ export const GroupDetailsScreen = () => {
     try {
       await dispatch(loadGroupById(groupId)).unwrap();
     } catch (error) {
-      console.error("Error refreshing group:", error);
+      logger.error("Error refreshing group", error);
     } finally {
       setRefreshing(false);
     }
@@ -120,7 +121,7 @@ export const GroupDetailsScreen = () => {
     try {
       await dispatch(removeMemberFromGroup({ groupId, memberId })).unwrap();
     } catch (error: any) {
-      console.error("Error removing member:", error.message);
+      logger.error("Error removing member", error);
     }
   };
 

@@ -1,3 +1,4 @@
+import { logger } from "../../../lib/logger";
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
 import type { MemberShare } from "../../../types/database.types";
@@ -28,7 +29,7 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
 			});
 
 			if (error) {
-				console.error("❌ Supabase RPC error:", error);
+				logger.error("Supabase RPC error", error);
 				throw createUserFriendlyError(error);
 			}
 
@@ -36,13 +37,12 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
 				throw new Error("Aucune donnée retournée par complete_onboarding");
 			}
 
-			console.log("✅ Raw data type:", typeof data);
-			console.log("✅ Raw data:", JSON.stringify(data, null, 2));
+			logger.debug("Raw data received", { dataType: typeof data, data });
 
 			// Parse JSON if it's a string
 			const result = typeof data === "string" ? JSON.parse(data) : data;
 
-			console.log("✅ Parsed result:", JSON.stringify(result, null, 2));
+			logger.debug("Parsed result", { result });
 
 			// Validate result structure
 			if (!result.profile_id || !result.group_id || !result.shares) {

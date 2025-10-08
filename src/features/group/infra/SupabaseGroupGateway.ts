@@ -3,6 +3,7 @@ import type {
 	RealtimePostgresChangesPayload,
 } from "@supabase/supabase-js";
 
+import { logger } from "../../../lib/logger";
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
 import type {
@@ -74,7 +75,7 @@ export class SupabaseGroupGateway implements GroupGateway {
 
 	async getGroupsByUserId(userId: string): Promise<GroupSummary[]> {
 		try {
-			console.log("📂 Fetching groups for user:", userId);
+			logger.debug("Fetching groups for user", { userId });
 
 			// Get all groups where user is a member
 			const { data: groupMembers, error: membersError } = await supabase
@@ -93,14 +94,14 @@ export class SupabaseGroupGateway implements GroupGateway {
 				.eq("user_id", userId);
 
 			if (membersError) {
-				console.error("❌ Error fetching group members:", membersError);
+				logger.error("Error fetching group members", membersError);
 				throw createUserFriendlyError(membersError);
 			}
 
-			console.log("📊 Found group memberships:", groupMembers?.length || 0);
+			logger.debug("Found group memberships", { count: groupMembers?.length || 0 });
 
 			if (!groupMembers || groupMembers.length === 0) {
-				console.log("ℹ️  User is not member of any group");
+				logger.info("User is not member of any group");
 				return [];
 			}
 
@@ -362,7 +363,7 @@ export class SupabaseGroupGateway implements GroupGateway {
 				isConsumed: preview.is_consumed,
 			};
 		} catch (error) {
-			console.error("Error getting invitation details:", error);
+			logger.error("Error getting invitation details", error);
 			return null;
 		}
 	}
@@ -371,17 +372,17 @@ export class SupabaseGroupGateway implements GroupGateway {
 		token: string,
 	): Promise<{ groupId: string; shares: Shares }> {
 		try {
-			console.log("🔍 [Gateway] Calling accept_invite RPC with token:", token);
+			logger.debug("[Gateway] Calling accept_invite RPC", { token });
 			const { data, error } = await supabase.rpc("accept_invite", {
 				p_token: token,
 			});
 
 			if (error) {
-				console.error("❌ [Gateway] RPC error:", error);
+				logger.error("[Gateway] RPC error", error);
 				throw createUserFriendlyError(error);
 			}
 
-			console.log("✅ [Gateway] RPC success, data:", data);
+			logger.debug("[Gateway] RPC success", { data });
 			const result = data as unknown as AcceptInviteResult;
 			return {
 				groupId: result.group_id,
@@ -397,7 +398,7 @@ export class SupabaseGroupGateway implements GroupGateway {
 				},
 			};
 		} catch (error) {
-			console.error("❌ [Gateway] Catch error:", error);
+			logger.error("[Gateway] Catch error", error);
 			throw createUserFriendlyError(error);
 		}
 	}

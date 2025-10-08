@@ -1,4 +1,5 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit";
+import { logger } from "../../../lib/logger";
 import type { AppState } from "../../../store/appState";
 import { groupGatewayInstance } from "../infra/groupGatewayInstance";
 import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
@@ -16,36 +17,36 @@ groupListeners.startListening({
 
     // Unsubscribe from previous subscription if exists
     if (subscriptions.has(groupId)) {
-      console.log("🔄 [GroupListeners] Replacing existing subscription for group:", groupId);
+      logger.debug("[GroupListeners] Replacing existing subscription", { groupId });
       subscriptions.get(groupId)?.();
       subscriptions.delete(groupId);
     }
 
-    console.log("🔔 [GroupListeners] Subscribing to group updates:", groupId);
+    logger.info("[GroupListeners] Subscribing to group updates", { groupId });
 
     const unsubscribe = groupGatewayInstance.subscribe(groupId, {
       onMemberAdded: (member) => {
-        console.log("✅ [Realtime] Member added:", member.pseudo);
+        logger.info("[Realtime] Member added", { pseudo: member.pseudo });
         // Reload group to get updated shares
         dispatch(loadGroupById(groupId));
       },
       onMemberRemoved: (memberId) => {
-        console.log("❌ [Realtime] Member removed:", memberId);
+        logger.info("[Realtime] Member removed", { memberId });
         // Reload group to get updated shares
         dispatch(loadGroupById(groupId));
       },
       onExpenseAdded: (expense) => {
-        console.log("💰 [Realtime] Expense added:", expense.name);
+        logger.info("[Realtime] Expense added", { name: expense.name });
         // Reload group to get updated expenses and shares
         dispatch(loadGroupById(groupId));
       },
       onExpenseUpdated: (expense) => {
-        console.log("📝 [Realtime] Expense updated:", expense.name);
+        logger.info("[Realtime] Expense updated", { name: expense.name });
         // Reload group to get updated expenses and shares
         dispatch(loadGroupById(groupId));
       },
       onExpenseDeleted: (expenseId) => {
-        console.log("🗑️ [Realtime] Expense deleted:", expenseId);
+        logger.info("[Realtime] Expense deleted", { expenseId });
         // Reload group to get updated expenses and shares
         dispatch(loadGroupById(groupId));
       },

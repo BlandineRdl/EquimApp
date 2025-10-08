@@ -7,6 +7,7 @@ import {
 	Text,
 	View,
 } from "react-native";
+import { logger } from "../../src/lib/logger";
 import { supabase } from "../../src/lib/supabase/client";
 
 /**
@@ -41,7 +42,7 @@ export default function AuthCallbackScreen() {
 				setMessage("Session introuvable. Veuillez réessayer.");
 			}
 		} catch (error) {
-			console.error("Auth callback error:", error);
+			logger.error("Auth callback error", error);
 			setStatus("error");
 			setMessage("Une erreur est survenue lors de la connexion.");
 		}

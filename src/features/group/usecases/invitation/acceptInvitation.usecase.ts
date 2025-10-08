@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { logger } from "../../../../lib/logger";
 import type { AppState } from "../../../../store/appState";
 import { supabase } from "../../../../lib/supabase/client";
 import { INVITATION_TOKEN_PREFIX, MIN_PSEUDO_LENGTH } from "../../domain/group.constants";
@@ -20,17 +21,17 @@ export const acceptInvitation = createAsyncThunk<
 >(
   "groups/acceptInvitation",
   async ({ token, pseudo, monthlyIncome }, { extra: { groupGateway } }) => {
-    console.log("🎯 [acceptInvitation] Starting with token:", token, "pseudo:", pseudo, "income:", monthlyIncome);
+    logger.debug("[acceptInvitation] Starting", { token, pseudo, income: monthlyIncome });
 
     // Validate token
     if (!token || !token.trim()) {
-      console.error("❌ [acceptInvitation] Invalid token");
+      logger.error("[acceptInvitation] Invalid token");
       throw new Error("Token d'invitation invalide");
     }
 
     // Validate member data
     if (!pseudo.trim()) {
-      console.error("❌ [acceptInvitation] Invalid pseudo");
+      logger.error("[acceptInvitation] Invalid pseudo");
       throw new Error("Le pseudo ne peut pas être vide");
     }
 
@@ -67,9 +68,9 @@ export const acceptInvitation = createAsyncThunk<
     }
 
     // Now accept invitation
-    console.log("🚀 [acceptInvitation] Calling gateway.acceptInvitation with token:", token);
+    logger.debug("[acceptInvitation] Calling gateway.acceptInvitation", { token });
     const result = await groupGateway.acceptInvitation(token);
-    console.log("✅ [acceptInvitation] Success, groupId:", result.groupId);
+    logger.info("[acceptInvitation] Success", { groupId: result.groupId });
     return { groupId: result.groupId };
   },
 );

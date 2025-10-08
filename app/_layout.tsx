@@ -8,6 +8,7 @@ import { SupabaseAuthGateway } from "../src/features/auth/infra/SupabaseAuthGate
 import { SupabaseGroupGateway } from "../src/features/group/infra/SupabaseGroupGateway";
 import { SupabaseOnboardingGateway } from "../src/features/onboarding/infra/SupabaseOnboardingGateway";
 import { SupabaseUserGateway } from "../src/features/user/infra/SupabaseUserGateway";
+import { logger } from "../src/lib/logger";
 import type { AppState } from "../src/store/appState";
 import { initReduxStore } from "../src/store/buildReduxStore";
 
@@ -28,7 +29,7 @@ function AppContent() {
   const { profile, loading: profileLoading } = useSelector((state: AppState) => state.user);
 
   useEffect(() => {
-    console.log("🔀 Navigation check:", {
+    logger.debug("Navigation check", {
       isLoading,
       profileLoading,
       isAuthenticated,
@@ -44,24 +45,24 @@ function AppContent() {
     // Wait a tick for router to be ready
     const timeout = setTimeout(() => {
       if (!isAuthenticated && !inAuthGroup) {
-        console.log("➡️  Redirecting to sign-in (not authenticated)");
+        logger.debug("Redirecting to sign-in (not authenticated)");
         router.replace("/auth/sign-in");
       } else if (isAuthenticated && inAuthGroup) {
         // User is authenticated, redirect based on profile status
         if (profile) {
-          console.log("➡️  Redirecting to /home (has profile)");
+          logger.debug("Redirecting to /home (has profile)");
           router.replace("/home");
         } else {
-          console.log("➡️  Redirecting to / (needs onboarding)");
+          logger.debug("Redirecting to / (needs onboarding)");
           router.replace("/");
         }
       } else if (isAuthenticated && profile && (!segments[0] || inOnboarding)) {
         // User has profile but is on root/undefined or onboarding
-        console.log("➡️  Redirecting to /home (has profile, needs redirect)");
+        logger.debug("Redirecting to /home (has profile, needs redirect)");
         router.replace("/home");
       } else if (isAuthenticated && !profile && !inOnboarding) {
         // User is authenticated but hasn't completed onboarding
-        console.log("➡️  Redirecting to / (authenticated but no profile)");
+        logger.debug("Redirecting to / (authenticated but no profile)");
         router.replace("/");
       }
     }, 0);

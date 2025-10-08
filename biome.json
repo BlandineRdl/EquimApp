@@ -6,21 +6,31 @@
     "useIgnoreFile": false
   },
   "files": {
-    "includes": ["src/**/*", "App.tsx", "*.config.js"]
+    "includes": ["src/**/*", "app/**/*", "App.tsx", "*.config.js"]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2
   },
+  "organizeImports": {
+    "enabled": true
+  },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true,
+      "style": {
+        "useImportType": "error"
+      },
       "nursery": {
         "useSortedClasses": "off"
       }
     }
   },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } }
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
+  }
 }

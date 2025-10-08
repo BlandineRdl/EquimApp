@@ -27,7 +27,7 @@ function MembersDisplay({ groupId }: { groupId: string }) {
   );
 }
 
-interface GroupsHomeProps {
+export interface GroupsHomeProps {
   onNavigateToGroupDetails: (groupId: string) => void;
   onOpenInviteModal: () => void;
 }

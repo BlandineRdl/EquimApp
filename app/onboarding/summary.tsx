@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSelector } from "react-redux";
+import { logger } from "../../src/lib/logger";
 import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import { selectOnboardingSummary } from "../../src/features/onboarding/presentation/onboarding.selectors";
 import { completeOnboarding } from "../../src/features/onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
@@ -32,12 +33,12 @@ export default function SummaryScreen() {
 
     setIsCreating(true);
     try {
-      console.log("🚀 Starting completeOnboarding...");
+      logger.info("Starting completeOnboarding");
       const result = await dispatch(completeOnboarding()).unwrap();
-      console.log("✅ completeOnboarding succeeded:", result);
+      logger.info("completeOnboarding succeeded", { result });
       // Navigation automatique vers /home via _layout.tsx qui détecte profile
     } catch (error) {
-      console.error("❌ Erreur lors de la création du compte:", error);
+      logger.error("Erreur lors de la création du compte", error);
       // Garder l'utilisateur sur la page en cas d'erreur
     } finally {
       setIsCreating(false);

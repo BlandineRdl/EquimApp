@@ -19,6 +19,7 @@ import { acceptInvitation } from "../../src/features/group/usecases/invitation/a
 import { INVITATION_TOKEN_PREFIX } from "../../src/features/group/domain/group.constants";
 import { loadUserProfile } from "../../src/features/user/usecases/loadUserProfile.usecase";
 import { loadUserGroups } from "../../src/features/group/usecases/load-groups/loadGroups.usecase";
+import { logger } from "../../src/lib/logger";
 
 export default function AcceptInvitationScreen() {
     const dispatch = useAppDispatch();
@@ -37,23 +38,23 @@ export default function AcceptInvitationScreen() {
 
     useEffect(() => {
         const loadData = async () => {
-            console.log("🔍 [AcceptInvitation] Starting with token:", token);
+            logger.debug("[AcceptInvitation] Starting", { token });
 
             if (!token) {
-                console.error("❌ [AcceptInvitation] No token provided");
+                logger.error("[AcceptInvitation] No token provided");
                 setError("Token d'invitation manquant");
                 setIsLoading(false);
                 return;
             }
 
             try {
-                console.log("📋 [AcceptInvitation] Loading user profile...");
+                logger.debug("[AcceptInvitation] Loading user profile");
                 const profileResult = await dispatch(loadUserProfile()).unwrap();
-                console.log("✅ [AcceptInvitation] Profile loaded:", profileResult);
+                logger.debug("[AcceptInvitation] Profile loaded", { profile: profileResult });
 
                 // If no profile, redirect to onboarding with return URL
                 if (!profileResult) {
-                    console.log("➡️ [AcceptInvitation] No profile, redirecting to onboarding");
+                    logger.info("[AcceptInvitation] No profile, redirecting to onboarding");
                     router.replace({
                         pathname: "/onboarding",
                         params: { returnTo: `/group/accept-invitation?token=${token}` },
@@ -61,7 +62,7 @@ export default function AcceptInvitationScreen() {
                     return;
                 }
 
-                console.log("🎯 [AcceptInvitation] Accepting invitation with token:", token);
+                logger.debug("[AcceptInvitation] Accepting invitation", { token });
                 // If profile exists, accept invitation directly
                 const result = await dispatch(
                     acceptInvitation({
@@ -71,14 +72,14 @@ export default function AcceptInvitationScreen() {
                     }),
                 ).unwrap();
 
-                console.log("✅ [AcceptInvitation] Invitation accepted, reloading groups...");
+                logger.info("[AcceptInvitation] Invitation accepted, reloading groups");
                 // Reload groups before navigating
                 await dispatch(loadUserGroups()).unwrap();
-                console.log("✅ [AcceptInvitation] Groups reloaded, redirecting to home");
+                logger.info("[AcceptInvitation] Groups reloaded, redirecting to home");
                 // Navigate to home to see the group in the list
                 router.replace("/home");
             } catch (err) {
-                console.error("❌ [AcceptInvitation] Error:", err);
+                logger.error("[AcceptInvitation] Error", err);
                 setError(
                     err instanceof Error
                         ? err.message

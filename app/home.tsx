@@ -26,6 +26,7 @@ import { JoinGroupModal } from "../src/features/group/presentation/JoinGroupModa
 import { selectAllGroups } from "../src/features/group/presentation/selectGroup.selector";
 import { selectUserProfile } from "../src/features/user/presentation/selectUser.selector";
 import { loadUserGroups } from "../src/features/group/usecases/load-groups/loadGroups.usecase";
+import { logger } from "../src/lib/logger";
 import { useAppDispatch } from "../src/store/buildReduxStore";
 
 
@@ -42,7 +43,7 @@ export default function HomeScreen() {
     // Load user groups on mount and when screen comes into focus
     useFocusEffect(
         useCallback(() => {
-            console.log("🏠 Home screen focused, loading groups...");
+            logger.debug("Home screen focused, loading groups");
             dispatch(loadUserGroups());
         }, [dispatch])
     );
@@ -75,9 +76,9 @@ export default function HomeScreen() {
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        console.log("🔄 Refreshing groups...");
+        logger.debug("Refreshing groups");
         await dispatch(loadUserGroups()).unwrap().catch((err) => {
-            console.error("Error refreshing groups:", err);
+            logger.error("Error refreshing groups", err);
         });
         setRefreshing(false);
     }, [dispatch]);
@@ -169,7 +170,7 @@ export default function HomeScreen() {
 
             {/* Bottom Navigation */}
             <View style={styles.bottomNavigation}>
-                <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
+                <TouchableOpacity style={styles.navItem}>
                     <Home size={20} color="#000" style={{ marginBottom: 4 }} />
                     <Text style={styles.navTextActive}>Accueil</Text>
                 </TouchableOpacity>
@@ -477,10 +478,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingVertical: 8,
     },
-    navItemActive: {
-        // Style pour l'élément actif
-    },
-
     navText: {
         fontSize: 12,
         color: "#666",

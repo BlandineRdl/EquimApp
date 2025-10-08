@@ -20,7 +20,7 @@ import {
   selectInviteLinkLoading,
 } from "./selectInvitation.selector";
 
-interface InviteModalProps {
+export interface InviteModalProps {
   isVisible: boolean;
   onClose: () => void;
   groupId?: string;

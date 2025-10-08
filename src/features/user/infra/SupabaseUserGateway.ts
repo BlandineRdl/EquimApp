@@ -1,3 +1,4 @@
+import { logger } from "../../../lib/logger";
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
 import type {
@@ -28,7 +29,7 @@ export class SupabaseUserGateway implements UserGateway {
 
 	async getProfileById(id: string): Promise<ProfileData | null> {
 		try {
-			console.log("🔍 Loading profile for user ID:", id);
+			logger.debug("Loading profile for user", { userId: id });
 
 			const { data, error } = await supabase
 				.from("profiles")
@@ -38,21 +39,21 @@ export class SupabaseUserGateway implements UserGateway {
 				.single();
 
 			if (error) {
-				console.log("❌ Error loading profile:", error);
+				logger.debug("Error loading profile", { error });
 				// Not found is not an error, return null
 				if (error.code === "PGRST116") {
-					console.log("ℹ️ Profile not found (PGRST116)");
+					logger.info("Profile not found (PGRST116)");
 					return null;
 				}
 				throw createUserFriendlyError(error);
 			}
 
 			if (!data) {
-				console.log("ℹ️ No profile data returned");
+				logger.info("No profile data returned");
 				return null;
 			}
 
-			console.log("✅ Profile loaded successfully:", data.pseudo);
+			logger.info("Profile loaded successfully", { pseudo: data.pseudo });
 
 			// Map database fields to domain model
 			return {
@@ -64,7 +65,7 @@ export class SupabaseUserGateway implements UserGateway {
 				createdAt: data.created_at,
 			};
 		} catch (error) {
-			console.error("💥 Error getting profile:", error);
+			logger.error("Error getting profile", error);
 			return null;
 		}
 	}
