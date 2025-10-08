@@ -1,6 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type { AppState } from "../../../store/appState";
 import type { GroupMember as StoreGroupMember } from "../domain/group.model";
+import type { MemberShare } from "../ports/GroupGateway";
 import { selectGroupById } from "./selectGroup.selector";
 
 // Interface pour un membre du groupe avec sa quote-part calculée
@@ -34,7 +35,7 @@ export const selectGroupDetails = createSelector(
     console.log('🔍 DEBUG members:', members.map(m => ({ id: m.id, pseudo: m.pseudo })));
 
     const sharesByMemberId = new Map(
-      group.shares?.shares.map((share: any) => [share.memberId || share.member_id, share]) || []
+      group.shares?.shares.map((share: MemberShare) => [share.memberId, share]) || []
     );
 
     // Mapper les membres avec leurs shares
@@ -43,8 +44,8 @@ export const selectGroupDetails = createSelector(
       console.log(`🔍 Member ${member.pseudo} (id: ${member.id}) -> share:`, share);
       return {
         ...member,
-        sharePercentage: share?.sharePercentage || share?.share_percentage || 0,
-        shareAmount: share?.shareAmount || share?.share_amount || 0,
+        sharePercentage: share?.sharePercentage || 0,
+        shareAmount: share?.shareAmount || 0,
       };
     });
 

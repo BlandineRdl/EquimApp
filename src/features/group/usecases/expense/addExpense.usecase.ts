@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import type { GroupGateway, Shares } from "../../ports/GroupGateway";
 
 export interface AddExpenseInput {
   groupId: string;
@@ -22,7 +22,7 @@ export const addExpenseToGroup = createAsyncThunk<
       createdAt: string;
       updatedAt: string;
     };
-    shares: any;
+    shares: Shares;
   },
   AddExpenseInput,
   {

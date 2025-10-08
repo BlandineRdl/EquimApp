@@ -1,7 +1,22 @@
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import type {
+	RealtimeChannel,
+	RealtimePostgresChangesPayload,
+} from "@supabase/supabase-js";
 
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
+import type {
+	Database,
+	GroupMemberDetails,
+	InvitationDetails,
+	AcceptInviteResult,
+	AddPhantomMemberResult,
+	RemoveGroupMemberResult,
+	LeaveGroupResult,
+	SharesResult,
+	MemberShare,
+	GenerateInvitationResult,
+} from "../../../types/database.types";
 import type {
 	Expense,
 	GroupFull,
@@ -13,6 +28,26 @@ import type {
 	Shares,
 	Unsubscribe,
 } from "../ports/GroupGateway";
+
+// Type definitions for database query results
+interface GroupMembershipQueryResult {
+	group_id: string;
+	groups: {
+		id: string;
+		name: string;
+		currency_code: string;
+		created_at: string;
+	};
+}
+
+// Type definitions for realtime payloads
+type ExpenseRealtimePayload = RealtimePostgresChangesPayload<
+	Database["public"]["Tables"]["expenses"]["Row"]
+>;
+
+type GroupMemberRealtimePayload = RealtimePostgresChangesPayload<
+	Database["public"]["Tables"]["group_members"]["Row"]
+>;
 
 export class SupabaseGroupGateway implements GroupGateway {
 	private realtimeChannels: Map<string, RealtimeChannel> = new Map();
@@ -71,7 +106,7 @@ export class SupabaseGroupGateway implements GroupGateway {
 
 			// For each group, get member count and total expenses
 			const summaries: GroupSummary[] = await Promise.all(
-				groupMembers.map(async (gm: any) => {
+				groupMembers.map(async (gm: GroupMembershipQueryResult) => {
 					const groupId = gm.groups.id;
 
 					// Count members
@@ -131,7 +166,7 @@ export class SupabaseGroupGateway implements GroupGateway {
 				throw createUserFriendlyError(membersError);
 			}
 
-			const members: GroupMember[] = (membersData as any[]).map((m: any) => ({
+			const members: GroupMember[] = (membersData as unknown as GroupMemberDetails[]).map((m: GroupMemberDetails) => ({
 				id: m.member_id,
 				userId: m.user_id,
 				pseudo: m.pseudo,
@@ -152,7 +187,7 @@ export class SupabaseGroupGateway implements GroupGateway {
 				throw createUserFriendlyError(expensesError);
 			}
 
-			const expenses: Expense[] = (expensesData || []).map((e: any) => ({
+			const expenses: Expense[] = (expensesData || []).map((e: Database["public"]["Tables"]["expenses"]["Row"]) => ({
 				id: e.id,
 				groupId: e.group_id,
 				name: e.name,
@@ -289,11 +324,12 @@ export class SupabaseGroupGateway implements GroupGateway {
 				throw createUserFriendlyError(error);
 			}
 
-			if (!data || !data.token) {
+			const result = data as unknown as GenerateInvitationResult;
+			if (!result || !result.token) {
 				throw new Error("Token d'invitation non généré");
 			}
 
-			const token = data.token;
+			const token = result.token;
 			const link = `equimapp://invite/${token}`;
 
 			return { token, link };
@@ -318,7 +354,7 @@ export class SupabaseGroupGateway implements GroupGateway {
 				return null;
 			}
 
-			const preview = data as any;
+			const preview = data as unknown as InvitationDetails;
 			return {
 				groupName: preview.group_name,
 				creatorPseudo: preview.creator_pseudo,
@@ -346,10 +382,19 @@ export class SupabaseGroupGateway implements GroupGateway {
 			}
 
 			console.log("✅ [Gateway] RPC success, data:", data);
-			const result = data as any;
+			const result = data as unknown as AcceptInviteResult;
 			return {
 				groupId: result.group_id,
-				shares: result.shares,
+				shares: {
+					totalExpenses: result.shares.total_expenses,
+					shares: result.shares.shares.map((s: MemberShare) => ({
+						memberId: s.member_id,
+						userId: s.user_id,
+						pseudo: s.pseudo,
+						sharePercentage: s.share_percentage,
+						shareAmount: s.share_amount,
+					})),
+				},
 			};
 		} catch (error) {
 			console.error("❌ [Gateway] Catch error:", error);
@@ -400,12 +445,12 @@ export class SupabaseGroupGateway implements GroupGateway {
 				throw new Error("No data returned from add_phantom_member");
 			}
 
-			const result = data as any;
+			const result = data as unknown as AddPhantomMemberResult;
 			return {
 				memberId: result.member_id,
 				shares: {
 					totalExpenses: result.shares.total_expenses,
-					shares: result.shares.shares.map((s: any) => ({
+					shares: result.shares.shares.map((s: MemberShare) => ({
 						memberId: s.member_id,
 						userId: s.user_id,
 						pseudo: s.pseudo,
@@ -437,11 +482,11 @@ export class SupabaseGroupGateway implements GroupGateway {
 				throw new Error("No data returned from remove_group_member");
 			}
 
-			const result = data as any;
+			const result = data as unknown as RemoveGroupMemberResult;
 			return {
 				shares: {
 					totalExpenses: result.shares.total_expenses,
-					shares: result.shares.shares.map((s: any) => ({
+					shares: result.shares.shares.map((s: MemberShare) => ({
 						memberId: s.member_id,
 						userId: s.user_id,
 						pseudo: s.pseudo,
@@ -465,7 +510,7 @@ export class SupabaseGroupGateway implements GroupGateway {
 				throw createUserFriendlyError(error);
 			}
 
-			const result = data as any;
+			const result = data as unknown as LeaveGroupResult;
 			return { groupDeleted: result.group_deleted };
 		} catch (error) {
 			throw createUserFriendlyError(error);
@@ -482,11 +527,11 @@ export class SupabaseGroupGateway implements GroupGateway {
 				throw createUserFriendlyError(error);
 			}
 
-			const result = data as any;
+			const result = data as unknown as SharesResult;
 			return {
 				shares: {
 					totalExpenses: result.total_expenses,
-					shares: result.shares.map((s: any) => ({
+					shares: result.shares.map((s: MemberShare) => ({
 						memberId: s.member_id,
 						userId: s.user_id,
 						pseudo: s.pseudo,
@@ -514,8 +559,8 @@ export class SupabaseGroupGateway implements GroupGateway {
 					table: "expenses",
 					filter: `group_id=eq.${groupId}`,
 				},
-				(payload: any) => {
-					if (callbacks.onExpenseAdded) {
+				(payload: ExpenseRealtimePayload) => {
+					if (callbacks.onExpenseAdded && payload.new) {
 						callbacks.onExpenseAdded({
 							id: payload.new.id,
 							groupId: payload.new.group_id,
@@ -538,8 +583,8 @@ export class SupabaseGroupGateway implements GroupGateway {
 					table: "expenses",
 					filter: `group_id=eq.${groupId}`,
 				},
-				(payload: any) => {
-					if (callbacks.onExpenseUpdated) {
+				(payload: ExpenseRealtimePayload) => {
+					if (callbacks.onExpenseUpdated && payload.new) {
 						callbacks.onExpenseUpdated({
 							id: payload.new.id,
 							groupId: payload.new.group_id,
@@ -562,8 +607,8 @@ export class SupabaseGroupGateway implements GroupGateway {
 					table: "expenses",
 					filter: `group_id=eq.${groupId}`,
 				},
-				(payload: any) => {
-					if (callbacks.onExpenseDeleted) {
+				(payload: ExpenseRealtimePayload) => {
+					if (callbacks.onExpenseDeleted && payload.old) {
 						callbacks.onExpenseDeleted(payload.old.id);
 					}
 				},
@@ -576,8 +621,8 @@ export class SupabaseGroupGateway implements GroupGateway {
 					table: "group_members",
 					filter: `group_id=eq.${groupId}`,
 				},
-				async (payload: any) => {
-					if (callbacks.onMemberAdded) {
+				async (payload: GroupMemberRealtimePayload) => {
+					if (callbacks.onMemberAdded && payload.new) {
 						// Handle phantom members
 						if (payload.new.is_phantom) {
 							callbacks.onMemberAdded({
@@ -620,8 +665,8 @@ export class SupabaseGroupGateway implements GroupGateway {
 					table: "group_members",
 					filter: `group_id=eq.${groupId}`,
 				},
-				(payload: any) => {
-					if (callbacks.onMemberRemoved) {
+				(payload: GroupMemberRealtimePayload) => {
+					if (callbacks.onMemberRemoved && payload.old) {
 						callbacks.onMemberRemoved(payload.old.user_id);
 					}
 				},

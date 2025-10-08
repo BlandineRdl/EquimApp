@@ -16,10 +16,19 @@ import type {
 	Unsubscribe,
 } from "../ports/GroupGateway";
 
+interface InvitationData {
+	token: string;
+	groupId: string;
+	createdBy: string;
+	expiresAt: string | null;
+	isConsumed: boolean;
+	consumedBy?: string;
+}
+
 export class InMemoryGroupGateway implements GroupGateway {
-	private groups: Map<string, any> = new Map();
+	private groups: Map<string, GroupFull> = new Map();
 	private expenses: Map<string, Expense> = new Map();
-	private invitations: Map<string, any> = new Map();
+	private invitations: Map<string, InvitationData> = new Map();
 	private members: Map<string, GroupMember[]> = new Map();
 
 	async createGroup(

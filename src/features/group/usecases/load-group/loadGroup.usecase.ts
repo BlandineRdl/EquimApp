@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import type { GroupGateway, GroupMember, Expense, Shares } from "../../ports/GroupGateway";
 
 export const loadGroupById = createAsyncThunk<
   {
@@ -8,9 +8,9 @@ export const loadGroupById = createAsyncThunk<
     name: string;
     currency: string;
     creatorId: string;
-    members: any[];
-    expenses: any[];
-    shares: any;
+    members: GroupMember[];
+    expenses: Expense[];
+    shares: Shares;
     totalMonthlyBudget: number;
     createdAt: string;
     updatedAt: string;

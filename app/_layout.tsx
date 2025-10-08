@@ -2,6 +2,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import React, { useEffect } from "react";
 import Toast from "react-native-toast-message";
 import { Provider, useSelector } from "react-redux";
+import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { useAuthInit } from "../src/features/auth/hooks/useAuthInit";
 import { SupabaseAuthGateway } from "../src/features/auth/infra/SupabaseAuthGateway";
 import { SupabaseGroupGateway } from "../src/features/group/infra/SupabaseGroupGateway";
@@ -88,8 +89,10 @@ function AppContent() {
 
 export default function RootLayout() {
   return (
-    <Provider store={store}>
-      <AppContent />
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <AppContent />
+      </Provider>
+    </ErrorBoundary>
   );
 }

@@ -1,5 +1,6 @@
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
+import type { MemberShare } from "../../../types/database.types";
 import type {
 	CompleteOnboardingInput,
 	CompleteOnboardingResult,
@@ -54,7 +55,8 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
 				shares: {
 					totalExpenses: result.shares.total_expenses || 0,
 					shares: Array.isArray(result.shares.shares)
-						? result.shares.shares.map((s: any) => ({
+						? result.shares.shares.map((s: MemberShare) => ({
+								memberId: s.member_id,
 								userId: s.user_id,
 								pseudo: s.pseudo || "",
 								sharePercentage: s.share_percentage || 0,

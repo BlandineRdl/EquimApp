@@ -8,8 +8,15 @@ import Constants from "expo-constants";
 // Check if we're in a Development Build or Expo Go
 const isExpoGo = Constants.appOwnership === "expo";
 
+// Define SecureStore type based on expo-secure-store
+type SecureStoreModule = {
+	getItemAsync: (key: string) => Promise<string | null>;
+	setItemAsync: (key: string, value: string) => Promise<void>;
+	deleteItemAsync: (key: string) => Promise<void>;
+} | null;
+
 // Dynamic import of SecureStore (only works in Development Build)
-let SecureStore: any = null;
+let SecureStore: SecureStoreModule = null;
 if (!isExpoGo) {
 	try {
 		SecureStore = require("expo-secure-store");

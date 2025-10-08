@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import type { GroupGateway, Shares } from "../../ports/GroupGateway";
 
 export interface RemoveMemberInput {
   groupId: string;
@@ -11,7 +11,7 @@ export const removeMemberFromGroup = createAsyncThunk<
   {
     groupId: string;
     memberId: string;
-    shares: any;
+    shares: Shares;
   },
   RemoveMemberInput,
   {
