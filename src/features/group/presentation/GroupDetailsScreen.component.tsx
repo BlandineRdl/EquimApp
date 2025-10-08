@@ -3,7 +3,6 @@ import { ArrowLeft, Calendar, Plus, Trash2, Users } from "lucide-react-native";
 import { useState, useEffect } from "react";
 import {
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { logger } from "../../../lib/logger";
 import type { AppState } from "../../../store/appState";

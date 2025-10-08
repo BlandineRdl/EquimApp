@@ -1,13 +1,13 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { logger } from "../../src/lib/logger";
 import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";

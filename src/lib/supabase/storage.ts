@@ -22,7 +22,7 @@ if (!isExpoGo) {
 	try {
 		SecureStore = require("expo-secure-store");
 	} catch (e) {
-		logger.warn("expo-secure-store not available, using in-memory storage");
+		// Silent: Expected in Expo Go, fallback to in-memory storage
 	}
 }
 

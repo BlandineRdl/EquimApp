@@ -3,7 +3,6 @@ import React from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import { selectOnboardingUI } from "../src/features/onboarding/presentation/onboarding.selectors";

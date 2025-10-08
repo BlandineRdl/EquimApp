@@ -6,7 +6,6 @@ import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
 import { acceptInvitation } from "../usecases/invitation/acceptInvitation.usecase";
 import { generateInviteLink } from "../usecases/invitation/generateInviteLink.usecase";
 import { getInvitationDetails } from "../usecases/invitation/getInvitationDetails.usecase";
-import { refuseInvitation } from "../usecases/invitation/refuseInvitation.usecase";
 import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
 import { loadUserGroups } from "../usecases/load-groups/loadGroups.usecase";
 import { removeMemberFromGroup } from "../usecases/remove-member/removeMember.usecase";
@@ -193,19 +192,6 @@ export const groupSlice = createSlice({
         state.error =
           action.error.message ||
           "Erreur lors de l'acceptation de l'invitation";
-      })
-      // Refuse invitation - pas de changement d'état nécessaire
-      .addCase(refuseInvitation.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(refuseInvitation.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(refuseInvitation.rejected, (state, action) => {
-        state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors du refus de l'invitation";
       })
       // Remove member from group
       .addCase(removeMemberFromGroup.pending, (state) => {

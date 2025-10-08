@@ -5,7 +5,6 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
@@ -13,6 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 import { getInvitationDetails } from "../../src/features/group/usecases/invitation/getInvitationDetails.usecase";
 import { acceptInvitation } from "../../src/features/group/usecases/invitation/acceptInvitation.usecase";

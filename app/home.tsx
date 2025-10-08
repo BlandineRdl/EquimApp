@@ -12,13 +12,13 @@ import {
 import React, { useState, useEffect, useCallback } from "react";
 import {
     RefreshControl,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { GroupsHome } from "../src/features/group/presentation/groupsHome.component";
 import { InviteModal } from "../src/features/group/presentation/InviteModal.component";

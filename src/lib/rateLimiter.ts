@@ -3,8 +3,6 @@
  * Implements exponential backoff for failed attempts
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 interface RateLimitData {
   attempts: number;
   lastAttempt: number;
@@ -12,6 +10,17 @@ interface RateLimitData {
 }
 
 const STORAGE_PREFIX = '@ratelimit:';
+
+// In-memory storage as fallback for Expo Go
+const memoryStorage = new Map<string, string>();
+
+// Dynamic import of AsyncStorage
+let AsyncStorage: any = null;
+try {
+  AsyncStorage = require('@react-native-async-storage/async-storage').default;
+} catch (e) {
+  // Silent: Expected in Expo Go, using in-memory storage fallback
+}
 
 export class RateLimiter {
   private key: string;
@@ -26,7 +35,14 @@ export class RateLimiter {
 
   private async getData(): Promise<RateLimitData> {
     try {
-      const data = await AsyncStorage.getItem(this.key);
+      let data: string | null = null;
+
+      if (AsyncStorage) {
+        data = await AsyncStorage.getItem(this.key);
+      } else {
+        data = memoryStorage.get(this.key) || null;
+      }
+
       if (data) {
         return JSON.parse(data);
       }
@@ -44,7 +60,13 @@ export class RateLimiter {
 
   private async setData(data: RateLimitData): Promise<void> {
     try {
-      await AsyncStorage.setItem(this.key, JSON.stringify(data));
+      const stringData = JSON.stringify(data);
+
+      if (AsyncStorage) {
+        await AsyncStorage.setItem(this.key, stringData);
+      } else {
+        memoryStorage.set(this.key, stringData);
+      }
     } catch (error) {
       console.error('RateLimiter: Error writing to storage', error);
     }

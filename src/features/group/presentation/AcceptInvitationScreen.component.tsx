@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import type { AppState } from "../../../store/appState";
 import { useAppDispatch } from "../../../store/buildReduxStore";
@@ -12,7 +13,6 @@ import { LoadingState } from "./components/LoadingState.component";
 import { MemberForm } from "./components/MemberForm.component";
 import { acceptInvitation } from "../usecases/invitation/acceptInvitation.usecase";
 import { getInvitationDetails } from "../usecases/invitation/getInvitationDetails.usecase";
-import { refuseInvitation } from "../usecases/invitation/refuseInvitation.usecase";
 
 export const AcceptInvitationScreen = () => {
   const { token } = useLocalSearchParams<{ token: string }>();
@@ -74,19 +74,16 @@ export const AcceptInvitationScreen = () => {
     }
   };
 
-  const handleRefuse = async () => {
-    if (!token) return;
-
-    try {
-      await dispatch(refuseInvitation({ token })).unwrap();
-      Alert.alert("Invitation refusée", "Vous avez refusé l'invitation", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Impossible de refuser l'invitation";
-      Alert.alert("Erreur", errorMessage);
-    }
+  const handleRefuse = () => {
+    // Simply go back - invitations expire naturally if not accepted
+    Alert.alert(
+      "Refuser l'invitation",
+      "Êtes-vous sûr de vouloir refuser cette invitation ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        { text: "Refuser", style: "destructive", onPress: () => router.back() },
+      ]
+    );
   };
 
   const canSubmit = !!memberForm.pseudo.trim() && !!memberForm.monthlyIncome;

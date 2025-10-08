@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import React, { useEffect } from "react";
 import Toast from "react-native-toast-message";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider, useSelector } from "react-redux";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { useAuthInit } from "../src/features/auth/hooks/useAuthInit";
@@ -91,9 +92,11 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <Provider store={store}>
-        <AppContent />
-      </Provider>
+      <SafeAreaProvider>
+        <Provider store={store}>
+          <AppContent />
+        </Provider>
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
 }
