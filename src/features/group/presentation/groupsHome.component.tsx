@@ -1,10 +1,7 @@
 import { ArrowRightLeft, UserPlus, Users } from "lucide-react-native";
-import { useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSelector } from "react-redux";
 
-import { useAppDispatch } from "../../../store/buildReduxStore";
-import { loadUserGroups } from "../usecases/load-groups/loadGroups.usecase";
 import { selectAllGroups } from "./selectGroup.selector";
 import {
   selectGroupMemberNamesFormatted,
@@ -36,15 +33,7 @@ export const GroupsHome = ({
   onNavigateToGroupDetails,
   onOpenInviteModal,
 }: GroupsHomeProps) => {
-  const dispatch = useAppDispatch();
-
   const groups = useSelector(selectAllGroups);
-
-  useEffect(() => {
-    if (groups.length === 0) {
-      dispatch(loadUserGroups());
-    }
-  }, [groups, dispatch]);
 
   return (
     <>

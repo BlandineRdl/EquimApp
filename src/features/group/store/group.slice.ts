@@ -3,9 +3,13 @@ import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { Group, InvitationDetails } from "../domain/group.model";
 import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
 import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
+import { deleteExpense } from "../usecases/expense/deleteExpense.usecase";
+import { createGroup } from "../usecases/create-group/createGroup.usecase";
+import { deleteGroup } from "../usecases/delete-group/deleteGroup.usecase";
 import { acceptInvitation } from "../usecases/invitation/acceptInvitation.usecase";
 import { generateInviteLink } from "../usecases/invitation/generateInviteLink.usecase";
 import { getInvitationDetails } from "../usecases/invitation/getInvitationDetails.usecase";
+import { leaveGroup } from "../usecases/leave-group/leaveGroup.usecase";
 import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
 import { loadUserGroups } from "../usecases/load-groups/loadGroups.usecase";
 import { removeMemberFromGroup } from "../usecases/remove-member/removeMember.usecase";
@@ -115,7 +119,7 @@ export const groupSlice = createSlice({
       })
       .addCase(loadUserGroups.fulfilled, (state, action) => {
         state.loading = false;
-        groupsAdapter.addMany(state, action.payload);
+        groupsAdapter.setAll(state, action.payload);
       })
       .addCase(loadUserGroups.rejected, (state, action) => {
         state.loading = false;
@@ -242,6 +246,29 @@ export const groupSlice = createSlice({
         state.error =
           action.error.message || "Erreur lors de l'ajout de la dépense";
       })
+      // Delete expense from group
+      .addCase(deleteExpense.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteExpense.fulfilled, (state, action) => {
+        state.loading = false;
+        const { groupId, expenseId, shares } = action.payload;
+
+        const group = state.entities[groupId];
+        if (group) {
+          // Remove expense from the list
+          group.expenses = group.expenses.filter((e) => e.id !== expenseId);
+          // Update shares
+          group.shares = shares;
+          group.totalMonthlyBudget = shares.totalExpenses;
+        }
+      })
+      .addCase(deleteExpense.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Erreur lors de la suppression de la dépense";
+      })
       // Load single group by ID (for refresh)
       .addCase(loadGroupById.pending, (state) => {
         state.loading = true;
@@ -255,6 +282,54 @@ export const groupSlice = createSlice({
         state.loading = false;
         state.error =
           action.error.message || "Erreur lors du rechargement du groupe";
+      })
+      // Leave group (self-removal)
+      .addCase(leaveGroup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(leaveGroup.fulfilled, (state, action) => {
+        state.loading = false;
+        const { groupId } = action.payload;
+
+        // Remove group from entities
+        groupsAdapter.removeOne(state, groupId);
+      })
+      .addCase(leaveGroup.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Erreur lors de la sortie du groupe";
+      })
+      // Delete group (creator only)
+      .addCase(deleteGroup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteGroup.fulfilled, (state, action) => {
+        state.loading = false;
+        const { groupId } = action.payload;
+
+        // Remove group from entities
+        groupsAdapter.removeOne(state, groupId);
+      })
+      .addCase(deleteGroup.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Erreur lors de la suppression du groupe";
+      })
+      // Create group
+      .addCase(createGroup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createGroup.fulfilled, (state, action) => {
+        state.loading = false;
+        // Group will be loaded via loadUserGroups or loadGroupById
+      })
+      .addCase(createGroup.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Erreur lors de la création du groupe";
       });
   },
 });

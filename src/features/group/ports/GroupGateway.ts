@@ -181,6 +181,12 @@ export interface GroupGateway {
 	leaveGroup(groupId: string): Promise<{ groupDeleted: boolean }>;
 
 	/**
+	 * Delete a group (creator only)
+	 * Removes all members and deletes the group
+	 */
+	deleteGroup(groupId: string): Promise<{ success: boolean }>;
+
+	/**
 	 * Refresh group shares (after profile changes, etc.)
 	 */
 	refreshGroupShares(groupId: string): Promise<{ shares: Shares }>;

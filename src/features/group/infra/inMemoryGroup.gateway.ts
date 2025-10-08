@@ -321,11 +321,24 @@ export class InMemoryGroupGateway implements GroupGateway {
 	}
 
 	async leaveGroup(groupId: string): Promise<{ groupDeleted: boolean }> {
+		// Check group exists
+		if (!this.groups.has(groupId)) {
+			throw new Error("Groupe non trouvé");
+		}
+
 		const members = this.members.get(groupId) || [];
-		const filtered = members.filter((m) => m.userId !== "current-user");
+
+		// In memory implementation: remove the last added member (simulates current user)
+		// In real implementation, Supabase gets current user from auth context
+		if (members.length === 0) {
+			throw new Error("Aucun membre à retirer");
+		}
+
+		// Remove last member (simulates current user leaving)
+		const filtered = members.slice(0, -1);
 
 		if (filtered.length === 0) {
-			// Delete group
+			// Delete group when last member leaves
 			this.groups.delete(groupId);
 			this.members.delete(groupId);
 			// Delete expenses
@@ -339,6 +352,29 @@ export class InMemoryGroupGateway implements GroupGateway {
 
 		this.members.set(groupId, filtered);
 		return { groupDeleted: false };
+	}
+
+	async deleteGroup(groupId: string): Promise<{ success: boolean }> {
+		// Check group exists
+		const group = this.groups.get(groupId);
+		if (!group) {
+			throw new Error("Groupe non trouvé");
+		}
+
+		// Delete all members
+		this.members.delete(groupId);
+
+		// Delete all expenses
+		for (const [expenseId, expense] of this.expenses.entries()) {
+			if (expense.groupId === groupId) {
+				this.expenses.delete(expenseId);
+			}
+		}
+
+		// Delete group
+		this.groups.delete(groupId);
+
+		return { success: true };
 	}
 
 	async refreshGroupShares(groupId: string): Promise<{ shares: Shares }> {

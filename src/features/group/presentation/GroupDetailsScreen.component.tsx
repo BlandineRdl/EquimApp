@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Calendar, Plus, Trash2, Users } from "lucide-react-native";
+import { AlertTriangle, ArrowLeft, Calendar, LogOut, Plus, Trash2, Users } from "lucide-react-native";
 import { useState, useEffect } from "react";
 import {
   RefreshControl,
@@ -25,6 +25,9 @@ import {
 } from "../store/group.slice";
 import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
 import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
+import { deleteExpense } from "../usecases/expense/deleteExpense.usecase";
+import { deleteGroup } from "../usecases/delete-group/deleteGroup.usecase";
+import { leaveGroup } from "../usecases/leave-group/leaveGroup.usecase";
 import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
 import { removeMemberFromGroup } from "../usecases/remove-member/removeMember.usecase";
 import { selectAddExpenseUI, selectAddMemberUI } from "./selectGroup.selector";
@@ -38,11 +41,13 @@ export const GroupDetailsScreen = () => {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const [refreshing, setRefreshing] = useState(false);
   const [showAllExpenses, setShowAllExpenses] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
 
   const addMemberUI = useSelector(selectAddMemberUI);
   const addExpenseUI = useSelector(selectAddExpenseUI);
+  const currentUserId = useSelector((state: AppState) => state.auth.user?.id);
 
   const groupDetails = useSelector((state: AppState) =>
     groupId ? selectGroupDetails(state, groupId) : null,
@@ -125,6 +130,53 @@ export const GroupDetailsScreen = () => {
     }
   };
 
+  const handleDeleteExpense = async (expenseId: string) => {
+    if (!groupId) return;
+    try {
+      await dispatch(deleteExpense({ groupId, expenseId })).unwrap();
+    } catch (error: any) {
+      logger.error("Error deleting expense", error);
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!groupId) return;
+    try {
+      await dispatch(leaveGroup({ groupId })).unwrap();
+      // Navigate to home after successfully leaving
+      router.replace("/home");
+    } catch (error: any) {
+      logger.error("Error leaving group", error);
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!groupId) return;
+    try {
+      await dispatch(deleteGroup({ groupId })).unwrap();
+      // Navigate to home after successfully deleting
+      router.replace("/home");
+    } catch (error: any) {
+      logger.error("Error deleting group", error);
+    }
+  };
+
+  const openDeleteConfirmModal = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const closeDeleteConfirmModal = () => {
+    setShowDeleteConfirm(false);
+  };
+
+  const confirmDeleteGroup = async () => {
+    closeDeleteConfirmModal();
+    await handleDeleteGroup();
+  };
+
+  // Check if current user is the group creator
+  const isCreator = groupDetails?.group.creatorId === currentUserId;
+
   // Fonctions pour gérer la modal d'ajout de dépense
   const openExpenseModal = () => {
     dispatch(openAddExpenseForm(groupId));
@@ -166,6 +218,21 @@ export const GroupDetailsScreen = () => {
           <Text style={styles.headerLabel}>Groupe</Text>
           <Text style={styles.headerTitle}>{group.name}</Text>
         </View>
+        {isCreator ? (
+          <TouchableOpacity
+            style={styles.deleteGroupButton}
+            onPress={openDeleteConfirmModal}
+          >
+            <Trash2 size={20} color="#ef4444" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.leaveGroupButton}
+            onPress={handleLeaveGroup}
+          >
+            <LogOut size={20} color="#ef4444" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView
@@ -220,16 +287,23 @@ export const GroupDetailsScreen = () => {
               ]}
             >
               <View style={styles.expenseInfo}>
-                <Text style={styles.expenseLabel}>{expense.label}</Text>
-                <Text style={styles.expenseFrequency}>{expense.frequency}</Text>
+                <Text style={styles.expenseLabel}>{expense.name}</Text>
               </View>
-              <Text style={styles.expenseAmount}>
-                {parseFloat(expense.amount).toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}{" "}
-                €
-              </Text>
+              <View style={styles.expenseActions}>
+                <Text style={styles.expenseAmount}>
+                  {parseFloat(expense.amount).toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </Text>
+                <TouchableOpacity
+                  onPress={() => handleDeleteExpense(expense.id)}
+                  style={styles.deleteExpenseButton}
+                >
+                  <Trash2 size={16} color="#ef4444" />
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
 
@@ -301,7 +375,7 @@ export const GroupDetailsScreen = () => {
                       })}{" "}
                       €/mois
                     </Text>
-                    {member.userId !== group.creatorId && (
+                    {isCreator && member.userId !== group.creatorId && (
                       <TouchableOpacity
                         onPress={() => handleRemoveMember(member.id)}
                         style={styles.removeMemberButton}
@@ -413,6 +487,33 @@ export const GroupDetailsScreen = () => {
           </View>
         </View>
       )}
+
+      {/* Modal de confirmation de suppression du groupe */}
+      {showDeleteConfirm && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.deleteModalIcon}>
+              <AlertTriangle size={48} color="#ef4444" />
+            </View>
+            <Text style={styles.modalTitle}>Supprimer le groupe ?</Text>
+            <Text style={styles.deleteWarningText}>
+              Cette action est irréversible. Tous les membres, dépenses et données du groupe seront définitivement supprimés.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButtonDanger}
+              onPress={confirmDeleteGroup}
+            >
+              <Text style={styles.modalButtonText}>Supprimer définitivement</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={closeDeleteConfirmModal}
+            >
+              <Text style={styles.modalButtonTextCancel}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -441,6 +542,14 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
+  },
+  leaveGroupButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  deleteGroupButton: {
+    padding: 8,
+    marginLeft: 8,
   },
   headerLabel: {
     fontSize: 14,
@@ -580,6 +689,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#000",
+    marginRight: 8,
+  },
+  expenseActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  deleteExpenseButton: {
+    padding: 4,
   },
   showMoreButton: {
     paddingVertical: 16,
@@ -800,6 +917,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  modalButtonDanger: {
+    backgroundColor: "#ef4444",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   modalButtonCancel: {
     backgroundColor: "#e0e0e0",
     paddingVertical: 12,
@@ -812,5 +938,16 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  deleteModalIcon: {
+    marginBottom: 16,
+    alignItems: "center",
+  },
+  deleteWarningText: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 20,
   },
 });

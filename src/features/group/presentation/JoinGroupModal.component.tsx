@@ -5,7 +5,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
+  Keyboard,
 } from "react-native";
 import { X } from "lucide-react-native";
 
@@ -41,16 +43,10 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
       animationType="fade"
       onRequestClose={handleClose}
     >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={handleClose}
-      >
-        <TouchableOpacity
-          style={styles.modalContent}
-          activeOpacity={1}
-          onPress={(e) => e.stopPropagation()}
-        >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Rejoindre un groupe</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -66,6 +62,8 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
             onChangeText={setInviteLink}
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
           />
 
           <View style={styles.infoBox}>
@@ -95,8 +93,10 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
           <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
             <Text style={styles.cancelButtonText}>Annuler</Text>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

@@ -294,10 +294,9 @@ export class SupabaseGroupGateway implements GroupGateway {
 		groupId: string;
 	}): Promise<{ shares: Shares }> {
 		try {
-			const { error } = await supabase
-				.from("expenses")
-				.delete()
-				.eq("id", input.expenseId);
+			const { error } = await supabase.rpc("delete_expense", {
+				p_expense_id: input.expenseId,
+			});
 
 			if (error) {
 				throw createUserFriendlyError(error);
@@ -513,6 +512,22 @@ export class SupabaseGroupGateway implements GroupGateway {
 
 			const result = data as unknown as LeaveGroupResult;
 			return { groupDeleted: result.group_deleted };
+		} catch (error) {
+			throw createUserFriendlyError(error);
+		}
+	}
+
+	async deleteGroup(groupId: string): Promise<{ success: boolean }> {
+		try {
+			const { data, error } = await supabase.rpc("delete_group", {
+				p_group_id: groupId,
+			});
+
+			if (error) {
+				throw createUserFriendlyError(error);
+			}
+
+			return { success: true };
 		} catch (error) {
 			throw createUserFriendlyError(error);
 		}

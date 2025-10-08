@@ -1,13 +1,9 @@
 import { useRouter, useFocusEffect } from "expo-router";
 import {
-    BarChart3,
-    ChevronRight,
     Home,
     Link2,
     Lightbulb,
     Plus,
-    Settings,
-    Users,
 } from "lucide-react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -20,6 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { CreateGroupModal } from "../src/features/group/presentation/CreateGroupModal.component";
 import { GroupsHome } from "../src/features/group/presentation/groupsHome.component";
 import { InviteModal } from "../src/features/group/presentation/InviteModal.component";
 import { JoinGroupModal } from "../src/features/group/presentation/JoinGroupModal.component";
@@ -37,6 +34,7 @@ export default function HomeScreen() {
     const groups = useSelector(selectAllGroups);
     const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
     const [isJoinModalVisible, setIsJoinModalVisible] = useState(false);
+    const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const router = useRouter();
 
@@ -62,6 +60,19 @@ export default function HomeScreen() {
 
     const closeJoinModal = () => {
         setIsJoinModalVisible(false);
+    };
+
+    const openCreateModal = () => {
+        setIsCreateModalVisible(true);
+    };
+
+    const closeCreateModal = () => {
+        setIsCreateModalVisible(false);
+    };
+
+    const handleCreateSuccess = (groupId: string) => {
+        // Navigate to the newly created group
+        router.push({ pathname: "/group/[groupId]" as "/group/[groupId]", params: { groupId } });
     };
 
     const handleJoinGroup = (inviteLink: string) => {
@@ -118,9 +129,6 @@ export default function HomeScreen() {
                         <Text style={styles.greeting}>Accueil</Text>
                         <Text style={styles.userName}>Bonjour, {user.pseudo}</Text>
                     </View>
-                    <TouchableOpacity style={styles.settingsButton}>
-                        <Settings size={20} color="#666" />
-                    </TouchableOpacity>
                 </View>
 
                 {/* Mon groupe Section */}
@@ -133,7 +141,7 @@ export default function HomeScreen() {
 
                 {/* Quick Actions */}
                 <View style={styles.quickActionsGrid}>
-                    <TouchableOpacity style={styles.gridActionButton}>
+                    <TouchableOpacity style={styles.gridActionButton} onPress={openCreateModal}>
                         <Plus size={20} color="#fff" style={{ marginRight: 8 }} />
                         <Text style={styles.gridActionButtonText}>Créer un groupe</Text>
                     </TouchableOpacity>
@@ -154,16 +162,6 @@ export default function HomeScreen() {
                     </View>
                 )}
 
-                {/* Expenses Section */}
-                <Text style={styles.sectionTitle}>Vos dépenses configurées</Text>
-
-                <View style={styles.expensesContainer}>
-                    {/* TODO: Load full group details to display expenses */}
-                    <Text style={styles.noExpensesText}>
-                        Cliquez sur votre groupe pour voir les dépenses détaillées.
-                    </Text>
-                </View>
-
                 {/* Bottom spacing for navigation */}
                 <View style={styles.bottomSpacing} />
             </ScrollView>
@@ -171,28 +169,8 @@ export default function HomeScreen() {
             {/* Bottom Navigation */}
             <View style={styles.bottomNavigation}>
                 <TouchableOpacity style={styles.navItem}>
-                    <Home size={20} color="#000" style={{ marginBottom: 4 }} />
+                    <Home size={20} color="#000" style={{ marginBottom: 2 }} />
                     <Text style={styles.navTextActive}>Accueil</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.navItem}>
-                    <Users size={20} color="#666" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navText}>Groupes</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.navItem}>
-                    <Plus size={20} color="#666" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navText}>Ajouter</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.navItem}>
-                    <BarChart3 size={20} color="#666" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navText}>Balance</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.navItem}>
-                    <Settings size={20} color="#666" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navText}>Réglages</Text>
                 </TouchableOpacity>
             </View>
 
@@ -209,6 +187,13 @@ export default function HomeScreen() {
                 isVisible={isJoinModalVisible}
                 onClose={closeJoinModal}
                 onJoin={handleJoinGroup}
+            />
+
+            {/* Modal pour créer un groupe */}
+            <CreateGroupModal
+                isVisible={isCreateModalVisible}
+                onClose={closeCreateModal}
+                onSuccess={handleCreateSuccess}
             />
         </SafeAreaView>
     );
@@ -229,9 +214,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
     },
     header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
         paddingTop: 8,
         paddingBottom: 20,
     },
@@ -246,10 +228,6 @@ const styles = StyleSheet.create({
         color: "#000",
         marginTop: 2,
     },
-    settingsButton: {
-        padding: 8,
-    },
-
     sectionTitle: {
         fontSize: 18,
         fontWeight: "600",
@@ -470,13 +448,14 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         borderTopWidth: 1,
         borderTopColor: "#e5e7eb",
-        paddingVertical: 8,
-        paddingHorizontal: 8,
+        paddingVertical: 4,
+        justifyContent: "center",
+        alignItems: "center",
     },
     navItem: {
-        flex: 1,
         alignItems: "center",
-        paddingVertical: 8,
+        justifyContent: "center",
+        paddingVertical: 4,
     },
     navText: {
         fontSize: 12,

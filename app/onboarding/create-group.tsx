@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { SUGGESTED_GROUP_NAMES } from "../../src/features/group/domain/group.constants";
 import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import {
   selectGroupUI,
@@ -38,14 +39,7 @@ export default function CreateGroupScreen() {
     }
   };
 
-  const suggestedNames = [
-    "Foyer",
-    "Coloc",
-    "Vacances été",
-    "Sorties",
-    "Courses",
-    "Restaurant",
-  ];
+  const suggestedNames = SUGGESTED_GROUP_NAMES;
 
   const handleSuggestionPress = (suggestion: string) => {
     dispatch(setGroupName(suggestion));
