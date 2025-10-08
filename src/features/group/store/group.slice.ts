@@ -1,13 +1,15 @@
 import type { EntityState } from "@reduxjs/toolkit";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import { completeOnboarding } from "../../onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
 import type { Group, InvitationDetails } from "../domain/group.model";
 import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
+import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
 import { acceptInvitation } from "../usecases/invitation/acceptInvitation.usecase";
 import { generateInviteLink } from "../usecases/invitation/generateInviteLink.usecase";
 import { getInvitationDetails } from "../usecases/invitation/getInvitationDetails.usecase";
 import { refuseInvitation } from "../usecases/invitation/refuseInvitation.usecase";
+import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
 import { loadUserGroups } from "../usecases/load-groups/loadGroups.usecase";
+import { removeMemberFromGroup } from "../usecases/remove-member/removeMember.usecase";
 
 interface AddMemberForm {
   groupId: string;
@@ -17,10 +19,17 @@ interface AddMemberForm {
 
 export const groupsAdapter = createEntityAdapter<Group>();
 
+interface AddExpenseForm {
+  groupId: string;
+  name: string;
+  amount: string;
+}
+
 interface GroupState extends EntityState<Group, string> {
   loading: boolean;
   error: string | null;
   addMemberForm: AddMemberForm | null;
+  addExpenseForm: AddExpenseForm | null;
   invitation: {
     generateLink: {
       loading: boolean;
@@ -39,6 +48,7 @@ const initialState: GroupState = groupsAdapter.getInitialState({
   loading: false,
   error: null,
   addMemberForm: null,
+  addExpenseForm: null,
   invitation: {
     generateLink: {
       loading: false,
@@ -75,12 +85,30 @@ export const groupSlice = createSlice({
     closeAddMemberForm: (state) => {
       state.addMemberForm = null;
     },
+
+    // Actions pour gérer le formulaire d'ajout de dépense
+    openAddExpenseForm: (state, action) => {
+      state.addExpenseForm = {
+        groupId: action.payload,
+        name: "",
+        amount: "",
+      };
+    },
+
+    updateAddExpenseForm: (state, action) => {
+      if (state.addExpenseForm) {
+        state.addExpenseForm = { ...state.addExpenseForm, ...action.payload };
+      }
+    },
+
+    closeAddExpenseForm: (state) => {
+      state.addExpenseForm = null;
+    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(completeOnboarding.fulfilled, (state, action) => {
-        groupsAdapter.addOne(state, action.payload.group);
-      })
+      // completeOnboarding returns groupId only, not the full group object
+      // Groups will be loaded separately via loadUserGroups
       // Charger les groupes utilisateur
       .addCase(loadUserGroups.pending, (state) => {
         state.loading = true;
@@ -102,7 +130,19 @@ export const groupSlice = createSlice({
       })
       .addCase(addMemberToGroup.fulfilled, (state, action) => {
         state.loading = false;
-        groupsAdapter.upsertOne(state, action.payload);
+        const { groupId, newMember, shares } = action.payload;
+
+        // Mettre à jour le groupe existant
+        const group = state.entities[groupId];
+        if (group) {
+          // Ajouter le nouveau membre
+          group.members.push(newMember);
+          // Mettre à jour les shares
+          group.shares = shares;
+          // Mettre à jour le budget total
+          group.totalMonthlyBudget = shares.totalExpenses;
+        }
+
         // Fermer le formulaire
         state.addMemberForm = null;
       })
@@ -144,9 +184,9 @@ export const groupSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(acceptInvitation.fulfilled, (state, action) => {
+      .addCase(acceptInvitation.fulfilled, (state) => {
         state.loading = false;
-        groupsAdapter.upsertOne(state, action.payload);
+        // Group will be loaded separately via loadUserGroups
       })
       .addCase(acceptInvitation.rejected, (state, action) => {
         state.loading = false;
@@ -166,11 +206,80 @@ export const groupSlice = createSlice({
         state.loading = false;
         state.error =
           action.error.message || "Erreur lors du refus de l'invitation";
+      })
+      // Remove member from group
+      .addCase(removeMemberFromGroup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(removeMemberFromGroup.fulfilled, (state, action) => {
+        state.loading = false;
+        const { groupId, memberId, shares } = action.payload;
+
+        const group = state.entities[groupId];
+        if (group) {
+          // Remove member from the list using member.id
+          group.members = group.members.filter((m) => m.id !== memberId);
+          // Update shares
+          group.shares = shares;
+          group.totalMonthlyBudget = shares.totalExpenses;
+        }
+      })
+      .addCase(removeMemberFromGroup.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Erreur lors de la suppression du membre";
+      })
+      // Add expense to group
+      .addCase(addExpenseToGroup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addExpenseToGroup.fulfilled, (state, action) => {
+        state.loading = false;
+        const { groupId, expense, shares } = action.payload;
+
+        const group = state.entities[groupId];
+        if (group) {
+          // Add new expense to the list
+          group.expenses.push(expense);
+          // Update shares
+          group.shares = shares;
+          group.totalMonthlyBudget = shares.totalExpenses;
+        }
+
+        // Fermer le formulaire
+        state.addExpenseForm = null;
+      })
+      .addCase(addExpenseToGroup.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Erreur lors de l'ajout de la dépense";
+      })
+      // Load single group by ID (for refresh)
+      .addCase(loadGroupById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loadGroupById.fulfilled, (state, action) => {
+        state.loading = false;
+        groupsAdapter.upsertOne(state, action.payload);
+      })
+      .addCase(loadGroupById.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Erreur lors du rechargement du groupe";
       });
   },
 });
 
-export const { openAddMemberForm, updateAddMemberForm, closeAddMemberForm } =
-  groupSlice.actions;
+export const {
+  openAddMemberForm,
+  updateAddMemberForm,
+  closeAddMemberForm,
+  openAddExpenseForm,
+  updateAddExpenseForm,
+  closeAddExpenseForm,
+} = groupSlice.actions;
 
 export const groupReducer = groupSlice.reducer;

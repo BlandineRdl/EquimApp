@@ -1,3 +1,4 @@
+import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import type {
   Group,
   InvitationDetails,
@@ -12,6 +13,14 @@ interface AddMemberForm {
 }
 
 export interface AppState {
+  auth: {
+    user: SupabaseUser | null;
+    session: Session | null;
+    isLoading: boolean;
+    isAuthenticated: boolean;
+    profileDeleted: boolean;
+    error: string | null;
+  };
   onboarding: {
     pseudo: string;
     pseudoBlurred: boolean;

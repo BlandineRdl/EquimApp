@@ -62,16 +62,16 @@ export const GroupsHome = ({
 
           {/* Budget Section */}
           <View style={styles.budgetSection}>
-            <Text style={styles.budgetLabel}>Dépenses mensuelles</Text>
+            <Text style={styles.budgetLabel}>Total des dépenses</Text>
             <Text style={styles.budgetAmount}>
-              {group.totalMonthlyBudget.toLocaleString("fr-FR", {
+              {(group.shares?.totalExpenses || 0).toLocaleString("fr-FR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}{" "}
               €
             </Text>
             <Text style={styles.expensesCount}>
-              {group.expenses.length} dépenses configurées
+              {group.expenses?.length || 0} dépense{(group.expenses?.length || 0) > 1 ? "s" : ""} configurée{(group.expenses?.length || 0) > 1 ? "s" : ""}
             </Text>
           </View>
 

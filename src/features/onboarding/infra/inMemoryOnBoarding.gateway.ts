@@ -1,66 +1,60 @@
-import type { Group } from "../../group/domain/group.model";
-import type { GroupGateway } from "../../group/ports/group.gateway";
-import type { User } from "../../user/domain/user.model";
-import type { OnboardingData } from "../domain/onboarding.model";
-import type { OnboardingGateway } from "../ports/onboarding.gateway";
+import type { GroupGateway } from "../../group/ports/GroupGateway";
+import type {
+	CompleteOnboardingInput,
+	CompleteOnboardingResult,
+	OnboardingGateway,
+} from "../ports/OnboardingGateway";
 
 export class InMemoryOnboardingGateway implements OnboardingGateway {
-  private storedResult: { user: User; group: Group } | null = null;
+	private storedResult: CompleteOnboardingResult | null = null;
 
-  constructor(private groupGateway: GroupGateway) {}
+	constructor(private groupGateway: GroupGateway) {}
 
-  async completeOnboarding(data: OnboardingData): Promise<{
-    user: User;
-    group: Group;
-  }> {
-    if (this.storedResult) {
-      return { ...this.storedResult };
-    }
+	async completeOnboarding(
+		input: CompleteOnboardingInput,
+	): Promise<CompleteOnboardingResult> {
+		if (this.storedResult) {
+			return { ...this.storedResult };
+		}
 
-    const user: User = {
-      id: "user-1",
-      pseudo: data.userProfile.pseudo,
-      monthlyIncome: data.userProfile.monthlyIncome,
-      shareRevenue: data.userProfile.shareRevenue,
-    };
+		// Create group
+		const { groupId } = await this.groupGateway.createGroup(
+			input.groupName,
+			"EUR",
+		);
 
-    const group: Group = {
-      id: "group-1",
-      name: data.group.name,
-      expenses: data.group.expenses.map((expense) => ({
-        id: expense.isCustom ? `custom-${expense.label}` : expense.label,
-        label: expense.label,
-        amount: expense.amount,
-        isCustom: expense.isCustom,
-      })),
-      totalMonthlyBudget: data.group.totalMonthlyBudget,
-      members: [
-        {
-          id: user.id,
-          pseudo: user.pseudo,
-          monthlyIncome: user.monthlyIncome,
-        },
-      ],
-    };
+		// Add member (current user)
+		const profileId = "user-1";
+		await this.groupGateway.addMember(groupId, profileId);
 
-    if (
-      "seed" in this.groupGateway &&
-      typeof (this.groupGateway as GroupGateway & { seed?: unknown }).seed ===
-        "function"
-    ) {
-      (
-        this.groupGateway as GroupGateway & { seed: (groups: Group[]) => void }
-      ).seed([group]);
-    }
+		// Create expenses
+		for (const expense of input.expenses) {
+			await this.groupGateway.createExpense({
+				groupId,
+				name: expense.name,
+				amount: expense.amount,
+				currency: "EUR",
+				isPredefined: expense.isPredefined ?? false,
+			});
+		}
 
-    return { user, group };
-  }
+		// Get shares
+		const { shares } = await this.groupGateway.refreshGroupShares(groupId);
 
-  seed(result: { user: User; group: Group }): void {
-    this.storedResult = result;
-  }
+		const result: CompleteOnboardingResult = {
+			profileId,
+			groupId,
+			shares,
+		};
 
-  reset(): void {
-    this.storedResult = null;
-  }
+		return result;
+	}
+
+	seed(result: CompleteOnboardingResult): void {
+		this.storedResult = result;
+	}
+
+	reset(): void {
+		this.storedResult = null;
+	}
 }

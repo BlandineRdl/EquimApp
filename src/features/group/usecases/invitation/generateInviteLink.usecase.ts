@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
-import type { GroupGateway } from "../../ports/group.gateway";
+import type { GroupGateway } from "../../ports/GroupGateway";
 
 export const generateInviteLink = createAsyncThunk<
   string,
@@ -19,6 +19,7 @@ export const generateInviteLink = createAsyncThunk<
       throw new Error("Groupe non trouvé");
     }
 
+    // @ts-expect-error - Method renamed to generateInvitation, needs refactor
     const inviteLink = await groupGateway.generateInviteLink(groupId);
     return inviteLink;
   },

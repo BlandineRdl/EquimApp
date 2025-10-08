@@ -13,31 +13,47 @@ export interface GroupMemberWithShare extends StoreGroupMember {
 export const selectGroupDetails = createSelector(
   [(state: AppState, groupId: string) => selectGroupById(state, groupId)],
   (group) => {
-    if (!group) return null;
+    if (!group) {
+      return null;
+    }
 
     // Utiliser les membres du store
-    const members = group.members;
+    const members = group.members || [];
 
-    // Calcul du total des revenus
+    // Calcul du total des revenus (incomeOrWeight)
     const totalIncome = members.reduce(
-      (sum, member) => sum + member.monthlyIncome,
+      (sum, member) => sum + (member.incomeOrWeight || 0),
       0,
     );
 
-    // Calcul des quotes-parts proportionnelles
-    const membersWithShares: GroupMemberWithShare[] = members.map((member) => ({
-      ...member,
-      sharePercentage: Math.round((member.monthlyIncome / totalIncome) * 100),
-      shareAmount:
-        (member.monthlyIncome / totalIncome) * group.totalMonthlyBudget,
-    }));
+    // Utiliser les shares depuis le backend (déjà calculés)
+    const totalExpenses = group.shares?.totalExpenses || 0;
+
+    // DEBUG: Log pour voir ce qui arrive du backend
+    console.log('🔍 DEBUG shares from backend:', JSON.stringify(group.shares, null, 2));
+    console.log('🔍 DEBUG members:', members.map(m => ({ id: m.id, pseudo: m.pseudo })));
+
+    const sharesByMemberId = new Map(
+      group.shares?.shares.map((share: any) => [share.memberId || share.member_id, share]) || []
+    );
+
+    // Mapper les membres avec leurs shares
+    const membersWithShares: GroupMemberWithShare[] = members.map((member) => {
+      const share = sharesByMemberId.get(member.id);
+      console.log(`🔍 Member ${member.pseudo} (id: ${member.id}) -> share:`, share);
+      return {
+        ...member,
+        sharePercentage: share?.sharePercentage || share?.share_percentage || 0,
+        shareAmount: share?.shareAmount || share?.share_amount || 0,
+      };
+    });
 
     return {
       group,
       members: membersWithShares,
       totalIncome,
-      totalBudget: group.totalMonthlyBudget,
-      expensesCount: group.expenses.length,
+      totalBudget: totalExpenses,
+      expensesCount: group.expenses?.length || 0,
     };
   },
 );

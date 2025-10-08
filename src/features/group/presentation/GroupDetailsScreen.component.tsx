@@ -1,6 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Calendar, Plus, Users } from "lucide-react-native";
+import { ArrowLeft, Calendar, Plus, Trash2, Users } from "lucide-react-native";
+import { useState } from "react";
 import {
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -16,9 +18,15 @@ import {
   closeAddMemberForm,
   openAddMemberForm,
   updateAddMemberForm,
+  closeAddExpenseForm,
+  openAddExpenseForm,
+  updateAddExpenseForm,
 } from "../store/group.slice";
 import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
-import { selectAddMemberUI } from "./selectGroup.selector";
+import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
+import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
+import { removeMemberFromGroup } from "../usecases/remove-member/removeMember.usecase";
+import { selectAddExpenseUI, selectAddMemberUI } from "./selectGroup.selector";
 import {
   selectGroupDetails,
   selectGroupExpenses,
@@ -27,10 +35,13 @@ import {
 
 export const GroupDetailsScreen = () => {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
+  const [refreshing, setRefreshing] = useState(false);
+  const [showAllExpenses, setShowAllExpenses] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { isOpen, form, canSubmit } = useSelector(selectAddMemberUI);
+  const addMemberUI = useSelector(selectAddMemberUI);
+  const addExpenseUI = useSelector(selectAddExpenseUI);
 
   const groupDetails = useSelector((state: AppState) =>
     groupId ? selectGroupDetails(state, groupId) : null,
@@ -65,13 +76,13 @@ export const GroupDetailsScreen = () => {
   };
 
   const handleAddMember = () => {
-    if (form && canSubmit) {
+    if (addMemberUI.form && addMemberUI.canSubmit) {
       dispatch(
         addMemberToGroup({
-          groupId: form.groupId,
+          groupId: addMemberUI.form.groupId,
           memberData: {
-            pseudo: form.pseudo.trim(),
-            monthlyIncome: parseFloat(form.monthlyIncome),
+            pseudo: addMemberUI.form.pseudo.trim(),
+            monthlyIncome: parseFloat(addMemberUI.form.monthlyIncome),
           },
         }),
       );
@@ -83,6 +94,54 @@ export const GroupDetailsScreen = () => {
 
   const onIncomeChange = (text: string) =>
     dispatch(updateAddMemberForm({ monthlyIncome: text }));
+
+  const onRefresh = async () => {
+    if (!groupId) return;
+    setRefreshing(true);
+    try {
+      await dispatch(loadGroupById(groupId)).unwrap();
+    } catch (error) {
+      console.error("Error refreshing group:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    if (!groupId) return;
+    try {
+      await dispatch(removeMemberFromGroup({ groupId, memberId })).unwrap();
+    } catch (error: any) {
+      console.error("Error removing member:", error.message);
+    }
+  };
+
+  // Fonctions pour gérer la modal d'ajout de dépense
+  const openExpenseModal = () => {
+    dispatch(openAddExpenseForm(groupId));
+  };
+
+  const closeAddExpenseModal = () => {
+    dispatch(closeAddExpenseForm());
+  };
+
+  const handleAddExpense = () => {
+    if (addExpenseUI.form && addExpenseUI.canSubmit) {
+      dispatch(
+        addExpenseToGroup({
+          groupId: addExpenseUI.form.groupId,
+          name: addExpenseUI.form.name.trim(),
+          amount: parseFloat(addExpenseUI.form.amount),
+        }),
+      );
+    }
+  };
+
+  const onExpenseNameChange = (text: string) =>
+    dispatch(updateAddExpenseForm({ name: text }));
+
+  const onExpenseAmountChange = (text: string) =>
+    dispatch(updateAddExpenseForm({ amount: text }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -103,6 +162,9 @@ export const GroupDetailsScreen = () => {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* Total mensuel */}
         <View style={styles.totalCard}>
@@ -128,16 +190,24 @@ export const GroupDetailsScreen = () => {
 
         {/* Dépenses configurées */}
         <View style={styles.expensesCard}>
-          <Text style={styles.expensesCardTitle}>
-            Dépenses configurées ({groupStats.expensesCount})
-          </Text>
+          <View style={styles.expensesHeader}>
+            <Text style={styles.expensesCardTitle}>
+              Dépenses configurées ({groupStats.expensesCount})
+            </Text>
+            <TouchableOpacity
+              style={styles.addExpenseButton}
+              onPress={openExpenseModal}
+            >
+              <Plus size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
 
-          {expenses.map((expense, index) => (
+          {(showAllExpenses ? expenses : expenses.slice(0, 1)).map((expense, index, displayedExpenses) => (
             <View
               key={expense.id}
               style={[
                 styles.expenseItem,
-                index < expenses.length - 1 && styles.expenseItemWithBorder,
+                index < displayedExpenses.length - 1 && styles.expenseItemWithBorder,
               ]}
             >
               <View style={styles.expenseInfo}>
@@ -154,10 +224,24 @@ export const GroupDetailsScreen = () => {
             </View>
           ))}
 
-          {expenses.length > 1 && (
-            <TouchableOpacity style={styles.showMoreButton}>
+          {expenses.length > 1 && !showAllExpenses && (
+            <TouchableOpacity
+              style={styles.showMoreButton}
+              onPress={() => setShowAllExpenses(true)}
+            >
               <Text style={styles.showMoreText}>
                 Voir plus ({expenses.length - 1} autres)
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {expenses.length > 1 && showAllExpenses && (
+            <TouchableOpacity
+              style={styles.showMoreButton}
+              onPress={() => setShowAllExpenses(false)}
+            >
+              <Text style={styles.showMoreText}>
+                Voir moins
               </Text>
             </TouchableOpacity>
           )}
@@ -192,14 +276,24 @@ export const GroupDetailsScreen = () => {
               <View style={styles.memberInfo}>
                 <View style={styles.memberFirstRow}>
                   <Text style={styles.memberName}>{member.pseudo}</Text>
-                  <Text style={styles.revenueLabel}>
-                    Revenu:{" "}
-                    {member.monthlyIncome.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €/mois
-                  </Text>
+                  <View style={styles.memberFirstRowRight}>
+                    <Text style={styles.revenueLabel}>
+                      Revenu:{" "}
+                      {(member.incomeOrWeight || 0).toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €/mois
+                    </Text>
+                    {member.userId !== group.creatorId && (
+                      <TouchableOpacity
+                        onPress={() => handleRemoveMember(member.id)}
+                        style={styles.removeMemberButton}
+                      >
+                        <Trash2 size={16} color="#ef4444" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
                 <View style={styles.quotePart}>
                   <Text style={styles.quotePartLabel}>Quote-part</Text>
@@ -237,21 +331,21 @@ export const GroupDetailsScreen = () => {
       </ScrollView>
 
       {/* Modal d'ajout de membre */}
-      {isOpen && (
+      {addMemberUI.isOpen && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Ajouter un membre</Text>
             <TextInput
               style={styles.modalInput}
               placeholder="Pseudo"
-              value={form?.pseudo}
+              value={addMemberUI.form?.pseudo}
               onChangeText={onPseudoChange}
             />
             <TextInput
               style={styles.modalInput}
               placeholder="Revenu mensuel (€)"
               keyboardType="numeric"
-              value={form?.monthlyIncome}
+              value={addMemberUI.form?.monthlyIncome}
               onChangeText={onIncomeChange}
             />
             <TouchableOpacity
@@ -263,6 +357,40 @@ export const GroupDetailsScreen = () => {
             <TouchableOpacity
               style={styles.modalButtonCancel}
               onPress={closeAddMemberModal}
+            >
+              <Text style={styles.modalButtonTextCancel}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Modal d'ajout de dépense */}
+      {addExpenseUI.isOpen && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Ajouter une dépense</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Nom de la dépense"
+              value={addExpenseUI.form?.name}
+              onChangeText={onExpenseNameChange}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Montant (€)"
+              keyboardType="numeric"
+              value={addExpenseUI.form?.amount}
+              onChangeText={onExpenseAmountChange}
+            />
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={handleAddExpense}
+            >
+              <Text style={styles.modalButtonText}>Ajouter</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButtonCancel}
+              onPress={closeAddExpenseModal}
             >
               <Text style={styles.modalButtonTextCancel}>Annuler</Text>
             </TouchableOpacity>
@@ -382,11 +510,23 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  expensesHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   expensesCardTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: "#000",
-    marginBottom: 16,
+  },
+  addExpenseButton: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+    padding: 8,
   },
   expensesContainer: {
     backgroundColor: "#fff",
@@ -505,10 +645,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
+  memberFirstRowRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   memberName: {
     fontSize: 16,
     fontWeight: "500",
     color: "#000",
+  },
+  removeMemberButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   memberRevenue: {
     marginBottom: 4,

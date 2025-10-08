@@ -5,16 +5,21 @@ import {
   type ThunkDispatch,
 } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
-import type { GroupGateway } from "../features/group/ports/group.gateway";
+import type { AuthGateway } from "../features/auth/ports/AuthGateway";
+import authReducer from "../features/auth/store/authSlice";
+import type { GroupGateway } from "../features/group/ports/GroupGateway";
 import { groupReducer } from "../features/group/store/group.slice";
 import { notificationListeners } from "../features/notification/store/notification.listeners";
 import { notificationReducer } from "../features/notification/store/notification.slice";
-import type { OnboardingGateway } from "../features/onboarding/ports/onboarding.gateway";
+import type { OnboardingGateway } from "../features/onboarding/ports/OnboardingGateway";
 import { onboardingReducer } from "../features/onboarding/store/onboarding.slice";
+import type { UserGateway } from "../features/user/ports/UserGateway";
 import { userReducer } from "../features/user/store/user.slice";
 import type { AppState } from "./appState";
 
 export interface Dependencies {
+  authGateway: AuthGateway;
+  userGateway: UserGateway;
   onboardingGateway: OnboardingGateway;
   groupGateway: GroupGateway;
 }
@@ -40,6 +45,7 @@ if (!isTestEnvironment) {
 export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
   return configureStore({
     reducer: {
+      auth: authReducer,
       onboarding: onboardingReducer,
       user: userReducer,
       groups: groupReducer,
@@ -50,15 +56,20 @@ export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
       getDefaultMiddleware({
         thunk: {
           extraArgument: {
+            authGateway: dependencies.authGateway,
+            userGateway: dependencies.userGateway,
             onboardingGateway: dependencies.onboardingGateway,
             groupGateway: dependencies.groupGateway,
           },
         },
       }).prepend(notificationListeners.middleware),
-    enhancers: (getDefaultEnhancers) =>
-      isTestEnvironment
-        ? getDefaultEnhancers()
-        : getDefaultEnhancers().concat(devToolsEnhancer()),
+    // @ts-expect-error - Redux DevTools Expo plugin type mismatch
+    enhancers: (getDefaultEnhancers) => {
+      if (isTestEnvironment) {
+        return getDefaultEnhancers();
+      }
+      return getDefaultEnhancers().concat(devToolsEnhancer());
+    },
   });
 };
 

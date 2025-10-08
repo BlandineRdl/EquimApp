@@ -1,10 +1,20 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
-import type { Group } from "../../domain/group.model";
-import type { AddMemberData, GroupGateway } from "../../ports/group.gateway";
+import { MemberValidationService } from "../../domain/memberValidation.service";
+import type { GroupMember, Shares } from "../../ports/GroupGateway";
+import type { GroupGateway } from "../../ports/GroupGateway";
+
+export interface AddMemberData {
+  pseudo: string;
+  monthlyIncome: number;
+}
 
 export const addMemberToGroup = createAsyncThunk<
-  Group,
+  {
+    groupId: string;
+    newMember: GroupMember;
+    shares: Shares;
+  },
   { groupId: string; memberData: AddMemberData },
   {
     state: AppState;
@@ -13,17 +23,13 @@ export const addMemberToGroup = createAsyncThunk<
 >(
   "groups/addMemberToGroup",
   async ({ groupId, memberData }, { getState, extra: { groupGateway } }) => {
-    // Validation des données du membre
-    if (!memberData.pseudo.trim()) {
-      throw new Error("Le pseudo ne peut pas être vide");
-    }
+    // Normalize data first (trim, parse, etc.)
+    const normalizedData = MemberValidationService.normalizeMemberData(memberData);
 
-    if (memberData.pseudo.trim().length < 2) {
-      throw new Error("Le pseudo doit contenir au moins 2 caractères");
-    }
-
-    if (memberData.monthlyIncome <= 0) {
-      throw new Error("Le revenu mensuel doit être positif");
+    // Validate member data using domain service
+    const validation = MemberValidationService.validateMemberData(normalizedData);
+    if (!validation.isValid) {
+      throw new Error(validation.errors[0]);
     }
 
     // Vérifier que le groupe existe (logique métier)
@@ -33,11 +39,28 @@ export const addMemberToGroup = createAsyncThunk<
       throw new Error("Groupe non trouvé");
     }
 
-    // Le gateway fait juste l'opération technique
-    const updatedGroup = await groupGateway.addMemberToGroup(
+    // Add phantom member via gateway
+    const result = await groupGateway.addPhantomMember(
       groupId,
-      memberData,
+      normalizedData.pseudo,
+      normalizedData.monthlyIncome,
     );
-    return updatedGroup;
+
+    // Create the new member object with the ID returned from backend
+    const newMember: GroupMember = {
+      id: result.memberId,
+      userId: null,
+      pseudo: normalizedData.pseudo,
+      shareRevenue: true,
+      incomeOrWeight: normalizedData.monthlyIncome,
+      joinedAt: new Date().toISOString(),
+      isPhantom: true,
+    };
+
+    return {
+      groupId,
+      newMember,
+      shares: result.shares,
+    };
   },
 );

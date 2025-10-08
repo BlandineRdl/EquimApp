@@ -59,10 +59,8 @@ export const AcceptInvitationScreen = () => {
       await dispatch(
         acceptInvitation({
           token,
-          memberData: {
-            pseudo: memberForm.pseudo.trim(),
-            monthlyIncome: monthlyIncomeNumber,
-          },
+          pseudo: memberForm.pseudo.trim(),
+          monthlyIncome: monthlyIncomeNumber,
         }),
       ).unwrap();
 

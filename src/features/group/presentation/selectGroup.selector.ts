@@ -66,3 +66,21 @@ export const selectAddMemberUI = createSelector(
       : false,
   }),
 );
+
+export const selectAddExpenseForm = createSelector(
+  [selectGroupsState],
+  (groupsState) => groupsState.addExpenseForm,
+);
+
+export const selectAddExpenseUI = createSelector(
+  [selectAddExpenseForm, selectGroupsLoading, selectGroupsError],
+  (form, loading, error) => ({
+    isOpen: !!form,
+    form,
+    loading,
+    error,
+    canSubmit: form
+      ? form.name.trim() && parseFloat(form.amount) > 0
+      : false,
+  }),
+);

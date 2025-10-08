@@ -1,116 +1,189 @@
-// src/features/group/usecases/add-member/addMember.dsl.ts
-import type { Action, ThunkDispatch } from "@reduxjs/toolkit";
-import { expect } from "vitest";
-import type { AppState } from "../../../../store/appState";
-import {
-  type Dependencies,
-  initReduxStore,
-} from "../../../../store/buildReduxStore";
-import type { Group, GroupMember } from "../../domain/group.model";
+/**
+ * DSL for Add Phantom Member Use Case
+ * Test Driven Development - Behavior specification
+ * 
+ * Simplified API: Only WHEN methods are async, GIVEN/THEN are sync
+ */
+
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import { loadUserGroups } from "../load-groups/loadGroups.usecase";
-import { addMemberToGroup } from "./addMember.usecase";
+import type { GroupGateway } from "../../ports/GroupGateway";
+import type { AddMemberData } from "./addMember.usecase";
 
-export class AddMemberDsl {
-  private groupGateway = new InMemoryGroupGateway();
-  private store = initReduxStore({ groupGateway: this.groupGateway });
-  private lastError: string | null = null;
+export class AddMemberDSL {
+  private groupGateway: GroupGateway;
+  private groupId: string | null = null;
+  private memberData: AddMemberData | null = null;
+  private result: any = null;
+  private error: Error | null = null;
+  private _setupPromise: Promise<void> | null = null;
 
-  private get dispatch(): ThunkDispatch<AppState, Dependencies, Action> {
-    return this.store.dispatch;
+  constructor() {
+    this.groupGateway = new InMemoryGroupGateway();
   }
 
-  async setup(): Promise<void> {}
+  // ============================================================================
+  // GIVEN - Setup initial state (synchronous chaining)
+  // ============================================================================
 
-  async teardown(): Promise<void> {
-    this.groupGateway.reset();
-    this.lastError = null;
+  givenAGroupExists(): this {
+    this._setupPromise = this._createGroup();
+    return this;
   }
 
-  async givenExistingGroup(
-    group: Partial<Group> & { id: string },
-  ): Promise<void> {
-    const defaultGroup: Group = {
-      id: group.id,
-      name: group.name ?? "",
-      expenses: group.expenses || [],
-      totalMonthlyBudget: group.totalMonthlyBudget || 0,
-      members: group.members || [],
-    };
-
-    // Seed le gateway avec le groupe existant
-    this.groupGateway.seed([defaultGroup]);
-
-    // Simuler le flow réel : charger les groupes depuis l'API
-    await this.dispatch(loadUserGroups()).unwrap();
+  private async _createGroup(): Promise<void> {
+    const { groupId } = await this.groupGateway.createGroup("Test Group", "EUR");
+    this.groupId = groupId;
+    await this.groupGateway.addMember(groupId, "current-user");
   }
 
-  async whenAddingMemberToGroup(data: {
-    groupId: string;
-    pseudo: string;
-    monthlyIncome: number;
-  }): Promise<void> {
-    try {
-      await this.dispatch(
-        addMemberToGroup({
-          groupId: data.groupId,
-          memberData: {
-            pseudo: data.pseudo,
-            monthlyIncome: data.monthlyIncome,
-          },
-        }),
-      ).unwrap();
+  givenMemberData(pseudo: string, monthlyIncome: number): this {
+    this.memberData = { pseudo, monthlyIncome };
+    return this;
+  }
 
-      this.lastError = null;
-    } catch (error) {
-      // Redux Toolkit peut encapsuler l'erreur dans un objet
-      if (error instanceof Error) {
-        this.lastError = error.message;
-      } else if (
-        typeof error === "object" &&
-        error !== null &&
-        "message" in error &&
-        typeof (error as { message: unknown }).message === "string"
-      ) {
-        this.lastError = (error as { message: string }).message;
-      } else {
-        this.lastError = String(error);
-      }
+  givenInvalidPseudo(pseudo: string): this {
+    return this.givenMemberData(pseudo, 2000);
+  }
+
+  givenInvalidIncome(income: number): this {
+    return this.givenMemberData("Valid Pseudo", income);
+  }
+
+  // ============================================================================
+  // WHEN - Execute the action (async)
+  // ============================================================================
+
+  async whenAddingPhantomMember(): Promise<this> {
+    // Wait for setup to complete
+    if (this._setupPromise) {
+      await this._setupPromise;
     }
+
+    try {
+      if (!this.groupId || !this.memberData) {
+        throw new Error("Missing test setup: groupId or memberData");
+      }
+
+      this.result = await this.groupGateway.addPhantomMember(
+        this.groupId,
+        this.memberData.pseudo,
+        this.memberData.monthlyIncome,
+      );
+      this.error = null;
+    } catch (error) {
+      this.error = error as Error;
+      this.result = null;
+    }
+
+    return this;
   }
 
-  async thenGroupShouldHaveMembers(
-    expectedMembers: Array<Partial<GroupMember>>,
-  ): Promise<void> {
-    const groups = this.groupGateway.getAllGroups();
-    const group = groups[0];
+  // ============================================================================
+  // THEN - Assertions (synchronous chaining)
+  // ============================================================================
 
-    expect(group).toBeDefined();
-    expect(group.members).toHaveLength(expectedMembers.length);
+  thenPhantomMemberShouldBeAdded(): this {
+    if (!this.result) {
+      throw new Error("Expected result but got null");
+    }
 
-    expectedMembers.forEach((expectedMember, index) => {
-      const actualMember = group.members[index];
+    if (!this.result.memberId) {
+      throw new Error("Expected memberId in result");
+    }
 
-      if (expectedMember.id) {
-        expect(actualMember.id).toBe(expectedMember.id);
-      }
-      if (expectedMember.pseudo) {
-        expect(actualMember.pseudo).toBe(expectedMember.pseudo);
-      }
-      if (expectedMember.monthlyIncome) {
-        expect(actualMember.monthlyIncome).toBe(expectedMember.monthlyIncome);
-      }
-    });
+    if (!this.result.shares) {
+      throw new Error("Expected shares in result");
+    }
 
-    // Vérifier que le store Redux est synchronisé
-    const state = this.store.getState();
-    const storeGroup = state.groups.entities[group.id];
-    expect(storeGroup).toBeDefined();
-    expect(storeGroup.members).toHaveLength(expectedMembers.length);
+    return this;
   }
 
-  async thenOperationShouldFail(expectedError: string): Promise<void> {
-    expect(this.lastError).toBeTruthy();
-    expect(this.lastError).toContain(expectedError);
+  thenSharesShouldBeRecalculated(): this {
+    if (!this.result?.shares) {
+      throw new Error("Expected shares to be calculated");
+    }
+
+    if (!Array.isArray(this.result.shares.shares)) {
+      throw new Error("Expected shares.shares to be an array");
+    }
+
+    // Should have at least 2 members (current user + phantom)
+    if (this.result.shares.shares.length < 2) {
+      throw new Error(
+        `Expected at least 2 members in shares, got ${this.result.shares.shares.length}`,
+      );
+    }
+
+    return this;
+  }
+
+  thenPhantomMemberShouldHaveCorrectShare(): this {
+    if (!this.result?.shares || !this.memberData) {
+      throw new Error("Missing result or memberData");
+    }
+
+    const phantomMember = this.result.shares.shares.find(
+      (s: any) => s.pseudo === this.memberData!.pseudo,
+    );
+
+    if (!phantomMember) {
+      throw new Error(
+        `Phantom member ${this.memberData.pseudo} not found in shares`,
+      );
+    }
+
+    if (phantomMember.sharePercentage <= 0) {
+      throw new Error("Expected phantom member to have a positive share percentage");
+    }
+
+    return this;
+  }
+
+  thenShouldFailWithError(expectedMessage: string): this {
+    if (!this.error) {
+      throw new Error("Expected an error but operation succeeded");
+    }
+
+    if (!this.error.message.includes(expectedMessage)) {
+      throw new Error(
+        `Expected error message to contain "${expectedMessage}", but got "${this.error.message}"`,
+      );
+    }
+
+    return this;
+  }
+
+  thenShouldSucceed(): this {
+    if (this.error) {
+      throw new Error(`Expected success but got error: ${this.error.message}`);
+    }
+
+    if (!this.result) {
+      throw new Error("Expected a result but got null");
+    }
+
+    return this;
+  }
+
+  // ============================================================================
+  // Helpers
+  // ============================================================================
+
+  getResult() {
+    return this.result;
+  }
+
+  getError() {
+    return this.error;
+  }
+
+  reset(): this {
+    this.groupId = null;
+    this.memberData = null;
+    this.result = null;
+    this.error = null;
+    this._setupPromise = null;
+    this.groupGateway = new InMemoryGroupGateway();
+    return this;
   }
 }

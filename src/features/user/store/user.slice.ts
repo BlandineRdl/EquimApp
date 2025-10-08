@@ -1,7 +1,7 @@
 // src/features/user/store/user.slice.ts
 import { createSlice } from "@reduxjs/toolkit";
-import { completeOnboarding } from "../../onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
 import type { User } from "../domain/user.model";
+import { loadUserProfile } from "../usecases/loadUserProfile.usecase";
 
 interface UserState {
   profile: User | null;
@@ -24,10 +24,21 @@ export const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(completeOnboarding.fulfilled, (state, action) => {
-      state.profile = action.payload.user;
-    });
+    builder
+      .addCase(loadUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loadUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload;
+      })
+      .addCase(loadUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to load profile";
+      });
   },
 });
 
+export const { clearUserError } = userSlice.actions;
 export const userReducer = userSlice.reducer;

@@ -4,7 +4,7 @@ import type { AppState } from "../../../../store/appState";
 import type {
   CompleteOnboardingResult,
   OnboardingGateway,
-} from "../../ports/onboarding.gateway";
+} from "../../ports/OnboardingGateway";
 
 export const completeOnboarding = createAsyncThunk<
   CompleteOnboardingResult,
@@ -23,28 +23,18 @@ export const completeOnboarding = createAsyncThunk<
       (expense) => parseFloat(expense.amount) > 0,
     );
 
-    const onboardingData = {
-      userProfile: {
-        pseudo: onboarding.pseudo.trim(),
-        monthlyIncome: parseFloat(onboarding.monthlyIncome) || 0,
-        shareRevenue: true,
-      },
-      group: {
-        name: onboarding.groupName.trim(),
-        expenses: filteredExpenses.map((expense) => ({
-          id: expense.id,
-          label: expense.label,
-          amount: expense.amount,
-          isCustom: expense.isCustom,
-        })),
-
-        totalMonthlyBudget: filteredExpenses.reduce(
-          (total, expense) => total + parseFloat(expense.amount),
-          0,
-        ),
-      },
+    // Adapt to new CompleteOnboardingInput format
+    const onboardingInput = {
+      pseudo: onboarding.pseudo.trim(),
+      income: parseFloat(onboarding.monthlyIncome) || 0,
+      groupName: onboarding.groupName.trim(),
+      expenses: filteredExpenses.map((expense) => ({
+        name: expense.label,
+        amount: parseFloat(expense.amount),
+        isPredefined: !expense.isCustom,
+      })),
     };
 
-    return onboardingGateway.completeOnboarding(onboardingData);
+    return onboardingGateway.completeOnboarding(onboardingInput);
   },
 );

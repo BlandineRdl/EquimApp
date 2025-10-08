@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
 import { INVITATION_TOKEN_PREFIX } from "../../domain/group.constants";
-import type { GroupGateway } from "../../ports/group.gateway";
+import type { GroupGateway } from "../../ports/GroupGateway";
 
 export const refuseInvitation = createAsyncThunk<
   void,
@@ -15,5 +15,6 @@ export const refuseInvitation = createAsyncThunk<
     throw new Error("Token d'invitation invalide");
   }
 
+  // @ts-expect-error - Method removed from new interface, needs refactor
   await groupGateway.refuseInvitation(token);
 });

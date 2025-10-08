@@ -10,7 +10,7 @@ import {
     UserPlus,
     Users,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -24,14 +24,23 @@ import { GroupsHome } from "../src/features/group/presentation/groupsHome.compon
 import { InviteModal } from "../src/features/group/presentation/InviteModal.component";
 import { selectAllGroups } from "../src/features/group/presentation/selectGroup.selector";
 import { selectUserProfile } from "../src/features/user/presentation/selectUser.selector";
+import { loadUserGroups } from "../src/features/group/usecases/load-groups/loadGroups.usecase";
+import { useAppDispatch } from "../src/store/buildReduxStore";
 
 
 
 export default function HomeScreen() {
+    const dispatch = useAppDispatch();
     const user = useSelector(selectUserProfile);
     const groups = useSelector(selectAllGroups);
     const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
     const router = useRouter();
+
+    // Load user groups on mount
+    useEffect(() => {
+        console.log("🏠 Home screen mounted, loading groups...");
+        dispatch(loadUserGroups());
+    }, [dispatch]);
 
     const openInviteModal = () => {
         setIsInviteModalVisible(true);
@@ -102,41 +111,23 @@ export default function HomeScreen() {
                 </View>
 
                 {/* Info Card */}
-                <View style={styles.infoCard}>
-                    <Lightbulb size={16} color="#92400e" style={{ marginRight: 8, marginTop: 2 }} />
-                    <Text style={styles.infoText}>
-                        Votre groupe "{groups[0]?.name}" est configuré avec un budget mensuel de {groups[0]?.totalMonthlyBudget.toLocaleString('fr-FR')} €. Vous pouvez maintenant inviter d'autres membres et ajouter des dépenses ponctuelles.
-                    </Text>
-                </View>
+                {groups.length > 0 && (
+                    <View style={styles.infoCard}>
+                        <Lightbulb size={16} color="#92400e" style={{ marginRight: 8, marginTop: 2 }} />
+                        <Text style={styles.infoText}>
+                            Votre groupe "{groups[0]?.name}" est configuré avec des dépenses totales de {groups[0]?.shares?.totalExpenses?.toLocaleString('fr-FR') || 0} €. Vous pouvez maintenant inviter d'autres membres et ajouter des dépenses ponctuelles.
+                        </Text>
+                    </View>
+                )}
 
                 {/* Expenses Section */}
                 <Text style={styles.sectionTitle}>Vos dépenses configurées</Text>
 
                 <View style={styles.expensesContainer}>
-                    {groups.flatMap(group =>
-                        group.expenses.map((expense) => (
-                            <View key={`${group.id}-${expense.id}`} style={styles.expenseItem}>
-                                <View>
-                                    <Text style={styles.expenseLabel}>{expense.label}</Text>
-                                    <Text style={styles.expenseDetails}>
-                                        {group.name} • Mensuel
-                                    </Text>
-                                </View>
-                                <View style={styles.expenseAmountContainer}>
-                                    <Text style={styles.expenseAmount}>
-                                        {parseFloat(expense.amount).toLocaleString('fr-FR')} €
-                                    </Text>
-                                    <ChevronRight size={16} color="#666" />
-                                </View>
-                            </View>
-                        ))
-                    )}
-
-                    {groups.every(group => group.expenses.length === 0) && (
-                        <Text style={styles.noExpensesText}>
-                            Aucune dépense configurée pour le moment.
-                        </Text>
-                    )}
+                    {/* TODO: Load full group details to display expenses */}
+                    <Text style={styles.noExpensesText}>
+                        Cliquez sur votre groupe pour voir les dépenses détaillées.
+                    </Text>
                 </View>
 
                 {/* Bottom spacing for navigation */}
