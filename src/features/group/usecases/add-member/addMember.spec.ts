@@ -27,48 +27,58 @@ describe("Add Phantom Member Use Case", () => {
     });
 
     it("should calculate correct shares for phantom member", async () => {
-      await dsl
+      const result = await dsl
         .givenAGroupExists()
         .givenMemberData("Marc", 2500)
-        .whenAddingPhantomMember()
-        .thenPhantomMemberShouldHaveCorrectShare();
+        .whenAddingPhantomMember();
+
+      result.thenPhantomMemberShouldHaveCorrectShare();
     });
 
     it("should allow adding multiple phantom members", async () => {
+      // Setup group
       await dsl.givenAGroupExists();
 
       // Add first phantom member
-      await dsl
+      const result1 = await dsl
         .givenMemberData("Lisa", 1500)
-        .whenAddingPhantomMember()
-        .thenShouldSucceed();
+        .whenAddingPhantomMember();
+
+      result1.thenShouldSucceed();
 
       // Add second phantom member
-      await dsl
+      const result2 = await dsl
         .givenMemberData("Marc", 2500)
-        .whenAddingPhantomMember()
+        .whenAddingPhantomMember();
+
+      result2
         .thenShouldSucceed()
         .thenSharesShouldBeRecalculated();
 
       // Should have 3 members total (current user + 2 phantoms)
       const result = dsl.getResult();
-      if (result.shares.shares.length !== 3) {
+      if (result && result.shares.shares.length !== 3) {
         throw new Error(
-          `Expected 3 members, got ${result.shares.shares.length}`,
+          `Expected 3 members, got ${result.shares.shares.length}`
         );
       }
     });
 
     it("should trim whitespace from pseudo", async () => {
-      await dsl
+      const result = await dsl
         .givenAGroupExists()
         .givenMemberData("  Sophie  ", 1800)
-        .whenAddingPhantomMember()
-        .thenShouldSucceed();
+        .whenAddingPhantomMember();
 
-      const result = dsl.getResult();
-      const phantomMember = result.shares.shares.find(
-        (s: any) => s.pseudo === "Sophie",
+      result.thenShouldSucceed();
+
+      const resultData = dsl.getResult();
+      if (!resultData) {
+        throw new Error("Expected result");
+      }
+
+      const phantomMember = resultData.shares.shares.find(
+        (s) => s.pseudo === "Sophie"
       );
 
       if (!phantomMember) {
@@ -79,43 +89,48 @@ describe("Add Phantom Member Use Case", () => {
 
   describe("Validation failures", () => {
     it("should reject empty pseudo", async () => {
-      await dsl
+      const result = await dsl
         .givenAGroupExists()
         .givenInvalidPseudo("")
-        .whenAddingPhantomMember()
-        .thenShouldFailWithError("Le pseudo ne peut pas être vide");
+        .whenAddingPhantomMember();
+
+      result.thenShouldFailWithError("Le pseudo ne peut pas être vide");
     });
 
     it("should reject pseudo with only whitespace", async () => {
-      await dsl
+      const result = await dsl
         .givenAGroupExists()
         .givenInvalidPseudo("   ")
-        .whenAddingPhantomMember()
-        .thenShouldFailWithError("Le pseudo ne peut pas être vide");
+        .whenAddingPhantomMember();
+
+      result.thenShouldFailWithError("Le pseudo ne peut pas être vide");
     });
 
     it("should reject pseudo shorter than 2 characters", async () => {
-      await dsl
+      const result = await dsl
         .givenAGroupExists()
         .givenInvalidPseudo("A")
-        .whenAddingPhantomMember()
-        .thenShouldFailWithError("au moins 2 caractères");
+        .whenAddingPhantomMember();
+
+      result.thenShouldFailWithError("au moins 2 caractères");
     });
 
     it("should reject zero income", async () => {
-      await dsl
+      const result = await dsl
         .givenAGroupExists()
         .givenInvalidIncome(0)
-        .whenAddingPhantomMember()
-        .thenShouldFailWithError("doit être positif");
+        .whenAddingPhantomMember();
+
+      result.thenShouldFailWithError("doit être positif");
     });
 
     it("should reject negative income", async () => {
-      await dsl
+      const result = await dsl
         .givenAGroupExists()
         .givenInvalidIncome(-1000)
-        .whenAddingPhantomMember()
-        .thenShouldFailWithError("doit être positif");
+        .whenAddingPhantomMember();
+
+      result.thenShouldFailWithError("doit être positif");
     });
   });
 
@@ -124,35 +139,48 @@ describe("Add Phantom Member Use Case", () => {
       await dsl.givenAGroupExists();
 
       // Add phantom with same income as current user (should be ~50/50)
-      await dsl
+      const result = await dsl
         .givenMemberData("Lisa", 1000)
-        .whenAddingPhantomMember()
-        .thenShouldSucceed();
+        .whenAddingPhantomMember();
 
-      const result = dsl.getResult();
-      const lisaShare = result.shares.shares.find(
-        (s: any) => s.pseudo === "Lisa",
+      result.thenShouldSucceed();
+
+      const resultData = dsl.getResult();
+      if (!resultData) {
+        throw new Error("Expected result");
+      }
+
+      const lisaShare = resultData.shares.shares.find(
+        (s) => s.pseudo === "Lisa"
       );
+
+      if (!lisaShare) {
+        throw new Error("Lisa not found in shares");
+      }
 
       // Lisa should have around 50% (allowing some margin for rounding)
       if (lisaShare.sharePercentage < 45 || lisaShare.sharePercentage > 55) {
         throw new Error(
-          `Expected ~50% share, got ${lisaShare.sharePercentage}%`,
+          `Expected ~50% share, got ${lisaShare.sharePercentage}%`
         );
       }
     });
 
     it("should include phantom member in group expenses calculation", async () => {
-      await dsl
+      const result = await dsl
         .givenAGroupExists()
         .givenMemberData("Marc", 3000)
-        .whenAddingPhantomMember()
-        .thenShouldSucceed();
+        .whenAddingPhantomMember();
 
-      const result = dsl.getResult();
+      result.thenShouldSucceed();
+
+      const resultData = dsl.getResult();
+      if (!resultData) {
+        throw new Error("Expected result");
+      }
 
       // Shares should be calculated including the phantom member
-      if (!result.shares.totalExpenses) {
+      if (resultData.shares.totalExpenses === undefined) {
         throw new Error("Expected totalExpenses to be calculated");
       }
     });

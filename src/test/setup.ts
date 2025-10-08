@@ -1,6 +1,12 @@
 // Configuration des tests - setup global
 import { vi } from "vitest";
 
+// Define __DEV__ global for test environment
+global.__DEV__ = true;
+
+// Mock react-native-url-polyfill pour éviter l'erreur d'import React Native
+vi.mock("react-native-url-polyfill/auto", () => ({}));
+
 // Mock de react-native-toast-message
 vi.mock("react-native-toast-message", () => ({
   default: {

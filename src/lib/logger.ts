@@ -15,7 +15,7 @@ interface LogContext {
 }
 
 class Logger {
-  private isDevelopment = __DEV__;
+  private isDevelopment = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
 
   private shouldLog(level: LogLevel): boolean {
     if (!this.isDevelopment && level === 'debug') {

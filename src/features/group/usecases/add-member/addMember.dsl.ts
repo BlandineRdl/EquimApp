@@ -1,32 +1,40 @@
 /**
  * DSL for Add Phantom Member Use Case
  * Test Driven Development - Behavior specification
- * 
- * Simplified API: Only WHEN methods are async, GIVEN/THEN are sync
  */
 
+import { BaseDsl } from "../../../../test/dsl";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
 import type { GroupGateway } from "../../ports/GroupGateway";
 import type { AddMemberData } from "./addMember.usecase";
 
-export class AddMemberDSL {
+interface AddMemberResult {
+  memberId: string;
+  shares: {
+    shares: Array<{
+      pseudo: string;
+      sharePercentage: number;
+    }>;
+    totalExpenses: number;
+  };
+}
+
+export class AddMemberDSL extends BaseDsl<AddMemberResult> {
   private groupGateway: GroupGateway;
   private groupId: string | null = null;
   private memberData: AddMemberData | null = null;
-  private result: any = null;
-  private error: Error | null = null;
-  private _setupPromise: Promise<void> | null = null;
 
   constructor() {
+    super();
     this.groupGateway = new InMemoryGroupGateway();
   }
 
   // ============================================================================
-  // GIVEN - Setup initial state (synchronous chaining)
+  // GIVEN - Setup initial state
   // ============================================================================
 
   givenAGroupExists(): this {
-    this._setupPromise = this._createGroup();
+    this.setupPromise = this._createGroup();
     return this;
   }
 
@@ -50,36 +58,27 @@ export class AddMemberDSL {
   }
 
   // ============================================================================
-  // WHEN - Execute the action (async)
+  // WHEN - Execute the action
   // ============================================================================
 
   async whenAddingPhantomMember(): Promise<this> {
-    // Wait for setup to complete
-    if (this._setupPromise) {
-      await this._setupPromise;
-    }
-
-    try {
+    await this.executeAction(async () => {
       if (!this.groupId || !this.memberData) {
         throw new Error("Missing test setup: groupId or memberData");
       }
 
-      this.result = await this.groupGateway.addPhantomMember(
+      return await this.groupGateway.addPhantomMember(
         this.groupId,
         this.memberData.pseudo,
-        this.memberData.monthlyIncome,
+        this.memberData.monthlyIncome
       );
-      this.error = null;
-    } catch (error) {
-      this.error = error as Error;
-      this.result = null;
-    }
+    });
 
     return this;
   }
 
   // ============================================================================
-  // THEN - Assertions (synchronous chaining)
+  // THEN - Assertions
   // ============================================================================
 
   thenPhantomMemberShouldBeAdded(): this {
@@ -110,7 +109,7 @@ export class AddMemberDSL {
     // Should have at least 2 members (current user + phantom)
     if (this.result.shares.shares.length < 2) {
       throw new Error(
-        `Expected at least 2 members in shares, got ${this.result.shares.shares.length}`,
+        `Expected at least 2 members in shares, got ${this.result.shares.shares.length}`
       );
     }
 
@@ -123,12 +122,12 @@ export class AddMemberDSL {
     }
 
     const phantomMember = this.result.shares.shares.find(
-      (s: any) => s.pseudo === this.memberData!.pseudo,
+      (s) => s.pseudo === this.memberData!.pseudo
     );
 
     if (!phantomMember) {
       throw new Error(
-        `Phantom member ${this.memberData.pseudo} not found in shares`,
+        `Phantom member ${this.memberData.pseudo} not found in shares`
       );
     }
 
@@ -139,50 +138,14 @@ export class AddMemberDSL {
     return this;
   }
 
-  thenShouldFailWithError(expectedMessage: string): this {
-    if (!this.error) {
-      throw new Error("Expected an error but operation succeeded");
-    }
-
-    if (!this.error.message.includes(expectedMessage)) {
-      throw new Error(
-        `Expected error message to contain "${expectedMessage}", but got "${this.error.message}"`,
-      );
-    }
-
-    return this;
-  }
-
-  thenShouldSucceed(): this {
-    if (this.error) {
-      throw new Error(`Expected success but got error: ${this.error.message}`);
-    }
-
-    if (!this.result) {
-      throw new Error("Expected a result but got null");
-    }
-
-    return this;
-  }
-
   // ============================================================================
   // Helpers
   // ============================================================================
 
-  getResult() {
-    return this.result;
-  }
-
-  getError() {
-    return this.error;
-  }
-
-  reset(): this {
+  override reset(): this {
+    super.reset();
     this.groupId = null;
     this.memberData = null;
-    this.result = null;
-    this.error = null;
-    this._setupPromise = null;
     this.groupGateway = new InMemoryGroupGateway();
     return this;
   }

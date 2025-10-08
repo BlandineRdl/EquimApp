@@ -5,5 +5,22 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     globals: true,
+    // Load .env.test for integration tests
+    env: {
+      SKIP_INTEGRATION_TESTS: process.env.SKIP_INTEGRATION_TESTS || "false",
+    },
+    // Organize tests by type
+    include: ["src/**/*.{test,spec}.{js,ts,tsx}"],
+    // Exclude node_modules and build artifacts
+    exclude: ["node_modules", "dist", ".expo", "ios", "android", "aidd"],
+  },
+  resolve: {
+    alias: {
+      // Prevent Vite from trying to process React Native's Flow-based files
+      'react-native': 'react-native-web',
+    },
+  },
+  optimizeDeps: {
+    exclude: ['react-native'],
   },
 });

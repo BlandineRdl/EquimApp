@@ -1,8 +1,9 @@
 /**
  * In-Memory Group Gateway for tests
- * Implements the new GroupGateway interface
+ * Implements the new GroupGateway interface with full validation
  */
 
+import { MIN_PSEUDO_LENGTH } from "../domain/group.constants";
 import type {
 	Expense,
 	GroupFull,
@@ -30,12 +31,15 @@ export class InMemoryGroupGateway implements GroupGateway {
 	private expenses: Map<string, Expense> = new Map();
 	private invitations: Map<string, InvitationData> = new Map();
 	private members: Map<string, GroupMember[]> = new Map();
+	private tokenCounter = 0;
+	private expenseCounter = 0;
+	private memberCounter = 0;
 
 	async createGroup(
 		name: string,
 		currency: string = "EUR",
 	): Promise<{ groupId: string }> {
-		const groupId = `group-${Date.now()}`;
+		const groupId = `group-${Date.now()}-${Math.random()}`;
 		this.groups.set(groupId, {
 			id: groupId,
 			name,
@@ -73,13 +77,13 @@ export class InMemoryGroupGateway implements GroupGateway {
 
 	async getGroupById(id: string): Promise<GroupFull> {
 		const group = this.groups.get(id);
-		if (!group) throw new Error("Group not found");
+		if (!group) throw new Error("Groupe non trouvé");
 
 		const members = this.members.get(id) || [];
 		const groupExpenses = Array.from(this.expenses.values()).filter(
 			(e) => e.groupId === id,
 		);
-		const shares = await this.refreshGroupShares(id);
+		const { shares } = await this.refreshGroupShares(id);
 
 		return {
 			id: group.id,
@@ -101,11 +105,26 @@ export class InMemoryGroupGateway implements GroupGateway {
 		currency: string;
 		isPredefined: boolean;
 	}): Promise<{ expenseId: string; shares: Shares }> {
-		const expenseId = `expense-${Date.now()}`;
+		// Validate group exists
+		if (!this.groups.has(input.groupId)) {
+			throw new Error("Groupe non trouvé");
+		}
+
+		// Validate name
+		if (!input.name.trim()) {
+			throw new Error("Le nom de la dépense ne peut pas être vide");
+		}
+
+		// Validate amount
+		if (input.amount <= 0) {
+			throw new Error("Le montant doit être supérieur à 0");
+		}
+
+		const expenseId = `expense-${Date.now()}-${++this.expenseCounter}`;
 		const expense: Expense = {
 			id: expenseId,
 			groupId: input.groupId,
-			name: input.name,
+			name: input.name.trim(),
 			amount: input.amount,
 			currency: input.currency,
 			isPredefined: input.isPredefined,
@@ -115,8 +134,8 @@ export class InMemoryGroupGateway implements GroupGateway {
 		};
 		this.expenses.set(expenseId, expense);
 
-		const shares = await this.refreshGroupShares(input.groupId);
-		return { expenseId, shares: shares.shares };
+		const { shares } = await this.refreshGroupShares(input.groupId);
+		return { expenseId, shares };
 	}
 
 	async updateExpense(input: {
@@ -126,14 +145,13 @@ export class InMemoryGroupGateway implements GroupGateway {
 		amount?: number;
 	}): Promise<{ shares: Shares }> {
 		const expense = this.expenses.get(input.expenseId);
-		if (!expense) throw new Error("Expense not found");
+		if (!expense) throw new Error("Dépense non trouvée");
 
 		if (input.name !== undefined) expense.name = input.name;
 		if (input.amount !== undefined) expense.amount = input.amount;
 		expense.updatedAt = new Date().toISOString();
 
-		const shares = await this.refreshGroupShares(input.groupId);
-		return { shares: shares.shares };
+		return await this.refreshGroupShares(input.groupId);
 	}
 
 	async deleteExpense(input: {
@@ -141,15 +159,20 @@ export class InMemoryGroupGateway implements GroupGateway {
 		groupId: string;
 	}): Promise<{ shares: Shares }> {
 		this.expenses.delete(input.expenseId);
-		const shares = await this.refreshGroupShares(input.groupId);
-		return { shares: shares.shares };
+		return await this.refreshGroupShares(input.groupId);
 	}
 
 	async generateInvitation(
 		groupId: string,
 	): Promise<{ token: string; link: string }> {
-		const token = `invite-${Date.now()}`;
+		// Validate group exists
+		if (!this.groups.has(groupId)) {
+			throw new Error("Groupe non trouvé");
+		}
+
+		const token = `invite-${Date.now()}-${++this.tokenCounter}`;
 		this.invitations.set(token, {
+			token,
 			groupId,
 			createdBy: "current-user",
 			expiresAt: null,
@@ -161,13 +184,19 @@ export class InMemoryGroupGateway implements GroupGateway {
 	async getInvitationDetails(
 		token: string,
 	): Promise<InvitationPreview | null> {
-		const invitation = this.invitations.get(token);
+		// Validate token
+		if (!token || !token.trim()) {
+			throw new Error("Token d'invitation invalide");
+		}
+
+		const invitation = this.invitations.get(token.trim());
 		if (!invitation) return null;
 
 		const group = this.groups.get(invitation.groupId);
 		if (!group) return null;
 
 		return {
+			groupId: invitation.groupId,
 			groupName: group.name,
 			creatorPseudo: "Test User",
 			expiresAt: invitation.expiresAt,
@@ -177,18 +206,28 @@ export class InMemoryGroupGateway implements GroupGateway {
 
 	async acceptInvitation(
 		token: string,
-	): Promise<{ groupId: string; shares: Shares }> {
+	): Promise<{ groupId: string; memberId?: string; shares: Shares }> {
 		const invitation = this.invitations.get(token);
-		if (!invitation) throw new Error("Invalid token");
-		if (invitation.isConsumed) throw new Error("Already consumed");
+		if (!invitation || !token.trim()) throw new Error("Token d'invitation invalide");
+		if (invitation.isConsumed) throw new Error("Invitation déjà utilisée");
 
 		invitation.isConsumed = true;
 
 		// Add member
-		await this.addMember(invitation.groupId, "current-user");
+		const members = this.members.get(invitation.groupId) || [];
+		const memberId = `member-${Date.now()}`;
+		members.push({
+			id: memberId,
+			userId: "new-user",
+			pseudo: "New Member",
+			shareRevenue: true,
+			incomeOrWeight: 1000,
+			joinedAt: new Date().toISOString(),
+		});
+		this.members.set(invitation.groupId, members);
 
-		const shares = await this.refreshGroupShares(invitation.groupId);
-		return { groupId: invitation.groupId, shares: shares.shares };
+		const { shares } = await this.refreshGroupShares(invitation.groupId);
+		return { groupId: invitation.groupId, memberId, shares };
 	}
 
 	async addMember(
@@ -208,8 +247,7 @@ export class InMemoryGroupGateway implements GroupGateway {
 			this.members.set(groupId, members);
 		}
 
-		const shares = await this.refreshGroupShares(groupId);
-		return { shares: shares.shares };
+		return await this.refreshGroupShares(groupId);
 	}
 
 	async addPhantomMember(
@@ -217,13 +255,27 @@ export class InMemoryGroupGateway implements GroupGateway {
 		pseudo: string,
 		income: number,
 	): Promise<{ memberId: string; shares: Shares }> {
+		// Validate pseudo
+		if (!pseudo.trim()) {
+			throw new Error("Le pseudo ne peut pas être vide");
+		}
+
+		if (pseudo.trim().length < MIN_PSEUDO_LENGTH) {
+			throw new Error(`Le pseudo doit contenir au moins ${MIN_PSEUDO_LENGTH} caractères`);
+		}
+
+		// Validate income
+		if (income <= 0) {
+			throw new Error("Le revenu mensuel doit être positif");
+		}
+
 		const members = this.members.get(groupId) || [];
-		const memberId = `phantom-${Date.now()}`;
+		const memberId = `phantom-${++this.memberCounter}`;
 
 		members.push({
 			id: memberId,
 			userId: null,
-			pseudo,
+			pseudo: pseudo.trim(),
 			shareRevenue: true,
 			incomeOrWeight: income,
 			joinedAt: new Date().toISOString(),
@@ -231,20 +283,41 @@ export class InMemoryGroupGateway implements GroupGateway {
 		});
 		this.members.set(groupId, members);
 
-		const shares = await this.refreshGroupShares(groupId);
-		return { memberId, shares: shares.shares };
+		const { shares } = await this.refreshGroupShares(groupId);
+		return { memberId, shares };
 	}
 
 	async removeMember(
 		groupId: string,
-		userId: string,
+		memberId: string,
 	): Promise<{ shares: Shares }> {
+		// Validate inputs
+		if (!groupId.trim()) {
+			throw new Error("ID de groupe invalide");
+		}
+
+		if (!memberId.trim()) {
+			throw new Error("ID de membre invalide");
+		}
+
+		// Check group exists
+		if (!this.groups.has(groupId)) {
+			throw new Error("Groupe non trouvé");
+		}
+
 		const members = this.members.get(groupId) || [];
-		const filtered = members.filter((m) => m.userId !== userId);
+
+		// Check member exists
+		const memberExists = members.some((m) => m.id === memberId);
+		if (!memberExists) {
+			throw new Error("Membre non trouvé");
+		}
+
+		// Remove by member ID (not userId)
+		const filtered = members.filter((m) => m.id !== memberId);
 		this.members.set(groupId, filtered);
 
-		const shares = await this.refreshGroupShares(groupId);
-		return { shares: shares.shares };
+		return await this.refreshGroupShares(groupId);
 	}
 
 	async leaveGroup(groupId: string): Promise<{ groupDeleted: boolean }> {
@@ -288,6 +361,7 @@ export class InMemoryGroupGateway implements GroupGateway {
 				totalWeight > 0 ? (weight / totalWeight) * totalExpenses : 0;
 
 			return {
+				memberId: m.id,
 				userId: m.userId,
 				pseudo: m.pseudo,
 				sharePercentage: Math.round(sharePercentage * 100) / 100,
@@ -316,5 +390,7 @@ export class InMemoryGroupGateway implements GroupGateway {
 		this.expenses.clear();
 		this.invitations.clear();
 		this.members.clear();
+		this.tokenCounter = 0;
+		this.expenseCounter = 0;
 	}
 }
