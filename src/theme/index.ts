@@ -3,13 +3,13 @@
  * Import this file to access all theme tokens
  */
 
-export * from './colors';
-export * from './spacing';
-export * from './typography';
+export * from "./colors";
+export * from "./spacing";
+export * from "./typography";
 
-import { colors } from './colors';
-import { spacing } from './spacing';
-import { fontSize, fontWeight, lineHeight } from './typography';
+import { colors } from "./colors";
+import { spacing } from "./spacing";
+import { fontSize, fontWeight, lineHeight } from "./typography";
 
 export const theme = {
   colors,
@@ -32,28 +32,28 @@ export const theme = {
   // Common shadow values
   shadow: {
     sm: {
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.05,
       shadowRadius: 2,
       elevation: 1,
     },
     base: {
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 2,
     },
     md: {
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.1,
       shadowRadius: 8,
       elevation: 3,
     },
     lg: {
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.15,
       shadowRadius: 16,

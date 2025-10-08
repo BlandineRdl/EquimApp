@@ -1,5 +1,6 @@
 import { Plus, X } from "lucide-react-native";
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -80,7 +81,10 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
 
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.submitButton, !canSubmit && styles.submitButtonDisabled]}
+          style={[
+            styles.submitButton,
+            !canSubmit && styles.submitButtonDisabled,
+          ]}
           onPress={handleSubmit}
           disabled={!canSubmit}
         >

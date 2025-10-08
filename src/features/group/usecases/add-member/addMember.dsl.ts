@@ -39,7 +39,10 @@ export class AddMemberDSL extends BaseDsl<AddMemberResult> {
   }
 
   private async _createGroup(): Promise<void> {
-    const { groupId } = await this.groupGateway.createGroup("Test Group", "EUR");
+    const { groupId } = await this.groupGateway.createGroup(
+      "Test Group",
+      "EUR",
+    );
     this.groupId = groupId;
     await this.groupGateway.addMember(groupId, "current-user");
   }
@@ -70,7 +73,7 @@ export class AddMemberDSL extends BaseDsl<AddMemberResult> {
       return await this.groupGateway.addPhantomMember(
         this.groupId,
         this.memberData.pseudo,
-        this.memberData.monthlyIncome
+        this.memberData.monthlyIncome,
       );
     });
 
@@ -109,7 +112,7 @@ export class AddMemberDSL extends BaseDsl<AddMemberResult> {
     // Should have at least 2 members (current user + phantom)
     if (this.result.shares.shares.length < 2) {
       throw new Error(
-        `Expected at least 2 members in shares, got ${this.result.shares.shares.length}`
+        `Expected at least 2 members in shares, got ${this.result.shares.shares.length}`,
       );
     }
 
@@ -122,17 +125,19 @@ export class AddMemberDSL extends BaseDsl<AddMemberResult> {
     }
 
     const phantomMember = this.result.shares.shares.find(
-      (s) => s.pseudo === this.memberData!.pseudo
+      (s) => s.pseudo === this.memberData?.pseudo,
     );
 
     if (!phantomMember) {
       throw new Error(
-        `Phantom member ${this.memberData.pseudo} not found in shares`
+        `Phantom member ${this.memberData.pseudo} not found in shares`,
       );
     }
 
     if (phantomMember.sharePercentage <= 0) {
-      throw new Error("Expected phantom member to have a positive share percentage");
+      throw new Error(
+        "Expected phantom member to have a positive share percentage",
+      );
     }
 
     return this;

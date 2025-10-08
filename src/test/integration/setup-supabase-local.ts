@@ -62,7 +62,7 @@ export const getSupabaseConfig = (): LocalSupabaseConfig => {
 
   if (!url || !anonKey) {
     throw new Error(
-      "Missing Supabase configuration. Set SUPABASE_USE_LOCAL=true or provide SUPABASE_TEST_URL and SUPABASE_TEST_ANON_KEY"
+      "Missing Supabase configuration. Set SUPABASE_USE_LOCAL=true or provide SUPABASE_TEST_URL and SUPABASE_TEST_ANON_KEY",
     );
   }
 
@@ -79,7 +79,7 @@ export const getSupabaseConfig = (): LocalSupabaseConfig => {
  * Crée un client Supabase pour les tests
  */
 export const createLocalTestClient = (
-  config?: LocalSupabaseConfig
+  config?: LocalSupabaseConfig,
 ): SupabaseClient<Database> => {
   const testConfig = config || getSupabaseConfig();
 
@@ -97,13 +97,25 @@ export const createLocalTestClient = (
  * Supprime toutes les données créées pendant les tests
  */
 export const resetTestDatabase = async (
-  client: SupabaseClient<Database>
+  client: SupabaseClient<Database>,
 ): Promise<void> => {
   // Supprimer dans l'ordre (contraintes FK)
-  await client.from("group_members").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-  await client.from("expenses").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-  await client.from("invitations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-  await client.from("groups").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await client
+    .from("group_members")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+  await client
+    .from("expenses")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+  await client
+    .from("invitations")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+  await client
+    .from("groups")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
 
   // Note: On ne supprime pas les profiles pour garder les users de test
 };
@@ -114,7 +126,7 @@ export const resetTestDatabase = async (
 export const createTestUser = async (
   client: SupabaseClient<Database>,
   email: string,
-  password: string
+  password: string,
 ): Promise<{ userId: string; email: string }> => {
   const { data, error } = await client.auth.signUp({
     email,
@@ -130,18 +142,20 @@ export const createTestUser = async (
       });
 
     if (signInError) {
-      throw new Error(`Failed to create or sign in test user: ${signInError.message}`);
+      throw new Error(
+        `Failed to create or sign in test user: ${signInError.message}`,
+      );
     }
 
     return {
-      userId: signInData.user!.id,
-      email: signInData.user!.email!,
+      userId: signInData.user?.id,
+      email: signInData.user?.email!,
     };
   }
 
   return {
-    userId: data.user!.id,
-    email: data.user!.email!,
+    userId: data.user?.id,
+    email: data.user?.email!,
   };
 };
 
@@ -244,7 +258,7 @@ export const setupLocalSupabaseTest = async (): Promise<{
     const isAvailable = await isSupabaseLocalAvailable();
     if (!isAvailable) {
       throw new Error(
-        "Supabase local is not running. Run 'supabase start' first."
+        "Supabase local is not running. Run 'supabase start' first.",
       );
     }
   }
@@ -266,7 +280,7 @@ export const setupLocalSupabaseTest = async (): Promise<{
  * Cleanup après les tests
  */
 export const cleanupLocalSupabaseTest = async (
-  helper: LocalSupabaseTestHelper
+  helper: LocalSupabaseTestHelper,
 ): Promise<void> => {
   await helper.cleanup();
   await helper.signOut();

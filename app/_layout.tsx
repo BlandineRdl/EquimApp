@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
-import React, { useEffect } from "react";
-import Toast from "react-native-toast-message";
+import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import { Provider, useSelector } from "react-redux";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { useAuthInit } from "../src/features/auth/hooks/useAuthInit";
@@ -17,7 +17,12 @@ const authGateway = new SupabaseAuthGateway();
 const userGateway = new SupabaseUserGateway();
 const groupGateway = new SupabaseGroupGateway();
 const onboardingGateway = new SupabaseOnboardingGateway();
-const store = initReduxStore({ authGateway, userGateway, onboardingGateway, groupGateway });
+const store = initReduxStore({
+  authGateway,
+  userGateway,
+  onboardingGateway,
+  groupGateway,
+});
 
 function AppContent() {
   const router = useRouter();
@@ -27,7 +32,9 @@ function AppContent() {
   const { isLoading } = useAuthInit();
 
   const { isAuthenticated } = useSelector((state: AppState) => state.auth);
-  const { profile, loading: profileLoading } = useSelector((state: AppState) => state.user);
+  const { profile, loading: profileLoading } = useSelector(
+    (state: AppState) => state.user,
+  );
 
   useEffect(() => {
     logger.debug("Navigation check", {
@@ -35,13 +42,14 @@ function AppContent() {
       profileLoading,
       isAuthenticated,
       hasProfile: !!profile,
-      segment: segments[0]
+      segment: segments[0],
     });
 
     if (isLoading || profileLoading) return; // Wait for auth and profile to load
 
     const inAuthGroup = segments[0] === "auth";
-    const inOnboarding = segments[0] === "index" || segments[0] === "onboarding";
+    const inOnboarding =
+      segments[0] === "index" || segments[0] === "onboarding";
 
     // Wait a tick for router to be ready
     const timeout = setTimeout(() => {
@@ -69,7 +77,7 @@ function AppContent() {
     }, 0);
 
     return () => clearTimeout(timeout);
-  }, [isAuthenticated, profile, segments, isLoading, profileLoading]);
+  }, [isAuthenticated, profile, segments, isLoading, profileLoading, router]);
 
   return (
     <>

@@ -1,6 +1,14 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { AlertTriangle, ArrowLeft, Calendar, LogOut, Plus, Trash2, Users } from "lucide-react-native";
-import { useState, useEffect } from "react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Calendar,
+  LogOut,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react-native";
+import { useEffect, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -16,17 +24,17 @@ import { logger } from "../../../lib/logger";
 import type { AppState } from "../../../store/appState";
 import { useAppDispatch } from "../../../store/buildReduxStore";
 import {
-  closeAddMemberForm,
-  openAddMemberForm,
-  updateAddMemberForm,
   closeAddExpenseForm,
+  closeAddMemberForm,
   openAddExpenseForm,
+  openAddMemberForm,
   updateAddExpenseForm,
+  updateAddMemberForm,
 } from "../store/group.slice";
 import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
+import { deleteGroup } from "../usecases/delete-group/deleteGroup.usecase";
 import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
 import { deleteExpense } from "../usecases/expense/deleteExpense.usecase";
-import { deleteGroup } from "../usecases/delete-group/deleteGroup.usecase";
 import { leaveGroup } from "../usecases/leave-group/leaveGroup.usecase";
 import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
 import { removeMemberFromGroup } from "../usecases/remove-member/removeMember.usecase";
@@ -278,34 +286,37 @@ export const GroupDetailsScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {(showAllExpenses ? expenses : expenses.slice(0, 1)).map((expense, index, displayedExpenses) => (
-            <View
-              key={expense.id}
-              style={[
-                styles.expenseItem,
-                index < displayedExpenses.length - 1 && styles.expenseItemWithBorder,
-              ]}
-            >
-              <View style={styles.expenseInfo}>
-                <Text style={styles.expenseLabel}>{expense.name}</Text>
+          {(showAllExpenses ? expenses : expenses.slice(0, 1)).map(
+            (expense, index, displayedExpenses) => (
+              <View
+                key={expense.id}
+                style={[
+                  styles.expenseItem,
+                  index < displayedExpenses.length - 1 &&
+                    styles.expenseItemWithBorder,
+                ]}
+              >
+                <View style={styles.expenseInfo}>
+                  <Text style={styles.expenseLabel}>{expense.name}</Text>
+                </View>
+                <View style={styles.expenseActions}>
+                  <Text style={styles.expenseAmount}>
+                    {expense.amount.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    €
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteExpense(expense.id)}
+                    style={styles.deleteExpenseButton}
+                  >
+                    <Trash2 size={16} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.expenseActions}>
-                <Text style={styles.expenseAmount}>
-                  {parseFloat(expense.amount).toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </Text>
-                <TouchableOpacity
-                  onPress={() => handleDeleteExpense(expense.id)}
-                  style={styles.deleteExpenseButton}
-                >
-                  <Trash2 size={16} color="#ef4444" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
+            ),
+          )}
 
           {expenses.length > 1 && !showAllExpenses && (
             <TouchableOpacity
@@ -323,9 +334,7 @@ export const GroupDetailsScreen = () => {
               style={styles.showMoreButton}
               onPress={() => setShowAllExpenses(false)}
             >
-              <Text style={styles.showMoreText}>
-                Voir moins
-              </Text>
+              <Text style={styles.showMoreText}>Voir moins</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -497,13 +506,16 @@ export const GroupDetailsScreen = () => {
             </View>
             <Text style={styles.modalTitle}>Supprimer le groupe ?</Text>
             <Text style={styles.deleteWarningText}>
-              Cette action est irréversible. Tous les membres, dépenses et données du groupe seront définitivement supprimés.
+              Cette action est irréversible. Tous les membres, dépenses et
+              données du groupe seront définitivement supprimés.
             </Text>
             <TouchableOpacity
               style={styles.modalButtonDanger}
               onPress={confirmDeleteGroup}
             >
-              <Text style={styles.modalButtonText}>Supprimer définitivement</Text>
+              <Text style={styles.modalButtonText}>
+                Supprimer définitivement
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalButtonCancel}

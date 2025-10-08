@@ -2,7 +2,7 @@
  * Behavioral tests for Add Expense Use Case
  */
 
-import { describe, it, beforeEach } from "vitest";
+import { beforeEach, describe, it } from "vitest";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
 import type { GroupGateway } from "../../ports/GroupGateway";
 
@@ -54,7 +54,7 @@ describe("Add Expense Use Case", () => {
       const result = await groupGateway.createExpense({
         groupId,
         name: "Coffee",
-        amount: 3.50,
+        amount: 3.5,
         currency: "EUR",
         isPredefined: false,
       });

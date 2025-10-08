@@ -40,7 +40,7 @@ export const getTestConfig = (): SupabaseTestConfig => {
 
   if (!url || !anonKey) {
     throw new Error(
-      "Missing Supabase test configuration. Set SUPABASE_TEST_URL and SUPABASE_TEST_ANON_KEY in .env.test"
+      "Missing Supabase test configuration. Set SUPABASE_TEST_URL and SUPABASE_TEST_ANON_KEY in .env.test",
     );
   }
 
@@ -54,7 +54,7 @@ export const getTestConfig = (): SupabaseTestConfig => {
 
 // Create a test Supabase client
 export const createTestClient = (
-  config?: SupabaseTestConfig
+  config?: SupabaseTestConfig,
 ): SupabaseClient<Database> => {
   const testConfig = config || getTestConfig();
 
@@ -129,7 +129,7 @@ export class SupabaseTestHelper {
 
     if (!testEmail || !testPassword) {
       throw new Error(
-        "Test user credentials not configured. Set SUPABASE_TEST_USER_EMAIL and SUPABASE_TEST_USER_PASSWORD"
+        "Test user credentials not configured. Set SUPABASE_TEST_USER_EMAIL and SUPABASE_TEST_USER_PASSWORD",
       );
     }
 
@@ -179,7 +179,7 @@ export const setupSupabaseTest = async (): Promise<{
  * Cleanup function for integration tests
  */
 export const cleanupSupabaseTest = async (
-  helper: SupabaseTestHelper
+  helper: SupabaseTestHelper,
 ): Promise<void> => {
   await helper.cleanup();
   await helper.signOut();

@@ -65,7 +65,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@biomejs/biome": "^2.1.4",
+    "@biomejs/biome": "^2.2.5",
     "@expo/cli": "^0.24.20",
     "@types/react": "~19.1.17",
     "@types/react-redux": "^7.1.34",

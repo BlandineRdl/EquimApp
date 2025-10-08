@@ -9,7 +9,7 @@ interface RateLimitData {
   blockedUntil: number | null;
 }
 
-const STORAGE_PREFIX = '@ratelimit:';
+const STORAGE_PREFIX = "@ratelimit:";
 
 // In-memory storage as fallback for Expo Go
 const memoryStorage = new Map<string, string>();
@@ -17,8 +17,8 @@ const memoryStorage = new Map<string, string>();
 // Dynamic import of AsyncStorage
 let AsyncStorage: any = null;
 try {
-  AsyncStorage = require('@react-native-async-storage/async-storage').default;
-} catch (e) {
+  AsyncStorage = require("@react-native-async-storage/async-storage").default;
+} catch (_e) {
   // Silent: Expected in Expo Go, using in-memory storage fallback
 }
 
@@ -27,7 +27,11 @@ export class RateLimiter {
   private maxAttempts: number;
   private baseDelayMs: number;
 
-  constructor(key: string, maxAttempts: number = 5, baseDelayMs: number = 1000) {
+  constructor(
+    key: string,
+    maxAttempts: number = 5,
+    baseDelayMs: number = 1000,
+  ) {
     this.key = `${STORAGE_PREFIX}${key}`;
     this.maxAttempts = maxAttempts;
     this.baseDelayMs = baseDelayMs;
@@ -48,7 +52,7 @@ export class RateLimiter {
       }
     } catch (error) {
       // If we can't read from storage, allow the attempt
-      console.error('RateLimiter: Error reading from storage', error);
+      console.error("RateLimiter: Error reading from storage", error);
     }
 
     return {
@@ -68,7 +72,7 @@ export class RateLimiter {
         memoryStorage.set(this.key, stringData);
       }
     } catch (error) {
-      console.error('RateLimiter: Error writing to storage', error);
+      console.error("RateLimiter: Error writing to storage", error);
     }
   }
 
@@ -116,7 +120,7 @@ export class RateLimiter {
     let blockedUntil: number | null = null;
     if (newAttempts >= this.maxAttempts) {
       const exponent = newAttempts - this.maxAttempts + 1;
-      const delayMs = this.baseDelayMs * Math.pow(2, exponent);
+      const delayMs = this.baseDelayMs * 2 ** exponent;
       // Cap at 5 minutes
       const cappedDelayMs = Math.min(delayMs, 5 * 60 * 1000);
       blockedUntil = now + cappedDelayMs;

@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import { X } from "lucide-react-native";
+import type React from "react";
+import { useState } from "react";
 import {
+  Keyboard,
   Modal,
   StyleSheet,
   Text,
@@ -7,9 +10,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Keyboard,
 } from "react-native";
-import { X } from "lucide-react-native";
 
 export interface JoinGroupModalProps {
   isVisible: boolean;
@@ -47,52 +48,59 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Rejoindre un groupe</Text>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <X size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Rejoindre un groupe</Text>
+                <TouchableOpacity
+                  onPress={handleClose}
+                  style={styles.closeButton}
+                >
+                  <X size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
 
-          <Text style={styles.label}>Lien d'invitation</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="equimapp://invite/..."
-            value={inviteLink}
-            onChangeText={setInviteLink}
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="done"
-            onSubmitEditing={Keyboard.dismiss}
-          />
+              <Text style={styles.label}>Lien d'invitation</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="equimapp://invite/..."
+                value={inviteLink}
+                onChangeText={setInviteLink}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
 
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              💡 Collez le lien d'invitation que vous avez reçu pour rejoindre un groupe existant.
-            </Text>
-          </View>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoText}>
+                  💡 Collez le lien d'invitation que vous avez reçu pour
+                  rejoindre un groupe existant.
+                </Text>
+              </View>
 
-          <TouchableOpacity
-            style={[
-              styles.joinButton,
-              !inviteLink.trim() && styles.joinButtonDisabled,
-            ]}
-            onPress={handleJoin}
-            disabled={!inviteLink.trim()}
-          >
-            <Text
-              style={[
-                styles.joinButtonText,
-                !inviteLink.trim() && styles.joinButtonTextDisabled,
-              ]}
-            >
-              Rejoindre
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.joinButton,
+                  !inviteLink.trim() && styles.joinButtonDisabled,
+                ]}
+                onPress={handleJoin}
+                disabled={!inviteLink.trim()}
+              >
+                <Text
+                  style={[
+                    styles.joinButtonText,
+                    !inviteLink.trim() && styles.joinButtonTextDisabled,
+                  ]}
+                >
+                  Rejoindre
+                </Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
-            <Text style={styles.cancelButtonText}>Annuler</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleClose}
+              >
+                <Text style={styles.cancelButtonText}>Annuler</Text>
+              </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
         </View>

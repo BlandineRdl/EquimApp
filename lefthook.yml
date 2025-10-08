@@ -4,3 +4,26 @@ pre-commit:
     # AIDD
     aidd-generate-docs:
       run: cd aidd && npm run project:docs ; cd ../ && git add aidd-generated || true
+
+    # Lint check - BLOCKING
+    lint:
+      run: pnpm lint
+      fail_text: "❌ Lint failed! Fix the errors before committing."
+
+    # TypeScript check - DISABLED (TODO: Fix remaining 55 errors)
+    # typecheck:
+    #   run: pnpm typecheck
+    #   fail_text: "❌ TypeScript errors found! Fix the type errors before committing."
+
+pre-push:
+  parallel: true
+  commands:
+    # Run lint before push
+    lint:
+      run: pnpm lint
+      fail_text: "❌ Lint failed! Fix the errors before pushing to remote."
+
+    # Run tests before push
+    test:
+      run: pnpm test:unit
+      fail_text: "❌ Tests failed! Fix the tests before pushing to remote."

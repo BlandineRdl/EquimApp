@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,36 +17,34 @@ import { selectExpensesUI } from "../../src/features/onboarding/presentation/onb
 import {
   addCustomExpense,
   removeCustomExpense,
-  updateExpenseAmount
+  updateExpenseAmount,
 } from "../../src/features/onboarding/store/onboarding.slice";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function ExpensesScreen() {
   const dispatch = useAppDispatch();
-  const [newExpenseLabel, setNewExpenseLabel] = useState('');
-  const [newExpenseAmount, setNewExpenseAmount] = useState('');
-  
-  const { 
-    expenses, 
-    groupName, 
-    totalAmount, 
-    canContinue 
-  } = useSelector(selectExpensesUI);
+  const [newExpenseLabel, setNewExpenseLabel] = useState("");
+  const [newExpenseAmount, setNewExpenseAmount] = useState("");
+
+  const { expenses, groupName, totalAmount, canContinue } =
+    useSelector(selectExpensesUI);
 
   const handleExpenseAmountChange = (id: string, amount: string) => {
     // Nettoyer l'input (seulement chiffres et point décimal)
-    const cleanAmount = amount.replace(/[^0-9.]/g, '');
+    const cleanAmount = amount.replace(/[^0-9.]/g, "");
     dispatch(updateExpenseAmount({ id, amount: cleanAmount }));
   };
 
   const handleAddCustomExpense = () => {
     if (newExpenseLabel.trim() && newExpenseAmount.trim()) {
-      dispatch(addCustomExpense({ 
-        label: newExpenseLabel.trim(), 
-        amount: newExpenseAmount 
-      }));
-      setNewExpenseLabel('');
-      setNewExpenseAmount('');
+      dispatch(
+        addCustomExpense({
+          label: newExpenseLabel.trim(),
+          amount: newExpenseAmount,
+        }),
+      );
+      setNewExpenseLabel("");
+      setNewExpenseAmount("");
     }
   };
 
@@ -72,7 +70,7 @@ export default function ExpensesScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
-         <OnboardingProgressBar />
+          <OnboardingProgressBar />
 
           {/* Header */}
           <View style={styles.header}>
@@ -115,15 +113,10 @@ export default function ExpensesScreen() {
             {expenses
               .filter((expense) => expense.isCustom)
               .map((expense) => (
-                <View
-                  key={expense.id}
-                  style={styles.customExpenseRow}
-                >
+                <View key={expense.id} style={styles.customExpenseRow}>
                   <Text style={styles.expenseLabel}>{expense.label}</Text>
                   <View style={styles.expenseInputContainer}>
-                    <Text style={styles.expenseAmount}>
-                      {expense.amount}€
-                    </Text>
+                    <Text style={styles.expenseAmount}>{expense.amount}€</Text>
                     <TouchableOpacity
                       style={styles.removeButton}
                       onPress={() => handleRemoveExpense(expense.id)}
@@ -159,18 +152,18 @@ export default function ExpensesScreen() {
                 </View>
               </View>
 
-            <TouchableOpacity
-              style={[
+              <TouchableOpacity
+                style={[
                   styles.addButton,
                   (!newExpenseLabel.trim() || !newExpenseAmount.trim()) &&
-                  styles.addButtonDisabled,
+                    styles.addButtonDisabled,
                 ]}
                 onPress={handleAddCustomExpense}
                 disabled={!newExpenseLabel.trim() || !newExpenseAmount.trim()}
-                >
-              <Text style={styles.addButtonText}>+ Ajouter une dépense</Text>
-            </TouchableOpacity>
-                </View> 
+              >
+                <Text style={styles.addButtonText}>+ Ajouter une dépense</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Total */}

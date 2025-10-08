@@ -3,7 +3,7 @@
  * Using DSL for readability and maintainability
  */
 
-import { describe, it, beforeEach } from "vitest";
+import { beforeEach, describe, it } from "vitest";
 import { AddMemberDSL } from "./addMember.dsl";
 
 describe("Add Phantom Member Use Case", () => {
@@ -51,15 +51,13 @@ describe("Add Phantom Member Use Case", () => {
         .givenMemberData("Marc", 2500)
         .whenAddingPhantomMember();
 
-      result2
-        .thenShouldSucceed()
-        .thenSharesShouldBeRecalculated();
+      result2.thenShouldSucceed().thenSharesShouldBeRecalculated();
 
       // Should have 3 members total (current user + 2 phantoms)
       const result = dsl.getResult();
       if (result && result.shares.shares.length !== 3) {
         throw new Error(
-          `Expected 3 members, got ${result.shares.shares.length}`
+          `Expected 3 members, got ${result.shares.shares.length}`,
         );
       }
     });
@@ -78,7 +76,7 @@ describe("Add Phantom Member Use Case", () => {
       }
 
       const phantomMember = resultData.shares.shares.find(
-        (s) => s.pseudo === "Sophie"
+        (s) => s.pseudo === "Sophie",
       );
 
       if (!phantomMember) {
@@ -151,7 +149,7 @@ describe("Add Phantom Member Use Case", () => {
       }
 
       const lisaShare = resultData.shares.shares.find(
-        (s) => s.pseudo === "Lisa"
+        (s) => s.pseudo === "Lisa",
       );
 
       if (!lisaShare) {
@@ -161,7 +159,7 @@ describe("Add Phantom Member Use Case", () => {
       // Lisa should have around 50% (allowing some margin for rounding)
       if (lisaShare.sharePercentage < 45 || lisaShare.sharePercentage > 55) {
         throw new Error(
-          `Expected ~50% share, got ${lisaShare.sharePercentage}%`
+          `Expected ~50% share, got ${lisaShare.sharePercentage}%`,
         );
       }
     });

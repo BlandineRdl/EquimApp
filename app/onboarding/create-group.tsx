@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import React from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -14,9 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { SUGGESTED_GROUP_NAMES } from "../../src/features/group/domain/group.constants";
 import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
-import {
-  selectGroupUI,
-} from "../../src/features/onboarding/presentation/onboarding.selectors";
+import { selectGroupUI } from "../../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurGroupName,
   setGroupName,
@@ -93,9 +90,9 @@ export default function CreateGroupScreen() {
               </Text>
 
               <View style={styles.suggestionsList}>
-                {suggestedNames.map((suggestion, index) => (
+                {suggestedNames.map((suggestion) => (
                   <TouchableOpacity
-                    key={index}
+                    key={suggestion}
                     style={[
                       styles.suggestionChip,
                       groupName === suggestion && styles.suggestionChipSelected,

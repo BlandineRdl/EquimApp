@@ -35,7 +35,7 @@ export const loadUserGroups = createAsyncThunk<
         totalMonthlyBudget: fullGroup.shares.totalExpenses,
       };
       return group;
-    })
+    }),
   );
 
   logger.info("Loaded full groups", { count: fullGroups.length });

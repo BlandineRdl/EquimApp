@@ -37,7 +37,7 @@ export class AcceptInvitationDSL extends BaseDsl<AcceptInvitationResult> {
     // Create a group
     const { groupId } = await this.groupGateway.createGroup(
       "Test Group",
-      "EUR"
+      "EUR",
     );
     this.invitationGroupId = groupId;
 
@@ -78,7 +78,11 @@ export class AcceptInvitationDSL extends BaseDsl<AcceptInvitationResult> {
 
   async whenAcceptingInvitation(): Promise<this> {
     await this.executeAction(async () => {
-      if (this.token === null || this.pseudo === null || this.monthlyIncome === null) {
+      if (
+        this.token === null ||
+        this.pseudo === null ||
+        this.monthlyIncome === null
+      ) {
         throw new Error("Missing test setup: token, pseudo, or monthlyIncome");
       }
 
@@ -117,9 +121,12 @@ export class AcceptInvitationDSL extends BaseDsl<AcceptInvitationResult> {
       throw new Error("Expected groupId in result");
     }
 
-    if (this.invitationGroupId && this.result.groupId !== this.invitationGroupId) {
+    if (
+      this.invitationGroupId &&
+      this.result.groupId !== this.invitationGroupId
+    ) {
       throw new Error(
-        `Expected groupId to be ${this.invitationGroupId}, got ${this.result.groupId}`
+        `Expected groupId to be ${this.invitationGroupId}, got ${this.result.groupId}`,
       );
     }
 

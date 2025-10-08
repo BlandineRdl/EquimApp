@@ -79,7 +79,7 @@ importers:
         specifier: ^7.25.2
         version: 7.28.4
       '@biomejs/biome':
-        specifier: ^2.1.4
+        specifier: ^2.2.5
         version: 2.2.5
       '@expo/cli':
         specifier: ^0.24.20

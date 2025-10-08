@@ -5,9 +5,7 @@ interface InvitationCardProps {
   invitationDetails: InvitationDetails;
 }
 
-export const InvitationCard = ({
-  invitationDetails,
-}: InvitationCardProps) => {
+export const InvitationCard = ({ invitationDetails }: InvitationCardProps) => {
   return (
     <View style={styles.invitationCard}>
       <Text style={styles.title}>Rejoindre le groupe</Text>

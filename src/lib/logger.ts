@@ -8,29 +8,36 @@
  *   logger.error('API failed', error);
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
   [key: string]: unknown;
 }
 
 class Logger {
-  private isDevelopment = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
+  private isDevelopment =
+    typeof __DEV__ !== "undefined"
+      ? __DEV__
+      : process.env.NODE_ENV !== "production";
 
   private shouldLog(level: LogLevel): boolean {
-    if (!this.isDevelopment && level === 'debug') {
+    if (!this.isDevelopment && level === "debug") {
       return false;
     }
     return true;
   }
 
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
-    const timestamp = new Date().toISOString();
+  private formatMessage(
+    level: LogLevel,
+    message: string,
+    context?: LogContext,
+  ): string {
+    const _timestamp = new Date().toISOString();
     const emoji = {
-      debug: '🔍',
-      info: 'ℹ️',
-      warn: '⚠️',
-      error: '❌',
+      debug: "🔍",
+      info: "ℹ️",
+      warn: "⚠️",
+      error: "❌",
     }[level];
 
     let formatted = `${emoji} [${level.toUpperCase()}] ${message}`;
@@ -43,22 +50,22 @@ class Logger {
   }
 
   debug(message: string, context?: LogContext): void {
-    if (!this.shouldLog('debug')) return;
-    console.log(this.formatMessage('debug', message, context));
+    if (!this.shouldLog("debug")) return;
+    console.log(this.formatMessage("debug", message, context));
   }
 
   info(message: string, context?: LogContext): void {
-    if (!this.shouldLog('info')) return;
-    console.info(this.formatMessage('info', message, context));
+    if (!this.shouldLog("info")) return;
+    console.info(this.formatMessage("info", message, context));
   }
 
   warn(message: string, context?: LogContext): void {
-    if (!this.shouldLog('warn')) return;
-    console.warn(this.formatMessage('warn', message, context));
+    if (!this.shouldLog("warn")) return;
+    console.warn(this.formatMessage("warn", message, context));
   }
 
   error(message: string, error?: Error | unknown, context?: LogContext): void {
-    if (!this.shouldLog('error')) return;
+    if (!this.shouldLog("error")) return;
 
     const errorContext = {
       ...context,
@@ -68,7 +75,7 @@ class Logger {
       }),
     };
 
-    console.error(this.formatMessage('error', message, errorContext));
+    console.error(this.formatMessage("error", message, errorContext));
 
     // TODO: Send to remote logging service (Sentry, LogRocket, etc.)
     // if (this.remoteLogger) {

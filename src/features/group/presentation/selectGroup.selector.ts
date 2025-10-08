@@ -79,8 +79,6 @@ export const selectAddExpenseUI = createSelector(
     form,
     loading,
     error,
-    canSubmit: form
-      ? form.name.trim() && parseFloat(form.amount) > 0
-      : false,
+    canSubmit: form ? form.name.trim() && parseFloat(form.amount) > 0 : false,
   }),
 );

@@ -2,7 +2,7 @@
  * Behavioral tests for Remove Member Use Case
  */
 
-import { describe, it, beforeEach } from "vitest";
+import { beforeEach, describe, it } from "vitest";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
 import type { GroupGateway } from "../../ports/GroupGateway";
 
@@ -27,7 +27,7 @@ describe("Remove Member Use Case", () => {
     const phantomResult = await groupGateway.addPhantomMember(
       groupId,
       "Phantom Member",
-      2000
+      2000,
     );
     phantomMemberId = phantomResult.memberId;
   });
@@ -51,7 +51,7 @@ describe("Remove Member Use Case", () => {
       // After removing phantom member, only creator should remain
       if (result.shares.shares.length !== 1) {
         throw new Error(
-          `Expected 1 member remaining, got ${result.shares.shares.length}`
+          `Expected 1 member remaining, got ${result.shares.shares.length}`,
         );
       }
     });
@@ -61,14 +61,17 @@ describe("Remove Member Use Case", () => {
       const phantom2 = await groupGateway.addPhantomMember(
         groupId,
         "Phantom 2",
-        3000
+        3000,
       );
 
       // Remove first phantom member
       await groupGateway.removeMember(groupId, phantomMemberId);
 
       // Remove second phantom
-      const result = await groupGateway.removeMember(groupId, phantom2.memberId);
+      const result = await groupGateway.removeMember(
+        groupId,
+        phantom2.memberId,
+      );
 
       // Verify operation succeeded and shares were recalculated
       if (!result.shares) {
@@ -106,7 +109,7 @@ describe("Remove Member Use Case", () => {
       try {
         await groupGateway.removeMember(groupId, "");
         throw new Error("Expected error for empty member ID");
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });
@@ -115,7 +118,7 @@ describe("Remove Member Use Case", () => {
       try {
         await groupGateway.removeMember("", phantomMemberId);
         throw new Error("Expected error for empty group ID");
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });

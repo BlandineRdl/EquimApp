@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import React from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -13,9 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
-import {
-  selectIncomeUI,
-} from "../../src/features/onboarding/presentation/onboarding.selectors";
+import { selectIncomeUI } from "../../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurIncome,
   setMonthlyIncome,

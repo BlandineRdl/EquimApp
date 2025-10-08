@@ -1,4 +1,8 @@
-import type { GroupMember as GatewayGroupMember, Shares, Expense as GatewayExpense } from "../ports/GroupGateway";
+import type {
+  Expense as GatewayExpense,
+  GroupMember as GatewayGroupMember,
+  Shares,
+} from "../ports/GroupGateway";
 
 // Domain group member - matches gateway interface
 export type GroupMember = GatewayGroupMember;

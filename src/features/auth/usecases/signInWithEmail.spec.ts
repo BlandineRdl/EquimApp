@@ -2,7 +2,7 @@
  * Behavioral tests for Sign In With Email Use Case
  */
 
-import { describe, it, beforeEach, vi } from "vitest";
+import { beforeEach, describe, it, vi } from "vitest";
 import type { AuthGateway } from "../ports/AuthGateway";
 
 // Mock AuthGateway for testing
@@ -13,7 +13,7 @@ class MockAuthGateway implements AuthGateway {
     return this.signInWithEmailMock(email);
   }
 
-  async verifyOtp(email: string, token: string): Promise<void> {
+  async verifyOtp(_email: string, _token: string): Promise<void> {
     throw new Error("Not implemented in mock");
   }
 
@@ -93,7 +93,7 @@ describe("Sign In With Email Use Case", () => {
   describe("Validation failures", () => {
     it("should reject empty email", async () => {
       authGateway.signInWithEmailMock.mockRejectedValue(
-        new Error("Please enter a valid email address")
+        new Error("Please enter a valid email address"),
       );
 
       try {
@@ -109,7 +109,7 @@ describe("Sign In With Email Use Case", () => {
 
     it("should reject email without @", async () => {
       authGateway.signInWithEmailMock.mockRejectedValue(
-        new Error("Please enter a valid email address")
+        new Error("Please enter a valid email address"),
       );
 
       try {
@@ -125,7 +125,7 @@ describe("Sign In With Email Use Case", () => {
 
     it("should reject email without domain", async () => {
       authGateway.signInWithEmailMock.mockRejectedValue(
-        new Error("Please enter a valid email address")
+        new Error("Please enter a valid email address"),
       );
 
       try {
@@ -141,7 +141,7 @@ describe("Sign In With Email Use Case", () => {
 
     it("should reject email without username", async () => {
       authGateway.signInWithEmailMock.mockRejectedValue(
-        new Error("Please enter a valid email address")
+        new Error("Please enter a valid email address"),
       );
 
       try {
@@ -157,7 +157,7 @@ describe("Sign In With Email Use Case", () => {
 
     it("should reject email with spaces", async () => {
       authGateway.signInWithEmailMock.mockRejectedValue(
-        new Error("Please enter a valid email address")
+        new Error("Please enter a valid email address"),
       );
 
       try {
@@ -173,7 +173,7 @@ describe("Sign In With Email Use Case", () => {
 
     it("should reject email without TLD", async () => {
       authGateway.signInWithEmailMock.mockRejectedValue(
-        new Error("Please enter a valid email address")
+        new Error("Please enter a valid email address"),
       );
 
       try {
@@ -191,7 +191,7 @@ describe("Sign In With Email Use Case", () => {
   describe("Rate limiting", () => {
     it("should handle rate limit errors gracefully", async () => {
       authGateway.signInWithEmailMock.mockRejectedValue(
-        new Error("Too many requests. Please try again later.")
+        new Error("Too many requests. Please try again later."),
       );
 
       try {
@@ -209,7 +209,7 @@ describe("Sign In With Email Use Case", () => {
   describe("Network failures", () => {
     it("should handle network errors", async () => {
       authGateway.signInWithEmailMock.mockRejectedValue(
-        new Error("Network error")
+        new Error("Network error"),
       );
 
       try {

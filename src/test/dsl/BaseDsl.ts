@@ -22,7 +22,7 @@ export abstract class BaseDsl<TResult = unknown, TError = Error> {
    * Execute an action and capture result or error
    */
   protected async executeAction<T>(
-    action: () => Promise<T>
+    action: () => Promise<T>,
   ): Promise<T | null> {
     await this.waitForSetup();
 
@@ -43,7 +43,7 @@ export abstract class BaseDsl<TResult = unknown, TError = Error> {
   thenShouldSucceed(): this {
     if (this.error) {
       throw new Error(
-        `Expected success but got error: ${(this.error as Error).message}`
+        `Expected success but got error: ${(this.error as Error).message}`,
       );
     }
 
@@ -65,7 +65,7 @@ export abstract class BaseDsl<TResult = unknown, TError = Error> {
     const errorMessage = (this.error as Error).message;
     if (!errorMessage.includes(expectedMessage)) {
       throw new Error(
-        `Expected error message to contain "${expectedMessage}", but got "${errorMessage}"`
+        `Expected error message to contain "${expectedMessage}", but got "${errorMessage}"`,
       );
     }
 

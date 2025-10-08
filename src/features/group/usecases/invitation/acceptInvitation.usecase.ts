@@ -1,8 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { logger } from "../../../../lib/logger";
-import type { AppState } from "../../../../store/appState";
 import { supabase } from "../../../../lib/supabase/client";
-import { INVITATION_TOKEN_PREFIX, MIN_PSEUDO_LENGTH } from "../../domain/group.constants";
+import type { AppState } from "../../../../store/appState";
+import { MIN_PSEUDO_LENGTH } from "../../domain/group.constants";
 import type { GroupGateway } from "../../ports/GroupGateway";
 
 export interface AcceptInvitationInput {
@@ -21,7 +21,11 @@ export const acceptInvitation = createAsyncThunk<
 >(
   "groups/acceptInvitation",
   async ({ token, pseudo, monthlyIncome }, { extra: { groupGateway } }) => {
-    logger.debug("[acceptInvitation] Starting", { token, pseudo, income: monthlyIncome });
+    logger.debug("[acceptInvitation] Starting", {
+      token,
+      pseudo,
+      income: monthlyIncome,
+    });
 
     // Validate token
     if (!token || !token.trim()) {
@@ -54,21 +58,21 @@ export const acceptInvitation = createAsyncThunk<
     }
 
     // Update or create user profile first
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .upsert({
-        id: user.id,
-        pseudo: pseudo.trim(),
-        income_or_weight: monthlyIncome,
-        share_revenue: true,
-      });
+    const { error: profileError } = await supabase.from("profiles").upsert({
+      id: user.id,
+      pseudo: pseudo.trim(),
+      income_or_weight: monthlyIncome,
+      share_revenue: true,
+    });
 
     if (profileError) {
       throw new Error("Erreur lors de la création du profil");
     }
 
     // Now accept invitation
-    logger.debug("[acceptInvitation] Calling gateway.acceptInvitation", { token });
+    logger.debug("[acceptInvitation] Calling gateway.acceptInvitation", {
+      token,
+    });
     const result = await groupGateway.acceptInvitation(token);
     logger.info("[acceptInvitation] Success", { groupId: result.groupId });
     return { groupId: result.groupId };

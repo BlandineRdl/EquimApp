@@ -1,8 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
-import { INVITATION_TOKEN_PREFIX } from "../../domain/group.constants";
-import type { InvitationPreview } from "../../ports/GroupGateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import type { GroupGateway, InvitationPreview } from "../../ports/GroupGateway";
 
 export const getInvitationDetails = createAsyncThunk<
   InvitationPreview | null,

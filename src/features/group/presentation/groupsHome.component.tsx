@@ -60,7 +60,9 @@ export const GroupsHome = ({
               €
             </Text>
             <Text style={styles.expensesCount}>
-              {group.expenses?.length || 0} dépense{(group.expenses?.length || 0) > 1 ? "s" : ""} configurée{(group.expenses?.length || 0) > 1 ? "s" : ""}
+              {group.expenses?.length || 0} dépense
+              {(group.expenses?.length || 0) > 1 ? "s" : ""} configurée
+              {(group.expenses?.length || 0) > 1 ? "s" : ""}
             </Text>
           </View>
 

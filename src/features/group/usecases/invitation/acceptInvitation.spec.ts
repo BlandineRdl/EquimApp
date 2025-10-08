@@ -3,7 +3,7 @@
  * Using DSL for readability and maintainability
  */
 
-import { describe, it, beforeEach } from "vitest";
+import { beforeEach, describe, it } from "vitest";
 import { AcceptInvitationDSL } from "./acceptInvitation.dsl";
 
 describe("Accept Invitation Use Case", () => {

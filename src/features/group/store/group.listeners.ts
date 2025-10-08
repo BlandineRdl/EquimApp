@@ -17,7 +17,9 @@ groupListeners.startListening({
 
     // Unsubscribe from previous subscription if exists
     if (subscriptions.has(groupId)) {
-      logger.debug("[GroupListeners] Replacing existing subscription", { groupId });
+      logger.debug("[GroupListeners] Replacing existing subscription", {
+        groupId,
+      });
       subscriptions.get(groupId)?.();
       subscriptions.delete(groupId);
     }

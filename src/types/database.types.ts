@@ -1,407 +1,444 @@
-/**
- * Database Type Definitions for EquimApp
- * Auto-generated from Supabase schema
- *
- * Based on:
- * - /supabase/schema.sql
- * - /supabase/migrations/*.sql
- * - /supabase/rpc/*.sql
- */
-
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5";
+  };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          pseudo: string | null
-          income_or_weight: number | null
-          weight_override: number | null
-          currency_code: string
-          share_revenue: boolean
-          deleted_at: string | null
-          created_at: string
-        }
-        Insert: {
-          id: string
-          pseudo?: string | null
-          income_or_weight?: number | null
-          weight_override?: number | null
-          currency_code?: string
-          share_revenue?: boolean
-          deleted_at?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          pseudo?: string | null
-          income_or_weight?: number | null
-          weight_override?: number | null
-          currency_code?: string
-          share_revenue?: boolean
-          deleted_at?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      groups: {
-        Row: {
-          id: string
-          name: string
-          creator_id: string
-          currency_code: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          creator_id: string
-          currency_code?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          creator_id?: string
-          currency_code?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "groups_creator_id_fkey"
-            columns: ["creator_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      group_members: {
-        Row: {
-          id: string
-          group_id: string
-          user_id: string | null
-          phantom_pseudo: string | null
-          phantom_income: number | null
-          is_phantom: boolean
-          claimed_at: string | null
-          joined_at: string
-        }
-        Insert: {
-          id?: string
-          group_id: string
-          user_id?: string | null
-          phantom_pseudo?: string | null
-          phantom_income?: number | null
-          is_phantom?: boolean
-          claimed_at?: string | null
-          joined_at?: string
-        }
-        Update: {
-          id?: string
-          group_id?: string
-          user_id?: string | null
-          phantom_pseudo?: string | null
-          phantom_income?: number | null
-          is_phantom?: boolean
-          claimed_at?: string | null
-          joined_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_members_group_id_fkey"
-            columns: ["group_id"]
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_members_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       expenses: {
         Row: {
-          id: string
-          group_id: string
-          name: string
-          amount: number
-          currency_code: string
-          is_predefined: boolean
-          created_by: string
-          created_at: string
-          updated_at: string
-        }
+          amount: number;
+          created_at: string;
+          created_by: string;
+          currency_code: string;
+          group_id: string;
+          id: string;
+          is_predefined: boolean;
+          name: string;
+          updated_at: string;
+        };
         Insert: {
-          id?: string
-          group_id: string
-          name: string
-          amount: number
-          currency_code: string
-          is_predefined?: boolean
-          created_by: string
-          created_at?: string
-          updated_at?: string
-        }
+          amount: number;
+          created_at?: string;
+          created_by: string;
+          currency_code: string;
+          group_id: string;
+          id?: string;
+          is_predefined?: boolean;
+          name: string;
+          updated_at?: string;
+        };
         Update: {
-          id?: string
-          group_id?: string
-          name?: string
-          amount?: number
-          currency_code?: string
-          is_predefined?: boolean
-          created_by?: string
-          created_at?: string
-          updated_at?: string
-        }
+          amount?: number;
+          created_at?: string;
+          created_by?: string;
+          currency_code?: string;
+          group_id?: string;
+          id?: string;
+          is_predefined?: boolean;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      group_members: {
+        Row: {
+          claimed_at: string | null;
+          group_id: string;
+          id: string;
+          is_phantom: boolean;
+          joined_at: string;
+          phantom_income: number | null;
+          phantom_pseudo: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          claimed_at?: string | null;
+          group_id: string;
+          id?: string;
+          is_phantom?: boolean;
+          joined_at?: string;
+          phantom_income?: number | null;
+          phantom_pseudo?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          claimed_at?: string | null;
+          group_id?: string;
+          id?: string;
+          is_phantom?: boolean;
+          joined_at?: string;
+          phantom_income?: number | null;
+          phantom_pseudo?: string | null;
+          user_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "expenses_creator_must_be_member"
-            columns: ["group_id", "created_by"]
-            referencedRelation: "group_members"
-            referencedColumns: ["group_id", "user_id"]
-          }
-        ]
-      }
+            foreignKeyName: "group_members_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "group_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      groups: {
+        Row: {
+          created_at: string;
+          creator_id: string;
+          currency_code: string;
+          id: string;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          creator_id: string;
+          currency_code?: string;
+          id?: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          creator_id?: string;
+          currency_code?: string;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "groups_creator_id_fkey";
+            columns: ["creator_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       invitations: {
         Row: {
-          id: string
-          group_id: string
-          token: string
-          created_by: string
-          accepted_by: string | null
-          consumed_at: string | null
-          expires_at: string | null
-          created_at: string
-        }
+          accepted_by: string | null;
+          consumed_at: string | null;
+          created_at: string;
+          created_by: string;
+          expires_at: string | null;
+          group_id: string;
+          id: string;
+          token: string;
+        };
         Insert: {
-          id?: string
-          group_id: string
-          token: string
-          created_by: string
-          accepted_by?: string | null
-          consumed_at?: string | null
-          expires_at?: string | null
-          created_at?: string
-        }
+          accepted_by?: string | null;
+          consumed_at?: string | null;
+          created_at?: string;
+          created_by: string;
+          expires_at?: string | null;
+          group_id: string;
+          id?: string;
+          token: string;
+        };
         Update: {
-          id?: string
-          group_id?: string
-          token?: string
-          created_by?: string
-          accepted_by?: string | null
-          consumed_at?: string | null
-          expires_at?: string | null
-          created_at?: string
-        }
+          accepted_by?: string | null;
+          consumed_at?: string | null;
+          created_at?: string;
+          created_by?: string;
+          expires_at?: string | null;
+          group_id?: string;
+          id?: string;
+          token?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "invitations_group_id_fkey"
-            columns: ["group_id"]
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
+            foreignKeyName: "invitations_accepted_by_fkey";
+            columns: ["accepted_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "invitations_created_by_fkey"
-            columns: ["created_by"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            foreignKeyName: "invitations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "invitations_accepted_by_fkey"
-            columns: ["accepted_by"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-    }
+            foreignKeyName: "invitations_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      profiles: {
+        Row: {
+          created_at: string;
+          currency_code: string;
+          deleted_at: string | null;
+          id: string;
+          income_or_weight: number | null;
+          pseudo: string | null;
+          share_revenue: boolean;
+          weight_override: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          currency_code?: string;
+          deleted_at?: string | null;
+          id: string;
+          income_or_weight?: number | null;
+          pseudo?: string | null;
+          share_revenue?: boolean;
+          weight_override?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          currency_code?: string;
+          deleted_at?: string | null;
+          id?: string;
+          income_or_weight?: number | null;
+          pseudo?: string | null;
+          share_revenue?: boolean;
+          weight_override?: number | null;
+        };
+        Relationships: [];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      create_group: {
-        Args: {
-          p_name: string
-          p_currency_code?: string
-        }
-        Returns: string
-      }
+      accept_invite: {
+        Args: { p_token: string };
+        Returns: Json;
+      };
+      add_phantom_member: {
+        Args: { p_group_id: string; p_income: number; p_pseudo: string };
+        Returns: Json;
+      };
       complete_onboarding: {
         Args: {
-          p_pseudo: string
-          p_income: number
-          p_group_name: string
-          p_expenses: Json
-        }
-        Returns: Json
-      }
-      leave_group: {
-        Args: {
-          p_group_id: string
-        }
-        Returns: Json
-      }
-      get_invitation_details: {
-        Args: {
-          p_token: string
-        }
-        Returns: Json
-      }
-      add_phantom_member: {
-        Args: {
-          p_group_id: string
-          p_pseudo: string
-          p_income: number
-        }
-        Returns: Json
-      }
-      remove_group_member: {
-        Args: {
-          p_group_id: string
-          p_member_id: string
-        }
-        Returns: Json
-      }
+          p_expenses: Json;
+          p_group_name: string;
+          p_income: number;
+          p_pseudo: string;
+        };
+        Returns: Json;
+      };
+      compute_shares: {
+        Args: { p_group_id: string };
+        Returns: Json;
+      };
+      create_group: {
+        Args: { p_currency_code?: string; p_name: string };
+        Returns: string;
+      };
+      delete_expense: {
+        Args: { p_expense_id: string };
+        Returns: Json;
+      };
+      delete_group: {
+        Args: { p_group_id: string };
+        Returns: Json;
+      };
+      generate_invitation: {
+        Args: { p_group_id: string };
+        Returns: Json;
+      };
       get_group_members: {
-        Args: {
-          p_group_id: string
-        }
-        Returns: Json
-      }
-      generate_invitation: {
-        Args: {
-          p_group_id: string
-        }
-        Returns: Json
-      }
-      accept_invite: {
-        Args: {
-          p_token: string
-        }
-        Returns: Json
-      }
-      compute_shares: {
-        Args: {
-          p_group_id: string
-        }
-        Returns: Json
-      }
-      compute_shares: {
-        Args: {
-          p_group_id: string
-        }
-        Returns: Json
-      }
-      generate_invitation: {
-        Args: {
-          p_group_id: string
-        }
-        Returns: Json
-      }
-      accept_invite: {
-        Args: {
-          p_token: string
-        }
-        Returns: Json
-      }
-    }
+        Args: { p_group_id: string };
+        Returns: Json;
+      };
+      get_invitation_details: {
+        Args: { p_token: string };
+        Returns: Json;
+      };
+      leave_group: {
+        Args: { p_group_id: string };
+        Returns: Json;
+      };
+      remove_group_member: {
+        Args: { p_group_id: string; p_member_id: string };
+        Returns: Json;
+      };
+    };
     Enums: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
+  };
+};
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<
+  keyof Database,
+  "public"
+>];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
 
-// Type helpers for easier usage
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
-export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
-export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']
-
-// Specific type exports for common usage
-export type Profile = Tables<'profiles'>
-export type Group = Tables<'groups'>
-export type GroupMember = Tables<'group_members'>
-export type Expense = Tables<'expenses'>
-export type Invitation = Tables<'invitations'>
-
-// RPC Function Return Types
-export interface CompleteOnboardingResult {
-  profile_id: string
-  group_id: string
-  shares: SharesResult
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
 
-export interface AcceptInviteResult {
-  group_id: string
-  shares: SharesResult
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
 
-export interface LeaveGroupResult {
-  group_deleted: boolean
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never;
 
-export interface InvitationDetails {
-  group_name: string
-  creator_pseudo: string
-  expires_at: string | null
-  is_consumed: boolean
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never;
 
-export interface AddPhantomMemberResult {
-  member_id: string
-  shares: SharesResult
-}
-
-export interface RemoveGroupMemberResult {
-  shares: SharesResult
-}
-
-export interface GenerateInvitationResult {
-  token: string
-  expires_at: string
-}
-
-export interface SharesResult {
-  total_expenses: number
-  shares: MemberShare[]
-}
-
-export interface MemberShare {
-  member_id: string
-  user_id: string | null
-  pseudo: string
-  share_percentage: number
-  share_amount: number
-}
-
-export interface GroupMemberDetails {
-  member_id: string
-  user_id: string | null
-  pseudo: string
-  share_revenue: boolean
-  income_or_weight: number | null
-  joined_at: string
-  is_phantom: boolean
-}
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {},
+  },
+} as const;

@@ -2,10 +2,10 @@ import type { EntityState } from "@reduxjs/toolkit";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import type { Group, InvitationDetails } from "../domain/group.model";
 import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
-import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
-import { deleteExpense } from "../usecases/expense/deleteExpense.usecase";
 import { createGroup } from "../usecases/create-group/createGroup.usecase";
 import { deleteGroup } from "../usecases/delete-group/deleteGroup.usecase";
+import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
+import { deleteExpense } from "../usecases/expense/deleteExpense.usecase";
 import { acceptInvitation } from "../usecases/invitation/acceptInvitation.usecase";
 import { generateInviteLink } from "../usecases/invitation/generateInviteLink.usecase";
 import { getInvitationDetails } from "../usecases/invitation/getInvitationDetails.usecase";
@@ -322,7 +322,7 @@ export const groupSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createGroup.fulfilled, (state, action) => {
+      .addCase(createGroup.fulfilled, (state, _action) => {
         state.loading = false;
         // Group will be loaded via loadUserGroups or loadGroupById
       })

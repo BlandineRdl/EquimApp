@@ -2,7 +2,7 @@
  * Behavioral tests for Get Invitation Details Use Case
  */
 
-import { describe, it, beforeEach } from "vitest";
+import { beforeEach, describe, it } from "vitest";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
 import type { GroupGateway } from "../../ports/GroupGateway";
 
@@ -48,7 +48,9 @@ describe("Get Invitation Details Use Case", () => {
 
       // Verify it contains group information
       if (details.groupName !== "Test Group") {
-        throw new Error(`Expected group name 'Test Group', got ${details.groupName}`);
+        throw new Error(
+          `Expected group name 'Test Group', got ${details.groupName}`,
+        );
       }
     });
   });

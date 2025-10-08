@@ -1,9 +1,9 @@
 // src/features/user/store/user.slice.ts
 import { createSlice } from "@reduxjs/toolkit";
 import { logger } from "../../../lib/logger";
+import { completeOnboarding } from "../../onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
 import type { User } from "../domain/user.model";
 import { loadUserProfile } from "../usecases/loadUserProfile.usecase";
-import { completeOnboarding } from "../../onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
 
 interface UserState {
   profile: User | null;

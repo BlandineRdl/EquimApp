@@ -32,17 +32,26 @@ export const selectGroupDetails = createSelector(
     const totalExpenses = group.shares?.totalExpenses || 0;
 
     // DEBUG: Log pour voir ce qui arrive du backend
-    logger.debug('DEBUG shares from backend', { shares: group.shares });
-    logger.debug('DEBUG members', { members: members.map(m => ({ id: m.id, pseudo: m.pseudo })) });
+    logger.debug("DEBUG shares from backend", { shares: group.shares });
+    logger.debug("DEBUG members", {
+      members: members.map((m) => ({ id: m.id, pseudo: m.pseudo })),
+    });
 
     const sharesByMemberId = new Map(
-      group.shares?.shares.map((share: MemberShare) => [share.memberId, share]) || []
+      group.shares?.shares.map((share: MemberShare) => [
+        share.memberId,
+        share,
+      ]) || [],
     );
 
     // Mapper les membres avec leurs shares
     const membersWithShares: GroupMemberWithShare[] = members.map((member) => {
       const share = sharesByMemberId.get(member.id);
-      logger.debug(`Member mapping`, { pseudo: member.pseudo, id: member.id, share });
+      logger.debug(`Member mapping`, {
+        pseudo: member.pseudo,
+        id: member.id,
+        share,
+      });
       return {
         ...member,
         sharePercentage: share?.sharePercentage || 0,

@@ -3,7 +3,7 @@
  * Using DSL pattern for readability
  */
 
-import { describe, it, beforeEach } from "vitest";
+import { beforeEach, describe, it } from "vitest";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
 import type { GroupGateway } from "../../ports/GroupGateway";
 
@@ -76,7 +76,7 @@ describe("Generate Invite Link Use Case", () => {
       try {
         await groupGateway.generateInvitation("");
         throw new Error("Expected error for empty group ID");
-      } catch (error) {
+      } catch (_error) {
         // Expected error
       }
     });

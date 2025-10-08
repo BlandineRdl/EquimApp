@@ -5,18 +5,18 @@ import {
   type ThunkDispatch,
 } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
-import { logger } from "../lib/logger";
 import type { AuthGateway } from "../features/auth/ports/AuthGateway";
 import authReducer from "../features/auth/store/authSlice";
 import type { GroupGateway } from "../features/group/ports/GroupGateway";
-import { groupReducer } from "../features/group/store/group.slice";
 import { groupListeners } from "../features/group/store/group.listeners";
+import { groupReducer } from "../features/group/store/group.slice";
 import { notificationListeners } from "../features/notification/store/notification.listeners";
 import { notificationReducer } from "../features/notification/store/notification.slice";
 import type { OnboardingGateway } from "../features/onboarding/ports/OnboardingGateway";
 import { onboardingReducer } from "../features/onboarding/store/onboarding.slice";
 import type { UserGateway } from "../features/user/ports/UserGateway";
 import { userReducer } from "../features/user/store/user.slice";
+import { logger } from "../lib/logger";
 import type { AppState } from "./appState";
 
 export interface Dependencies {
@@ -38,7 +38,7 @@ let devToolsEnhancer: DevToolsEnhancer = () => (next) => next;
 if (!isTestEnvironment) {
   try {
     devToolsEnhancer = require("redux-devtools-expo-dev-plugin").default;
-  } catch (error) {
+  } catch (_error) {
     logger.warn("Redux DevTools Expo plugin not available");
     devToolsEnhancer = () => (next) => next;
   }
