@@ -262,8 +262,8 @@ export default function SignInScreen() {
             <View style={styles.infoBox}>
               <Text style={styles.infoTitle}>🔒 Connexion sécurisée</Text>
               <Text style={styles.infoText}>
-                Pas de mot de passe à retenir ! Nous vous enverrons un lien
-                magique pour vous connecter en toute sécurité.
+                Pas de mot de passe à retenir ! Nous vous enverrons un code à 6
+                chiffres pour vous connecter en toute sécurité.
               </Text>
             </View>
           </View>
