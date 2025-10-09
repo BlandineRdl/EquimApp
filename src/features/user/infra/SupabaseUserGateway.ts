@@ -39,12 +39,12 @@ export class SupabaseUserGateway implements UserGateway {
         .single();
 
       if (error) {
-        logger.debug("Error loading profile", { error });
         // Not found is not an error, return null
         if (error.code === "PGRST116") {
-          logger.info("Profile not found (PGRST116)");
+          logger.info("Profile not found - user needs onboarding");
           return null;
         }
+        logger.error("Error loading profile", { error });
         throw createUserFriendlyError(error);
       }
 

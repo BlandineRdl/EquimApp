@@ -11,15 +11,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { CreateGroupModal } from "../src/features/group/presentation/CreateGroupModal.component";
-import { GroupsHome } from "../src/features/group/presentation/groupsHome.component";
-import { InviteModal } from "../src/features/group/presentation/InviteModal.component";
-import { JoinGroupModal } from "../src/features/group/presentation/JoinGroupModal.component";
-import { selectAllGroups } from "../src/features/group/presentation/selectGroup.selector";
-import { loadUserGroups } from "../src/features/group/usecases/load-groups/loadGroups.usecase";
-import { selectUserProfile } from "../src/features/user/presentation/selectUser.selector";
-import { logger } from "../src/lib/logger";
-import { useAppDispatch } from "../src/store/buildReduxStore";
+import { CreateGroupModal } from "../../src/features/group/presentation/CreateGroupModal.component";
+import { GroupsHome } from "../../src/features/group/presentation/groupsHome.component";
+import { InviteModal } from "../../src/features/group/presentation/InviteModal.component";
+import { JoinGroupModal } from "../../src/features/group/presentation/JoinGroupModal.component";
+import { selectAllGroups } from "../../src/features/group/presentation/selectGroup.selector";
+import { loadUserGroups } from "../../src/features/group/usecases/load-groups/loadGroups.usecase";
+import { selectUserProfile } from "../../src/features/user/presentation/selectUser.selector";
+import { logger } from "../../src/lib/logger";
+import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function HomeScreen() {
   const dispatch = useAppDispatch();

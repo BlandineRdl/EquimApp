@@ -11,14 +11,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { SUGGESTED_GROUP_NAMES } from "../../src/features/group/domain/group.constants";
-import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
-import { selectGroupUI } from "../../src/features/onboarding/presentation/onboarding.selectors";
+import { SUGGESTED_GROUP_NAMES } from "../../../src/features/group/domain/group.constants";
+import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { selectGroupUI } from "../../../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurGroupName,
   setGroupName,
-} from "../../src/features/onboarding/store/onboarding.slice";
-import { useAppDispatch } from "../../src/store/buildReduxStore";
+} from "../../../src/features/onboarding/store/onboarding.slice";
+import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
 export default function CreateGroupScreen() {
   const dispatch = useAppDispatch();

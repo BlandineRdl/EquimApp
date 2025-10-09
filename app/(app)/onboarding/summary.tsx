@@ -8,11 +8,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { OnboardingProgressBar } from "../../src/features/onboarding/presentation/OnboardingProgressBar.component";
-import { selectOnboardingSummary } from "../../src/features/onboarding/presentation/onboarding.selectors";
-import { completeOnboarding } from "../../src/features/onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
-import { logger } from "../../src/lib/logger";
-import { useAppDispatch } from "../../src/store/buildReduxStore";
+import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { selectOnboardingSummary } from "../../../src/features/onboarding/presentation/onboarding.selectors";
+import { completeOnboarding } from "../../../src/features/onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
+import { logger } from "../../../src/lib/logger";
+import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
 export default function SummaryScreen() {
   const dispatch = useAppDispatch();
@@ -113,7 +113,7 @@ export default function SummaryScreen() {
                 !isComplete && styles.buttonTextDisabled,
               ]}
             >
-              Créer mon compte →
+              Finaliser mon profil →
             </Text>
           </TouchableOpacity>
         </View>

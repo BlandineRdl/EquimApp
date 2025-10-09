@@ -11,31 +11,30 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { OnboardingProgressBar } from "../src/features/onboarding/presentation/OnboardingProgressBar.component";
-import { selectOnboardingUI } from "../src/features/onboarding/presentation/onboarding.selectors";
+import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
+import { selectIncomeUI } from "../../../src/features/onboarding/presentation/onboarding.selectors";
 import {
-  blurPseudo,
-  setPseudo,
-} from "../src/features/onboarding/store/onboarding.slice";
-import { useAppDispatch } from "../src/store/buildReduxStore";
+  blurIncome,
+  setMonthlyIncome,
+} from "../../../src/features/onboarding/store/onboarding.slice";
+import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
-export default function WelcomeScreen() {
+export default function IncomeScreen() {
   const dispatch = useAppDispatch();
 
-  const { pseudo, error, canContinue, hasError } =
-    useSelector(selectOnboardingUI);
+  const { monthlyIncome, error, canContinue, hasError } =
+    useSelector(selectIncomeUI);
 
-  const handlePseudoChange = (text: string) => {
-    dispatch(setPseudo(text));
+  const handleIncomeChange = (text: string) => {
+    const cleanText = text.replace(/[^0-9.]/g, "");
+    dispatch(setMonthlyIncome(cleanText));
   };
 
   const handleContinue = () => {
     if (canContinue) {
-      router.push("/onboarding/income");
+      router.push("/onboarding/create-group");
     }
   };
-
-  const isButtonDisabled = !pseudo.trim();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,37 +49,43 @@ export default function WelcomeScreen() {
           <OnboardingProgressBar />
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logo}>🌱</Text>
-            </View>
-
-            <Text style={styles.title}>Bienvenue sur Equim</Text>
+            <Text style={styles.title}>Votre revenu mensuel</Text>
             <Text style={styles.subtitle}>
-              Commençons par créer votre profil. Comment souhaitez-vous être
-              appelé dans l'application ?
+              Montant net après impôts et cotisations
             </Text>
           </View>
 
           {/* Form */}
           <View style={styles.form}>
-            <Text style={styles.label}>Votre pseudo</Text>
+            <Text style={styles.label}>Montant en euros (€)</Text>
             <TextInput
-              value={pseudo}
-              onChangeText={handlePseudoChange}
-              onBlur={() => dispatch(blurPseudo())}
               style={[styles.input, hasError && styles.inputError]}
+              placeholder="Ex: 2400"
+              value={monthlyIncome}
+              onChangeText={handleIncomeChange}
+              onBlur={() => dispatch(blurIncome())}
+              keyboardType="decimal-pad"
+              maxLength={10}
             />
 
             {error && <Text style={styles.errorText}>{error}</Text>}
 
-            {/* Info box */}
+            {/* Info boxes */}
             <View style={styles.infoBox}>
               <Text style={styles.infoTitle}>
-                💡 Votre identité, vos règles
+                💡 Pourquoi cette information ?
               </Text>
               <Text style={styles.infoText}>
-                Utilisez le prénom, surnom ou pseudo de votre choix. Vous
-                pourrez le modifier à tout moment.
+                Equim calcule des parts équitables basées sur les revenus. Cette
+                donnée reste confidentielle et vous contrôlez qui peut la voir.
+              </Text>
+            </View>
+
+            <View style={[styles.infoBox, styles.equityBox]}>
+              <Text style={styles.infoTitle}>⚖️ L'équité avant tout :</Text>
+              <Text style={styles.infoText}>
+                Les écarts de revenus reflètent souvent des inégalités
+                systémiques. Partager selon ses moyens, c'est plus juste.
               </Text>
             </View>
           </View>
@@ -88,17 +93,17 @@ export default function WelcomeScreen() {
           {/* Actions */}
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
+              style={[styles.button, !canContinue && styles.buttonDisabled]}
               onPress={handleContinue}
-              disabled={isButtonDisabled}
+              disabled={!canContinue}
             >
               <Text
                 style={[
                   styles.buttonText,
-                  isButtonDisabled && styles.buttonTextDisabled,
+                  !canContinue && styles.buttonTextDisabled,
                 ]}
               >
-                Ajouter mon revenu →
+                Créer mon groupe →
               </Text>
             </TouchableOpacity>
           </View>
@@ -123,21 +128,24 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
   },
+  progressContainer: {
+    paddingTop: 16,
+    paddingBottom: 32,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#10b981",
+    borderRadius: 2,
+  },
   header: {
     alignItems: "center",
     marginBottom: 48,
-  },
-  logoContainer: {
-    width: 64,
-    height: 64,
-    backgroundColor: "#d1fae5",
-    borderRadius: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-  },
-  logo: {
-    fontSize: 32,
   },
   title: {
     fontSize: 24,
@@ -151,7 +159,6 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
     lineHeight: 24,
-    paddingHorizontal: 8,
   },
   form: {
     flex: 1,
@@ -170,6 +177,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     backgroundColor: "#fff",
+    textAlign: "center", // Centrer le montant
   },
   inputError: {
     borderColor: "#ef4444",
@@ -178,12 +186,17 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     fontSize: 14,
     marginTop: 8,
+    textAlign: "center",
   },
   infoBox: {
     backgroundColor: "#f9fafb",
     borderRadius: 8,
     padding: 16,
     marginTop: 24,
+  },
+  equityBox: {
+    backgroundColor: "#fef3c7", // Couleur différente pour highlight
+    marginTop: 16,
   },
   infoTitle: {
     fontSize: 14,
@@ -198,6 +211,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     paddingBottom: 32,
+    paddingTop: 24,
   },
   button: {
     backgroundColor: "#111827",

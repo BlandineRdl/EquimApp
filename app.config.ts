@@ -13,7 +13,7 @@ const config: ExpoConfig = {
 	userInterfaceStyle: "light",
 	scheme: "equimapp",
 	platforms: ["ios", "android"],
-	plugins: ["expo-router"],
+	plugins: ["expo-router", "expo-secure-store"],
 	experiments: {
 		typedRoutes: true,
 	},

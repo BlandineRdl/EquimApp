@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -86,13 +85,9 @@ export default function SignInScreen() {
   };
 
   const handleVerifyOtp = async () => {
-    try {
-      await dispatch(verifyOtp({ email, token: otp })).unwrap();
-      // Session will be set by onAuthStateChange listener
-      router.replace("/");
-    } catch (_err) {
-      // Error is handled by Redux slice
-    }
+    await dispatch(verifyOtp({ email, token: otp }));
+    // Session will be set by onAuthStateChange listener
+    // NavigationGuard will handle the redirect based on profile status
   };
 
   const isButtonDisabled = !email.trim() || isLoading;
@@ -142,6 +137,25 @@ export default function SignInScreen() {
                   Vérifiez vos spams ou attendez quelques secondes. Le code
                   expire après 60 minutes.
                 </Text>
+                <TouchableOpacity
+                  style={[
+                    styles.resendButton,
+                    resendTimer > 0 && styles.resendButtonDisabled,
+                  ]}
+                  onPress={handleResendCode}
+                  disabled={resendTimer > 0 || isLoading}
+                >
+                  <Text
+                    style={[
+                      styles.resendButtonText,
+                      resendTimer > 0 && styles.resendButtonTextDisabled,
+                    ]}
+                  >
+                    {resendTimer > 0
+                      ? `Renvoyer le code (${resendTimer}s)`
+                      : "Renvoyer le code"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -166,21 +180,6 @@ export default function SignInScreen() {
                     Vérifier
                   </Text>
                 )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.buttonSecondary,
-                  resendTimer > 0 && styles.buttonDisabled,
-                ]}
-                onPress={handleResendCode}
-                disabled={resendTimer > 0 || isLoading}
-              >
-                <Text style={styles.buttonSecondaryText}>
-                  {resendTimer > 0
-                    ? `Renvoyer le code (${resendTimer}s)`
-                    : "Renvoyer le code"}
-                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -393,6 +392,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
     lineHeight: 20,
+    marginBottom: 12,
+  },
+  resendButton: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  resendButtonDisabled: {
+    backgroundColor: "#f9fafb",
+    borderColor: "#e5e7eb",
+  },
+  resendButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  resendButtonTextDisabled: {
+    color: "#9ca3af",
   },
   actions: {
     paddingBottom: 32,

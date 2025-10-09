@@ -8,12 +8,13 @@ import { signOut } from "../usecases/signOut.usecase";
 import { verifyOtp } from "../usecases/verifyOtp.usecase";
 
 // State interface
-interface AuthState {
+export interface AuthState {
   user: User | null;
   userId: string | null;
   session: Session | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  hydrated: boolean; // True once initial session check is complete
   profileDeleted: boolean;
   error: string | null;
 }
@@ -25,6 +26,7 @@ const initialState: AuthState = {
   session: null,
   isLoading: false,
   isAuthenticated: false,
+  hydrated: false,
   profileDeleted: false,
   error: null,
 };
@@ -119,10 +121,12 @@ const authSlice = createSlice({
         state.user = action.payload?.user || null;
         state.userId = action.payload?.user?.id || null;
         state.isAuthenticated = !!action.payload;
+        state.hydrated = true; // Mark as hydrated after initial session check
       })
       .addCase(initSession.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || "Failed to initialize session";
+        state.hydrated = true; // Mark as hydrated even on error
       });
 
     // Verify OTP

@@ -15,9 +15,11 @@ interface AddMemberForm {
 export interface AppState {
   auth: {
     user: SupabaseUser | null;
+    userId: string | null;
     session: Session | null;
     isLoading: boolean;
     isAuthenticated: boolean;
+    hydrated: boolean;
     profileDeleted: boolean;
     error: string | null;
   };

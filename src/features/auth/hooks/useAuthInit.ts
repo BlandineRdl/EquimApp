@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
 import { logger } from "../../../lib/logger";
@@ -18,7 +18,9 @@ import { initSession } from "../usecases/initSession.usecase";
  */
 export function useAuthInit() {
   const dispatch = useAppDispatch();
-  const isLoading = useSelector((state: AppState) => state.auth.isLoading);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const authLoading = useSelector((state: AppState) => state.auth.isLoading);
+  const profileLoading = useSelector((state: AppState) => state.user.loading);
   const isAuthenticated = useSelector(
     (state: AppState) => state.auth.isAuthenticated,
   );
@@ -53,5 +55,13 @@ export function useAuthInit() {
     }
   }, [isAuthenticated, dispatch]);
 
-  return { isLoading };
+  // Mark initial load as complete once both auth and profile have finished loading for the first time
+  useEffect(() => {
+    if (isInitialLoad && !authLoading && !profileLoading) {
+      logger.info("Initial auth load complete");
+      setIsInitialLoad(false);
+    }
+  }, [authLoading, profileLoading, isInitialLoad]);
+
+  return { isLoading: isInitialLoad };
 }
