@@ -54,10 +54,9 @@ export default function WelcomeScreen() {
               <Text style={styles.logo}>🌱</Text>
             </View>
 
-            <Text style={styles.title}>Bienvenue sur Equim</Text>
+            <Text style={styles.title}>Choisissez votre pseudo</Text>
             <Text style={styles.subtitle}>
-              Commençons par créer votre profil. Comment souhaitez-vous être
-              appelé dans l'application ?
+              Comment souhaitez-vous être appelé dans l'application ?
             </Text>
           </View>
 
