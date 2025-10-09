@@ -1,4 +1,4 @@
-import { Users } from "lucide-react-native";
+import { ArrowRightLeft, UserPlus, Users } from "lucide-react-native";
 import { useEffect, useRef } from "react";
 import {
   Animated,
@@ -159,6 +159,67 @@ export const GroupsHome = ({
       />
     );
   }
+
+  // Show group cards
+  return (
+    <>
+      {groups.map((group) => (
+        <View key={group.id} style={styles.groupCard}>
+          {/* Group Header */}
+          <View style={styles.groupHeader}>
+            <View style={styles.groupIconContainer}>
+              <Users size={16} color="#0284c7" />
+            </View>
+            <Text style={styles.groupName}>{group.name}</Text>
+          </View>
+
+          <MembersDisplay groupId={group.id} />
+
+          {/* Budget Section */}
+          <View style={styles.budgetSection}>
+            <Text style={styles.budgetLabel}>Total des dépenses</Text>
+            <Text style={styles.budgetAmount}>
+              {(group.shares?.totalExpenses || 0).toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}{" "}
+              €
+            </Text>
+            <Text style={styles.expensesCount}>
+              {group.expenses?.length || 0} dépense
+              {(group.expenses?.length || 0) > 1 ? "s" : ""} configurée
+              {(group.expenses?.length || 0) > 1 ? "s" : ""}
+            </Text>
+          </View>
+
+          {/* View Button */}
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={() => onNavigateToGroupDetails(group.id)}
+          >
+            <ArrowRightLeft
+              size={14}
+              color="#374151"
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.viewButtonText}>Voir</Text>
+          </TouchableOpacity>
+
+          {/* Invite Section */}
+          <View style={styles.inviteSection}>
+            <Text style={styles.inviteText}>Inviter des membres au groupe</Text>
+            <TouchableOpacity
+              style={styles.inviteButton}
+              onPress={onOpenInviteModal}
+            >
+              <UserPlus size={14} color="#fff" style={{ marginRight: 6 }} />
+              <Text style={styles.inviteButtonText}>Inviter</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
+    </>
+  );
 };
 
 const styles = StyleSheet.create({

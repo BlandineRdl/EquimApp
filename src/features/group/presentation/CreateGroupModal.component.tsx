@@ -62,8 +62,6 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       // Reload groups to include the new one
       await dispatch(loadUserGroups());
 
-      Alert.alert("Succès", "Groupe créé avec succès !");
-
       onClose();
 
       if (onSuccess) {

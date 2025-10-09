@@ -71,14 +71,12 @@ export default function HomeScreen() {
     });
   };
 
-  const handleJoinGroup = (inviteLink: string) => {
-    // Extract token from link (equimapp://invite/TOKEN)
-    const token = inviteLink.split("/").pop();
-    if (token) {
-      // Navigate to accept invitation screen with token
-      router.push(`/group/accept-invitation?token=${token}`);
-      closeJoinModal();
-    }
+  const handleJoinSuccess = (groupId: string) => {
+    // Navigate to the group details after successfully joining
+    router.push({
+      pathname: "/group/[groupId]" as "/group/[groupId]",
+      params: { groupId },
+    });
   };
 
   const onRefresh = useCallback(async () => {
@@ -127,7 +125,6 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Accueil</Text>
             <Text style={styles.userName}>Bonjour, {user.pseudo}</Text>
           </View>
         </View>
@@ -141,29 +138,6 @@ export default function HomeScreen() {
           onCreateGroup={openCreateModal}
           onJoinGroup={openJoinModal}
         />
-
-        {/* Quick Actions - only show when user has groups */}
-        {groups.length > 0 && (
-          <View style={styles.quickActionsGrid}>
-            <TouchableOpacity
-              style={styles.gridActionButton}
-              onPress={openCreateModal}
-            >
-              <Plus size={20} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.gridActionButtonText}>Créer un groupe</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.gridActionButtonSecondary}
-              onPress={openJoinModal}
-            >
-              <Link2 size={20} color="#374151" style={{ marginRight: 8 }} />
-              <Text style={styles.gridActionButtonSecondaryText}>
-                Rejoindre un groupe
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* Info Card */}
         {groups.length > 0 && (
@@ -193,6 +167,16 @@ export default function HomeScreen() {
           <Home size={20} color="#000" style={{ marginBottom: 2 }} />
           <Text style={styles.navTextActive}>Accueil</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem} onPress={openCreateModal}>
+          <Plus size={20} color="#666" style={{ marginBottom: 2 }} />
+          <Text style={styles.navText}>Créer</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem} onPress={openJoinModal}>
+          <Link2 size={20} color="#666" style={{ marginBottom: 2 }} />
+          <Text style={styles.navText}>Rejoindre</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Modal d'invitation */}
@@ -207,7 +191,7 @@ export default function HomeScreen() {
       <JoinGroupModal
         isVisible={isJoinModalVisible}
         onClose={closeJoinModal}
-        onJoin={handleJoinGroup}
+        onSuccess={handleJoinSuccess}
       />
 
       {/* Modal pour créer un groupe */}
@@ -244,7 +228,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   userName: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "600",
     color: "#000",
     marginTop: 2,
@@ -469,14 +453,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
-    paddingVertical: 4,
-    justifyContent: "center",
-    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   navItem: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 4,
+    paddingVertical: 8,
   },
   navText: {
     fontSize: 12,
