@@ -138,28 +138,32 @@ export default function HomeScreen() {
         <GroupsHome
           onNavigateToGroupDetails={navigateToGroupDetails}
           onOpenInviteModal={openInviteModal}
+          onCreateGroup={openCreateModal}
+          onJoinGroup={openJoinModal}
         />
 
-        {/* Quick Actions */}
-        <View style={styles.quickActionsGrid}>
-          <TouchableOpacity
-            style={styles.gridActionButton}
-            onPress={openCreateModal}
-          >
-            <Plus size={20} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.gridActionButtonText}>Créer un groupe</Text>
-          </TouchableOpacity>
+        {/* Quick Actions - only show when user has groups */}
+        {groups.length > 0 && (
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity
+              style={styles.gridActionButton}
+              onPress={openCreateModal}
+            >
+              <Plus size={20} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={styles.gridActionButtonText}>Créer un groupe</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.gridActionButtonSecondary}
-            onPress={openJoinModal}
-          >
-            <Link2 size={20} color="#374151" style={{ marginRight: 8 }} />
-            <Text style={styles.gridActionButtonSecondaryText}>
-              Rejoindre un groupe
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.gridActionButtonSecondary}
+              onPress={openJoinModal}
+            >
+              <Link2 size={20} color="#374151" style={{ marginRight: 8 }} />
+              <Text style={styles.gridActionButtonSecondaryText}>
+                Rejoindre un groupe
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Info Card */}
         {groups.length > 0 && (

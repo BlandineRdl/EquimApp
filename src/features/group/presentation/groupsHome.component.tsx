@@ -1,12 +1,117 @@
-import { ArrowRightLeft, UserPlus, Users } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Users } from "lucide-react-native";
+import { useEffect, useRef } from "react";
+import {
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSelector } from "react-redux";
 
+import type { AppState } from "../../../store/appState";
 import { selectAllGroups } from "./selectGroup.selector";
 import {
   selectGroupMemberNamesFormatted,
   selectGroupMembersCount,
 } from "./selectGroupMembers.selector";
+
+// Skeleton loader with pulse animation
+function GroupCardSkeleton() {
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [pulseAnim]);
+
+  const opacity = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <View style={styles.skeletonCard}>
+      <View style={styles.groupHeader}>
+        <Animated.View style={[styles.skeletonIcon, { opacity }]} />
+        <Animated.View style={[styles.skeletonTitle, { opacity }]} />
+      </View>
+
+      <View style={styles.membersContainer}>
+        <Animated.View style={[styles.skeletonText, { opacity, width: 80 }]} />
+        <Animated.View
+          style={[styles.skeletonText, { opacity, width: 120, marginTop: 4 }]}
+        />
+      </View>
+
+      <View style={styles.budgetSection}>
+        <Animated.View style={[styles.skeletonText, { opacity, width: 140 }]} />
+        <Animated.View
+          style={[styles.skeletonAmount, { opacity, marginTop: 4 }]}
+        />
+        <Animated.View
+          style={[styles.skeletonText, { opacity, width: 160, marginTop: 4 }]}
+        />
+      </View>
+
+      <Animated.View style={[styles.skeletonButton, { opacity }]} />
+
+      <View style={styles.inviteSection}>
+        <Animated.View style={[styles.skeletonText, { opacity, width: 180 }]} />
+        <Animated.View style={[styles.skeletonInviteButton, { opacity }]} />
+      </View>
+    </View>
+  );
+}
+
+// Empty state when no groups
+function EmptyGroupState({
+  onCreateGroup,
+  onJoinGroup,
+}: {
+  onCreateGroup: () => void;
+  onJoinGroup: () => void;
+}) {
+  return (
+    <View style={styles.emptyState}>
+      <View style={styles.emptyIconContainer}>
+        <Users size={48} color="#9ca3af" />
+      </View>
+      <Text style={styles.emptyTitle}>Aucun groupe</Text>
+      <Text style={styles.emptyDescription}>
+        Créez votre premier groupe ou rejoignez-en un pour commencer à partager
+        vos dépenses équitablement
+      </Text>
+      <View style={styles.emptyButtonsContainer}>
+        <TouchableOpacity style={styles.emptyButton} onPress={onCreateGroup}>
+          <Text style={styles.emptyButtonText}>Créer un groupe</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.emptyButtonSecondary}
+          onPress={onJoinGroup}
+        >
+          <Text style={styles.emptyButtonSecondaryText}>
+            Rejoindre un groupe
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
 
 function MembersDisplay({ groupId }: { groupId: string }) {
   const membersCount = useSelector(selectGroupMembersCount(groupId));
@@ -27,74 +132,33 @@ function MembersDisplay({ groupId }: { groupId: string }) {
 export interface GroupsHomeProps {
   onNavigateToGroupDetails: (groupId: string) => void;
   onOpenInviteModal: () => void;
+  onCreateGroup: () => void;
+  onJoinGroup: () => void;
 }
 
 export const GroupsHome = ({
   onNavigateToGroupDetails,
   onOpenInviteModal,
+  onCreateGroup,
+  onJoinGroup,
 }: GroupsHomeProps) => {
   const groups = useSelector(selectAllGroups);
+  const isLoading = useSelector((state: AppState) => state.groups.loading);
 
-  return (
-    <>
-      {groups.map((group) => (
-        <View key={group.id} style={styles.groupCard}>
-          {/* Group Header */}
-          <View style={styles.groupHeader}>
-            <View style={styles.groupIconContainer}>
-              <Users size={16} color="#0284c7" />
-            </View>
-            <Text style={styles.groupName}>{group.name}</Text>
-          </View>
+  // Show skeleton while loading
+  if (isLoading) {
+    return <GroupCardSkeleton />;
+  }
 
-          <MembersDisplay groupId={group.id} />
-
-          {/* Budget Section */}
-          <View style={styles.budgetSection}>
-            <Text style={styles.budgetLabel}>Total des dépenses</Text>
-            <Text style={styles.budgetAmount}>
-              {(group.shares?.totalExpenses || 0).toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}{" "}
-              €
-            </Text>
-            <Text style={styles.expensesCount}>
-              {group.expenses?.length || 0} dépense
-              {(group.expenses?.length || 0) > 1 ? "s" : ""} configurée
-              {(group.expenses?.length || 0) > 1 ? "s" : ""}
-            </Text>
-          </View>
-
-          {/* View Button */}
-          <TouchableOpacity
-            style={styles.viewButton}
-            onPress={() => onNavigateToGroupDetails(group.id)}
-          >
-            <ArrowRightLeft
-              size={14}
-              color="#374151"
-              style={{ marginRight: 6 }}
-            />
-
-            <Text style={styles.viewButtonText}>Voir</Text>
-          </TouchableOpacity>
-
-          {/* Invite Section */}
-          <View style={styles.inviteSection}>
-            <Text style={styles.inviteText}>Inviter des membres au groupe</Text>
-            <TouchableOpacity
-              style={styles.inviteButton}
-              onPress={onOpenInviteModal}
-            >
-              <UserPlus size={14} color="#fff" style={{ marginRight: 6 }} />
-              <Text style={styles.inviteButtonText}>Inviter</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
-    </>
-  );
+  // Show empty state if no groups
+  if (groups.length === 0) {
+    return (
+      <EmptyGroupState
+        onCreateGroup={onCreateGroup}
+        onJoinGroup={onJoinGroup}
+      />
+    );
+  }
 };
 
 const styles = StyleSheet.create({
@@ -479,5 +543,123 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
     fontWeight: "500",
+  },
+  // Skeleton styles
+  skeletonCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  skeletonIcon: {
+    width: 24,
+    height: 24,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  skeletonTitle: {
+    width: 120,
+    height: 18,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 4,
+  },
+  skeletonText: {
+    height: 12,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 4,
+  },
+  skeletonAmount: {
+    width: 100,
+    height: 28,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 4,
+  },
+  skeletonButton: {
+    width: 80,
+    height: 32,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 8,
+    alignSelf: "flex-end",
+    marginBottom: 16,
+  },
+  skeletonInviteButton: {
+    width: 90,
+    height: 32,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 8,
+  },
+  // Empty state styles
+  emptyState: {
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    padding: 32,
+    alignItems: "center",
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderStyle: "dashed",
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    color: "#6b7280",
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  emptyButtonsContainer: {
+    width: "100%",
+    gap: 12,
+  },
+  emptyButton: {
+    backgroundColor: "#111827",
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  emptyButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  emptyButtonSecondary: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    alignItems: "center",
+  },
+  emptyButtonSecondaryText: {
+    color: "#374151",
+    fontSize: 15,
+    fontWeight: "600",
   },
 });
