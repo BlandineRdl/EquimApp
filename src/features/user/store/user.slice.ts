@@ -113,28 +113,34 @@ export const userSlice = createSlice({
         };
         logger.debug("Profile set in state", { profile: state.profile });
       })
-      // Update income with optimistic update
+      // Update income with optimistic update (don't set loading to avoid layout re-render)
       .addCase(updateUserIncome.pending, (state, action) => {
-        state.loading = true;
         state.error = null;
 
         // Optimistic update: save previous income and update immediately
         if (state.profile) {
           state.previousIncome = state.profile.monthlyIncome;
           state.profile.monthlyIncome = action.meta.arg.newIncome;
+
+          // Recalculate capacity (income - personal expenses)
+          const totalExpenses = (state.profile.personalExpenses || []).reduce(
+            (sum, exp) => sum + exp.amount,
+            0,
+          );
+          state.profile.capacity = action.meta.arg.newIncome - totalExpenses;
+
           logger.debug("Optimistic income update", {
             previous: state.previousIncome,
             new: action.meta.arg.newIncome,
+            newCapacity: state.profile.capacity,
           });
         }
       })
       .addCase(updateUserIncome.fulfilled, (state) => {
-        state.loading = false;
         state.previousIncome = null; // Clear rollback data
         logger.info("Income update confirmed");
       })
       .addCase(updateUserIncome.rejected, (state, action) => {
-        state.loading = false;
         state.error = action.error.message || "Failed to update income";
 
         // Rollback optimistic update

@@ -17,6 +17,7 @@ import { useAppDispatch } from "../../../store/buildReduxStore";
 import { IncomeValidationService } from "../domain/incomeValidation.service";
 import { MAX_INCOME, MIN_INCOME } from "../domain/user.constants";
 import { updateUserIncome } from "../usecases/updateUserIncome.usecase";
+import { selectPersonalExpenses } from "./selectPersonalExpenses.selector";
 import { selectUserProfile } from "./selectUser.selector";
 
 export interface UpdateIncomeModalProps {
@@ -32,6 +33,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const user = useSelector(selectUserProfile);
+  const personalExpenses = useSelector(selectPersonalExpenses);
   const [income, setIncome] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -106,14 +108,22 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
     setIsUpdating(true);
 
     try {
+      // Update income (capacity will be recalculated automatically in the reducer)
       await dispatch(
         updateUserIncome({ userId: user.id, newIncome: numericIncome }),
       ).unwrap();
 
+      // Calculate new capacity for display
+      const totalExpenses = personalExpenses.reduce(
+        (sum, exp) => sum + exp.amount,
+        0,
+      );
+      const newCapacity = numericIncome - totalExpenses;
+
       Toast.show({
         type: "success",
         text1: "Revenu mis à jour",
-        text2: `Votre revenu mensuel est maintenant de ${numericIncome.toLocaleString("fr-FR")}€`,
+        text2: `Nouvelle capacité : ${newCapacity.toLocaleString("fr-FR")}€`,
       });
 
       onClose();
