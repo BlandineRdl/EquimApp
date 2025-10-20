@@ -15,7 +15,12 @@ const STORAGE_PREFIX = "@ratelimit:";
 const memoryStorage = new Map<string, string>();
 
 // Dynamic import of AsyncStorage
-let AsyncStorage: any = null;
+type AsyncStorageType = {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+};
+
+let AsyncStorage: AsyncStorageType | null = null;
 try {
   AsyncStorage = require("@react-native-async-storage/async-storage").default;
 } catch (_e) {

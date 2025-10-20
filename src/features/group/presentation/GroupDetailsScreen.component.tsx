@@ -133,7 +133,7 @@ export const GroupDetailsScreen = () => {
     if (!groupId) return;
     try {
       await dispatch(removeMemberFromGroup({ groupId, memberId })).unwrap();
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error("Error removing member", error);
     }
   };
@@ -142,7 +142,7 @@ export const GroupDetailsScreen = () => {
     if (!groupId) return;
     try {
       await dispatch(deleteExpense({ groupId, expenseId })).unwrap();
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error("Error deleting expense", error);
     }
   };
@@ -153,7 +153,7 @@ export const GroupDetailsScreen = () => {
       await dispatch(leaveGroup({ groupId })).unwrap();
       // Navigate to home after successfully leaving
       router.replace("/home");
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error("Error leaving group", error);
     }
   };
@@ -164,7 +164,7 @@ export const GroupDetailsScreen = () => {
       await dispatch(deleteGroup({ groupId })).unwrap();
       // Navigate to home after successfully deleting
       router.replace("/home");
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error("Error deleting group", error);
     }
   };

@@ -14,7 +14,7 @@ import {
 import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../store/buildReduxStore";
-import { IncomeValidationService } from "../domain/incomeValidation.service";
+import { validateIncome } from "../domain/incomeValidation.service";
 import { MAX_INCOME, MIN_INCOME } from "../domain/user.constants";
 import { updateUserIncome } from "../usecases/updateUserIncome.usecase";
 import { selectPersonalExpenses } from "./selectPersonalExpenses.selector";
@@ -63,7 +63,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
       return;
     }
 
-    const validation = IncomeValidationService.validateIncome(numericValue);
+    const validation = validateIncome(numericValue);
     setValidationError(
       validation.isValid ? null : validation.errors.join(", "),
     );
@@ -95,7 +95,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
     }
 
     // Validate
-    const validation = IncomeValidationService.validateIncome(numericIncome);
+    const validation = validateIncome(numericIncome);
     if (!validation.isValid) {
       Toast.show({
         type: "error",

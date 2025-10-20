@@ -67,8 +67,12 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       if (onSuccess) {
         onSuccess(result.groupId);
       }
-    } catch (error: any) {
-      Alert.alert("Erreur", error.message || "Impossible de créer le groupe");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Impossible de créer le groupe";
+      Alert.alert("Erreur", errorMessage);
     } finally {
       setIsCreating(false);
     }

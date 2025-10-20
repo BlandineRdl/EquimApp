@@ -147,15 +147,23 @@ export const createTestUser = async (
       );
     }
 
+    if (!signInData.user?.id || !signInData.user?.email) {
+      throw new Error("Failed to get user data after sign in");
+    }
+
     return {
-      userId: signInData.user?.id,
-      email: signInData.user?.email!,
+      userId: signInData.user.id,
+      email: signInData.user.email,
     };
   }
 
+  if (!data.user?.id || !data.user?.email) {
+    throw new Error("Failed to get user data after sign up");
+  }
+
   return {
-    userId: data.user?.id,
-    email: data.user?.email!,
+    userId: data.user.id,
+    email: data.user.email,
   };
 };
 

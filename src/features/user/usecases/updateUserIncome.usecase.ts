@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { logger } from "../../../lib/logger";
 import type { AppState } from "../../../store/appState";
-import { IncomeValidationService } from "../domain/incomeValidation.service";
+import { validateIncome } from "../domain/incomeValidation.service";
 import type { UserGateway } from "../ports/UserGateway";
 
 export interface UpdateUserIncomeInput {
@@ -24,7 +24,7 @@ export const updateUserIncome = createAsyncThunk<
     logger.debug("updateUserIncome usecase started", { userId, newIncome });
 
     // Validate income
-    const validation = IncomeValidationService.validateIncome(newIncome);
+    const validation = validateIncome(newIncome);
     if (!validation.isValid) {
       logger.error("Income validation failed", { errors: validation.errors });
       throw new Error(validation.errors.join(", "));

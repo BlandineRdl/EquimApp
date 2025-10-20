@@ -13,13 +13,11 @@ import {
 export interface AddExpenseFormProps {
   onSubmit: (expense: { name: string; amount: number }) => void;
   onCancel: () => void;
-  currency?: string;
 }
 
 export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
   onSubmit,
   onCancel,
-  currency = "EUR",
 }) => {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");

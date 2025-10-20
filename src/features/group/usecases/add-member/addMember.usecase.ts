@@ -1,6 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
-import { MemberValidationService } from "../../domain/memberValidation.service";
+import {
+  normalizeMemberData,
+  validateMemberData,
+} from "../../domain/memberValidation.service";
 import type {
   GroupGateway,
   GroupMember,
@@ -27,12 +30,10 @@ export const addMemberToGroup = createAsyncThunk<
   "groups/addMemberToGroup",
   async ({ groupId, memberData }, { getState, extra: { groupGateway } }) => {
     // Normalize data first (trim, parse, etc.)
-    const normalizedData =
-      MemberValidationService.normalizeMemberData(memberData);
+    const normalizedData = normalizeMemberData(memberData);
 
     // Validate member data using domain service
-    const validation =
-      MemberValidationService.validateMemberData(normalizedData);
+    const validation = validateMemberData(normalizedData);
     if (!validation.isValid) {
       throw new Error(validation.errors[0]);
     }
