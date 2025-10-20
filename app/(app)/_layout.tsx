@@ -1,12 +1,13 @@
 import { Redirect, Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import type { AppState } from "../../src/store/appState";
 
 export default function AppLayout() {
   const router = useRouter();
   const segments = useSegments();
+  const splashHiddenRef = useRef(false);
 
   const { hydrated, isAuthenticated } = useSelector(
     (state: AppState) => state.auth,
@@ -17,8 +18,12 @@ export default function AppLayout() {
 
   // Hide splash once ready
   useEffect(() => {
-    if (hydrated && !profileLoading) {
-      SplashScreen.hideAsync();
+    if (hydrated && !profileLoading && !splashHiddenRef.current) {
+      splashHiddenRef.current = true;
+      SplashScreen.hideAsync().catch((error) => {
+        // Silently catch if splash screen was already hidden
+        console.warn("Failed to hide splash screen:", error);
+      });
     }
   }, [hydrated, profileLoading]);
 

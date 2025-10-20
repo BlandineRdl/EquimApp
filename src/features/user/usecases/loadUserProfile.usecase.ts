@@ -8,7 +8,7 @@ import type { UserGateway } from "../ports/UserGateway";
  * Returns null if profile doesn't exist (user needs onboarding)
  */
 export const loadUserProfile = createAsyncThunk<
-  { id: string; pseudo: string; income: number } | null,
+  { id: string; pseudo: string; monthlyIncome: number } | null,
   void,
   { state: AppState; extra: { userGateway: UserGateway } }
 >("user/loadProfile", async (_, { getState, extra: { userGateway } }) => {
@@ -32,6 +32,6 @@ export const loadUserProfile = createAsyncThunk<
   return {
     id: profile.id,
     pseudo: profile.pseudo,
-    income: profile.income,
+    monthlyIncome: profile.income,
   };
 });

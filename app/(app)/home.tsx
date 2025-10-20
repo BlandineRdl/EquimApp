@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import { Home, Lightbulb, Link2, Plus } from "lucide-react-native";
+import { Home, Lightbulb, Link2, Plus, User } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
   RefreshControl,
@@ -124,9 +124,15 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.userName}>Bonjour, {user.pseudo}</Text>
           </View>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => router.push("/(app)/profile")}
+          >
+            <User size={24} color="#10b981" />
+          </TouchableOpacity>
         </View>
 
         {/* Mon groupe Section */}
@@ -219,8 +225,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingTop: 8,
     paddingBottom: 20,
+  },
+  profileButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#d1fae5",
+    justifyContent: "center",
+    alignItems: "center",
   },
   greeting: {
     fontSize: 16,

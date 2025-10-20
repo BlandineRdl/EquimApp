@@ -1,0 +1,230 @@
+import { useRouter } from "expo-router";
+import { ArrowLeft, Edit2, User } from "lucide-react-native";
+import { useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
+import { selectUserProfile } from "../../src/features/user/presentation/selectUser.selector";
+import { UpdateIncomeModal } from "../../src/features/user/presentation/UpdateIncomeModal.component";
+
+export default function ProfileScreen() {
+  const router = useRouter();
+  const user = useSelector(selectUserProfile);
+  const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loading}>
+          <Text>Chargement...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Mon profil</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+
+        {/* Profile Info Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.avatarContainer}>
+              <User size={32} color="#10b981" />
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileLabel}>Pseudo</Text>
+              <Text style={styles.profileValue}>{user.pseudo}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Income Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <View>
+              <Text style={styles.cardLabel}>Revenu mensuel</Text>
+              <Text style={styles.cardValue}>
+                {user.monthlyIncome.toLocaleString("fr-FR")} €
+              </Text>
+              <Text style={styles.cardHint}>
+                Utilisé pour le calcul équitable des parts
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setIsIncomeModalVisible(true)}
+            >
+              <Edit2 size={20} color="#10b981" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Info Section */}
+        <View style={styles.infoSection}>
+          <Text style={styles.infoTitle}>À propos du revenu</Text>
+          <Text style={styles.infoText}>
+            Votre revenu mensuel est utilisé pour calculer votre part équitable
+            dans chaque groupe. Plus votre revenu est élevé, plus votre
+            contribution est importante.
+          </Text>
+          <Text style={styles.infoText}>
+            Vous pouvez modifier votre revenu à tout moment. Les parts de tous
+            vos groupes seront automatiquement recalculées.
+          </Text>
+        </View>
+      </ScrollView>
+
+      {/* Update Income Modal */}
+      <UpdateIncomeModal
+        isVisible={isIncomeModalVisible}
+        onClose={() => setIsIncomeModalVisible(false)}
+        onSuccess={() => {
+          // Modal will close automatically, shares will update via listeners
+        }}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f9fafb",
+  },
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#000",
+    textAlign: "center",
+    marginRight: 32, // Balance the back button
+  },
+  headerSpacer: {
+    width: 32,
+  },
+  card: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatarContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#d1fae5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 4,
+  },
+  profileValue: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#000",
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  cardLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 4,
+  },
+  cardValue: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: 4,
+  },
+  cardHint: {
+    fontSize: 12,
+    color: "#9ca3af",
+    fontStyle: "italic",
+  },
+  editButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#d1fae5",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  infoSection: {
+    marginHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 32,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000",
+    marginBottom: 12,
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#6b7280",
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+});
