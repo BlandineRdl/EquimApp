@@ -224,6 +224,7 @@ export class InMemoryGroupGateway implements GroupGateway {
       pseudo: "New Member",
       shareRevenue: true,
       incomeOrWeight: 1000,
+      monthlyCapacity: 1000,
       joinedAt: new Date().toISOString(),
     });
     this.members.set(invitation.groupId, members);
@@ -244,6 +245,7 @@ export class InMemoryGroupGateway implements GroupGateway {
         pseudo: `User-${userId}`,
         shareRevenue: true,
         incomeOrWeight: 1000,
+        monthlyCapacity: 1000,
         joinedAt: new Date().toISOString(),
       });
       this.members.set(groupId, members);
@@ -282,6 +284,7 @@ export class InMemoryGroupGateway implements GroupGateway {
       pseudo: pseudo.trim(),
       shareRevenue: true,
       incomeOrWeight: income,
+      monthlyCapacity: income,
       joinedAt: new Date().toISOString(),
       isPhantom: true,
     });

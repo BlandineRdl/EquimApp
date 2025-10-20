@@ -1,5 +1,6 @@
 import type { EntityState } from "@reduxjs/toolkit";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import { signOut } from "../../auth/usecases/signOut.usecase";
 import type { Group, InvitationDetails } from "../domain/group.model";
 import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
 import { createGroup } from "../usecases/create-group/createGroup.usecase";
@@ -330,6 +331,15 @@ export const groupSlice = createSlice({
         state.loading = false;
         state.error =
           action.error.message || "Erreur lors de la création du groupe";
+      })
+      // Clean up state on sign out
+      .addCase(signOut.fulfilled, (state) => {
+        groupsAdapter.removeAll(state);
+        state.loading = false;
+        state.error = null;
+        state.invitationDetails = null;
+        state.addMemberForm = null;
+        state.addExpenseForm = null;
       });
   },
 });

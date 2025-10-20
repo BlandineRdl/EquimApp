@@ -71,7 +71,7 @@ export default function AcceptInvitationScreen() {
           acceptInvitation({
             token,
             pseudo: profileResult.pseudo,
-            monthlyIncome: profileResult.income,
+            monthlyIncome: profileResult.monthlyIncome,
           }),
         ).unwrap();
 

@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { RESEND_OTP_COOLDOWN_SECONDS } from "../../src/features/auth/domain/auth.constants";
 import { signInWithEmail } from "../../src/features/auth/usecases/signInWithEmail.usecase";
 import { verifyOtp } from "../../src/features/auth/usecases/verifyOtp.usecase";
 import { RateLimiter } from "../../src/lib/rateLimiter";
@@ -54,7 +55,7 @@ export default function SignInScreen() {
       await dispatch(signInWithEmail(email)).unwrap();
       await rateLimiter.recordSuccess();
       setEmailSent(true);
-      setResendTimer(30); // 30 seconds cooldown
+      setResendTimer(RESEND_OTP_COOLDOWN_SECONDS);
     } catch (_err) {
       await rateLimiter.recordFailure();
       // Error is handled by Redux slice and displayed in UI
@@ -77,7 +78,7 @@ export default function SignInScreen() {
       await dispatch(signInWithEmail(email)).unwrap();
       await rateLimiter.recordSuccess();
       setOtp(""); // Clear current OTP input
-      setResendTimer(30); // Reset timer
+      setResendTimer(RESEND_OTP_COOLDOWN_SECONDS);
     } catch (_err) {
       await rateLimiter.recordFailure();
       // Error is handled by Redux slice
@@ -135,7 +136,7 @@ export default function SignInScreen() {
                 <Text style={styles.infoTitle}>💡 Code non reçu ?</Text>
                 <Text style={styles.infoText}>
                   Vérifiez vos spams ou attendez quelques secondes. Le code
-                  expire après 60 minutes.
+                  expire après 5 minutes.
                 </Text>
                 <TouchableOpacity
                   style={[

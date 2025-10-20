@@ -2,6 +2,11 @@ import { logger } from "../../../lib/logger";
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
 import type {
+  CreatePersonalExpenseDTO,
+  PersonalExpense,
+  UpdatePersonalExpenseDTO,
+} from "../domain/personalExpense.model";
+import type {
   CreateProfileInput,
   ProfileData,
   UpdateProfileInput,
@@ -53,7 +58,7 @@ export class SupabaseUserGateway implements UserGateway {
         return null;
       }
 
-      logger.info("Profile loaded successfully", { pseudo: data.pseudo });
+      logger.info("Profile loaded successfully");
 
       // Map database fields to domain model
       return {
@@ -62,7 +67,10 @@ export class SupabaseUserGateway implements UserGateway {
         income: Number(data.income_or_weight || data.weight_override || 0),
         shareRevenue: data.share_revenue,
         currency: data.currency_code,
-        createdAt: data.created_at,
+        createdAt: String(data.created_at),
+        capacity: data.monthly_capacity
+          ? Number(data.monthly_capacity)
+          : undefined,
       };
     } catch (error) {
       logger.error("Error getting profile", error);
@@ -96,6 +104,175 @@ export class SupabaseUserGateway implements UserGateway {
       }
     } catch (error) {
       throw createUserFriendlyError(error);
+    }
+  }
+
+  async addPersonalExpense(
+    userId: string,
+    expense: CreatePersonalExpenseDTO,
+  ): Promise<PersonalExpense> {
+    try {
+      const { data, error } = await supabase
+        .from("user_personal_expenses")
+        .insert({
+          user_id: userId,
+          label: expense.label,
+          amount: expense.amount,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw createUserFriendlyError(error);
+      }
+
+      if (!data) {
+        throw new Error("Failed to create personal expense");
+      }
+
+      return {
+        id: data.id,
+        userId: data.user_id,
+        label: data.label,
+        amount: Number(data.amount),
+      };
+    } catch (error) {
+      throw createUserFriendlyError(error);
+    }
+  }
+
+  async updatePersonalExpense(
+    userId: string,
+    expense: UpdatePersonalExpenseDTO,
+  ): Promise<PersonalExpense> {
+    try {
+      const { data, error } = await supabase
+        .from("user_personal_expenses")
+        .update({
+          label: expense.label,
+          amount: expense.amount,
+        })
+        .eq("id", expense.id)
+        .eq("user_id", userId)
+        .select()
+        .single();
+
+      if (error) {
+        throw createUserFriendlyError(error);
+      }
+
+      if (!data) {
+        throw new Error("Failed to update personal expense");
+      }
+
+      return {
+        id: data.id,
+        userId: data.user_id,
+        label: data.label,
+        amount: Number(data.amount),
+      };
+    } catch (error) {
+      throw createUserFriendlyError(error);
+    }
+  }
+
+  async deletePersonalExpense(
+    userId: string,
+    expenseId: string,
+  ): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from("user_personal_expenses")
+        .delete()
+        .eq("id", expenseId)
+        .eq("user_id", userId);
+
+      if (error) {
+        throw createUserFriendlyError(error);
+      }
+    } catch (error) {
+      throw createUserFriendlyError(error);
+    }
+  }
+
+  async loadPersonalExpenses(userId: string): Promise<PersonalExpense[]> {
+    try {
+      logger.debug("[SupabaseUserGateway] Loading personal expenses", {
+        userId,
+      });
+      const { data, error } = await supabase
+        .from("user_personal_expenses")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        logger.error(
+          "[SupabaseUserGateway] Supabase error loading personal expenses",
+          error,
+          {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+          },
+        );
+        throw createUserFriendlyError(error);
+      }
+
+      if (!data) {
+        logger.debug(
+          "[SupabaseUserGateway] No data returned, returning empty array",
+        );
+        return [];
+      }
+
+      logger.debug("[SupabaseUserGateway] Personal expenses loaded", {
+        count: data.length,
+      });
+      return data.map((expense) => ({
+        id: expense.id,
+        userId: expense.user_id,
+        label: expense.label,
+        amount: Number(expense.amount),
+      }));
+    } catch (error) {
+      logger.error(
+        "[SupabaseUserGateway] Exception in loadPersonalExpenses",
+        error,
+      );
+      throw createUserFriendlyError(error);
+    }
+  }
+
+  async getUserCapacity(userId: string): Promise<number | undefined> {
+    try {
+      logger.debug("[SupabaseUserGateway] Loading user capacity", { userId });
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("capacity")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        logger.error("[SupabaseUserGateway] Error loading capacity", error);
+        throw createUserFriendlyError(error);
+      }
+
+      // capacity can be null in database, which is valid (means no expenses or no income)
+      const capacity =
+        data?.capacity !== null && data?.capacity !== undefined
+          ? Number(data.capacity)
+          : undefined;
+
+      logger.debug("[SupabaseUserGateway] Capacity loaded", { capacity });
+      return capacity;
+    } catch (error) {
+      logger.error("[SupabaseUserGateway] Exception in getUserCapacity", error);
+
+      // Don't throw - just return undefined and let the app continue
+      // This prevents the modal from closing due to an error
+      return undefined;
     }
   }
 }

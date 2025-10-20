@@ -32,6 +32,7 @@ export interface GroupMember {
   pseudo: string;
   shareRevenue: boolean;
   incomeOrWeight: number | null;
+  monthlyCapacity: number | null; // Calculated capacity (income - personal expenses)
   joinedAt: string;
   isPhantom?: boolean;
 }

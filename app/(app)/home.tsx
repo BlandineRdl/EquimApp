@@ -18,12 +18,14 @@ import { JoinGroupModal } from "../../src/features/group/presentation/JoinGroupM
 import { selectAllGroups } from "../../src/features/group/presentation/selectGroup.selector";
 import { loadUserGroups } from "../../src/features/group/usecases/load-groups/loadGroups.usecase";
 import { selectUserProfile } from "../../src/features/user/presentation/selectUser.selector";
+import { selectUserCapacity } from "../../src/features/user/presentation/selectUserCapacity.selector";
 import { logger } from "../../src/lib/logger";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function HomeScreen() {
   const dispatch = useAppDispatch();
   const user = useSelector(selectUserProfile);
+  const capacity = useSelector(selectUserCapacity);
   const groups = useSelector(selectAllGroups);
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
   const [isJoinModalVisible, setIsJoinModalVisible] = useState(false);
@@ -134,6 +136,27 @@ export default function HomeScreen() {
             <User size={24} color="#10b981" />
           </TouchableOpacity>
         </View>
+
+        {/* Incomplete Personal Expenses Banner */}
+        {capacity === undefined && (
+          <View style={styles.warningBanner}>
+            <View style={styles.warningContent}>
+              <Text style={styles.warningTitle}>
+                ⚠️ Charges personnelles manquantes
+              </Text>
+              <Text style={styles.warningText}>
+                Ajoutez vos charges personnelles pour un calcul de capacité
+                précis et des parts de groupe plus justes.
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.warningButton}
+              onPress={() => router.push("/(app)/profile")}
+            >
+              <Text style={styles.warningButtonText}>Ajouter maintenant</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Mon groupe Section */}
         <Text style={styles.sectionTitle}>Mon groupe</Text>
@@ -486,5 +509,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#000",
     fontWeight: "500",
+  },
+  warningBanner: {
+    backgroundColor: "#fef3c7",
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: "#f59e0b",
+  },
+  warningContent: {
+    marginBottom: 12,
+  },
+  warningTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#92400e",
+    marginBottom: 6,
+  },
+  warningText: {
+    fontSize: 14,
+    color: "#92400e",
+    lineHeight: 20,
+  },
+  warningButton: {
+    backgroundColor: "#f59e0b",
+    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  warningButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
   },
 });

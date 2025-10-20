@@ -4,6 +4,11 @@ import { PREDEFINED_EXPENSES } from "../domain/expense.model";
 import type { OnboardingExpense } from "../domain/onboarding.model";
 import { completeOnboarding } from "../usecases/complete-onboarding/completeOnboarding.usecase";
 
+interface PersonalExpenseInput {
+  label: string;
+  amount: number;
+}
+
 interface OnboardingState {
   // Données du formulaire (temporaires)
   pseudo: string;
@@ -13,6 +18,7 @@ interface OnboardingState {
   groupName: string;
   groupNameBlurred: boolean;
   expenses: OnboardingExpense[];
+  personalExpenses: PersonalExpenseInput[]; // NEW: for storing expenses during onboarding
 
   // État de la completion
   completing: boolean;
@@ -29,6 +35,7 @@ const initialState: OnboardingState = {
   groupName: "",
   groupNameBlurred: false,
   expenses: [...PREDEFINED_EXPENSES],
+  personalExpenses: [], // NEW
 
   // Completion state
   completing: false,
@@ -76,6 +83,14 @@ export const onboardingSlice = createSlice({
       state.expenses.splice(index, 1);
     },
 
+    // NEW: Store personal expenses during onboarding
+    setPersonalExpenses: (
+      state,
+      action: { payload: PersonalExpenseInput[] },
+    ) => {
+      state.personalExpenses = action.payload;
+    },
+
     // Reset onboarding
     resetOnboarding: (_state) => {
       return initialState;
@@ -111,6 +126,7 @@ export const {
   updateExpenseAmount,
   addCustomExpense,
   removeCustomExpense,
+  setPersonalExpenses, // NEW
   resetOnboarding,
 } = onboardingSlice.actions;
 

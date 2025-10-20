@@ -53,6 +53,12 @@ export function mapSupabaseError(error: unknown): string {
       case "PGRST116":
         return "Requête invalide. Veuillez vérifier vos données.";
 
+      case "PGRST204":
+        return "Aucune donnée trouvée";
+
+      case "42P01":
+        return `Table inexistante en base de données. Veuillez exécuter les migrations Supabase. (${err.message})`;
+
       case "23503":
         return "Cette opération violerait l'intégrité des données";
 

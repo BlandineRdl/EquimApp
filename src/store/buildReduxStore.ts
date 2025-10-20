@@ -15,6 +15,7 @@ import { notificationReducer } from "../features/notification/store/notification
 import type { OnboardingGateway } from "../features/onboarding/ports/OnboardingGateway";
 import { onboardingReducer } from "../features/onboarding/store/onboarding.slice";
 import type { UserGateway } from "../features/user/ports/UserGateway";
+import { userListeners } from "../features/user/store/user.listeners";
 import { userReducer } from "../features/user/store/user.slice";
 import { logger } from "../lib/logger";
 import type { AppState } from "./appState";
@@ -66,7 +67,8 @@ export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
         },
       })
         .prepend(notificationListeners.middleware)
-        .prepend(groupListeners.middleware),
+        .prepend(groupListeners.middleware)
+        .prepend(userListeners.middleware),
     // @ts-expect-error - Redux DevTools Expo plugin type mismatch
     enhancers: (getDefaultEnhancers) => {
       if (isTestEnvironment) {

@@ -17,13 +17,14 @@ BEGIN
   -- Set search_path to prevent SQL injection via shadowing
   SET search_path = public;
 
-  -- Calculate total weight (sum of all active members' income/weight)
+  -- Calculate total weight (sum of all active members' capacity/income/weight)
   -- Includes both real members (from profiles) and phantom members
+  -- Priority: monthly_capacity > weight_override > income_or_weight
   SELECT
     COALESCE(SUM(
       CASE
         WHEN gm.is_phantom THEN gm.phantom_income
-        ELSE COALESCE(p.weight_override, p.income_or_weight)
+        ELSE COALESCE(p.weight_override, p.monthly_capacity, p.income_or_weight)
       END
     ), 0),
     COUNT(*)
@@ -72,7 +73,7 @@ BEGIN
         (
           CASE
             WHEN gm.is_phantom THEN gm.phantom_income
-            ELSE COALESCE(p.weight_override, p.income_or_weight)
+            ELSE COALESCE(p.weight_override, p.monthly_capacity, p.income_or_weight)
           END / v_total_weight
         ) * 100,
         2
@@ -81,7 +82,7 @@ BEGIN
         (
           CASE
             WHEN gm.is_phantom THEN gm.phantom_income
-            ELSE COALESCE(p.weight_override, p.income_or_weight)
+            ELSE COALESCE(p.weight_override, p.monthly_capacity, p.income_or_weight)
           END / v_total_weight
         ) * v_total_expenses,
         2
@@ -93,7 +94,7 @@ BEGIN
     ORDER BY
       CASE
         WHEN gm.is_phantom THEN gm.phantom_income
-        ELSE COALESCE(p.weight_override, p.income_or_weight)
+        ELSE COALESCE(p.weight_override, p.monthly_capacity, p.income_or_weight)
       END DESC
   )
   SELECT json_build_object(

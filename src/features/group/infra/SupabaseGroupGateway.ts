@@ -177,6 +177,7 @@ export class SupabaseGroupGateway implements GroupGateway {
         pseudo: m.pseudo,
         shareRevenue: m.share_revenue,
         incomeOrWeight: m.income_or_weight,
+        monthlyCapacity: m.monthly_capacity,
         joinedAt: m.joined_at,
         isPhantom: m.is_phantom || false,
       }));

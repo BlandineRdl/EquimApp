@@ -220,6 +220,7 @@ export type Database = {
           deleted_at: string | null;
           id: string;
           income_or_weight: number | null;
+          monthly_capacity: number | null;
           pseudo: string | null;
           share_revenue: boolean;
           weight_override: number | null;
@@ -230,6 +231,7 @@ export type Database = {
           deleted_at?: string | null;
           id: string;
           income_or_weight?: number | null;
+          monthly_capacity?: number | null;
           pseudo?: string | null;
           share_revenue?: boolean;
           weight_override?: number | null;
@@ -240,11 +242,47 @@ export type Database = {
           deleted_at?: string | null;
           id?: string;
           income_or_weight?: number | null;
+          monthly_capacity?: number | null;
           pseudo?: string | null;
           share_revenue?: boolean;
           weight_override?: number | null;
         };
         Relationships: [];
+      };
+      user_personal_expenses: {
+        Row: {
+          amount: number;
+          created_at: string;
+          id: string;
+          label: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          amount: number;
+          created_at?: string;
+          id?: string;
+          label: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string;
+          id?: string;
+          label?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_personal_expenses_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {

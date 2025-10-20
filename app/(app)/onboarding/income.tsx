@@ -32,7 +32,7 @@ export default function IncomeScreen() {
 
   const handleContinue = () => {
     if (canContinue) {
-      router.push("/onboarding/create-group");
+      router.push("/onboarding/personal-expenses");
     }
   };
 
@@ -103,7 +103,7 @@ export default function IncomeScreen() {
                   !canContinue && styles.buttonTextDisabled,
                 ]}
               >
-                Créer mon groupe →
+                Continuer →
               </Text>
             </TouchableOpacity>
           </View>

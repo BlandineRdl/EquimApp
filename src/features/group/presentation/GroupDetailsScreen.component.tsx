@@ -377,8 +377,8 @@ export const GroupDetailsScreen = () => {
                   </View>
                   <View style={styles.memberFirstRowRight}>
                     <Text style={styles.revenueLabel}>
-                      Revenu:{" "}
-                      {(member.incomeOrWeight || 0).toLocaleString("fr-FR", {
+                      Capacité:{" "}
+                      {(member.monthlyCapacity || 0).toLocaleString("fr-FR", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}{" "}

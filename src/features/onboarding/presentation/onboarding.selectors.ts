@@ -150,6 +150,7 @@ export const selectOnboardingProgressByRoute = createSelector(
     const steps = [
       { path: "/", label: "pseudo" },
       { path: "/onboarding/income", label: "income" },
+      { path: "/onboarding/personal-expenses", label: "personal-expenses" },
       { path: "/onboarding/create-group", label: "group" },
       { path: "/onboarding/expenses", label: "expenses" },
       { path: "/onboarding/summary", label: "summary" },

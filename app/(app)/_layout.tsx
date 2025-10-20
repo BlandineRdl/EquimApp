@@ -1,11 +1,11 @@
-import { Redirect, Stack, useRouter, useSegments } from "expo-router";
+import { Redirect, Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
+import { logger } from "../../src/lib/logger";
 import type { AppState } from "../../src/store/appState";
 
 export default function AppLayout() {
-  const router = useRouter();
   const segments = useSegments();
   const splashHiddenRef = useRef(false);
 
@@ -27,38 +27,55 @@ export default function AppLayout() {
     }
   }, [hydrated, profileLoading]);
 
-  // Navigation logic
-  useEffect(() => {
-    if (!hydrated || profileLoading) return;
-
-    const currentPath = segments.slice(1).join("/") || "index";
-
-    if (
-      profile &&
-      (currentPath === "index" || currentPath.startsWith("onboarding"))
-    ) {
-      // Has profile but on onboarding → go to home
-      router.replace("/home");
-    } else if (
-      !profile &&
-      currentPath !== "index" &&
-      !currentPath.startsWith("onboarding")
-    ) {
-      // No profile but not on onboarding → go to onboarding
-      router.replace("/");
-    }
-  }, [hydrated, profileLoading, profile, segments, router]);
-
-  // Show loading while checking auth
+  // Show loading while checking auth/profile
+  // We return null to keep the splash screen visible until we're ready to navigate
   if (!hydrated || profileLoading) {
+    logger.debug("[AppLayout] Loading...", { hydrated, profileLoading });
     return null; // Keep splash visible
   }
 
   // Redirect to sign-in if not authenticated
+  // Using Redirect component (not router.replace()) because it works correctly
+  // during the initial render phase and prevents navigation race conditions
   if (!isAuthenticated) {
+    logger.debug("[AppLayout] Not authenticated, redirecting to sign-in");
     return <Redirect href="/sign-in" />;
   }
 
-  // User is authenticated → render protected routes
+  // Calculate current path
+  const currentPath = segments.slice(1).join("/") || "index";
+  const isOnOnboarding =
+    currentPath === "index" || currentPath.startsWith("onboarding");
+  const isOnProtectedRoute = !isOnOnboarding;
+
+  logger.debug("[AppLayout] Navigation state", {
+    currentPath,
+    hasProfile: !!profile,
+    isOnOnboarding,
+    isOnProtectedRoute,
+  });
+
+  // Has profile but trying to access onboarding → redirect to home
+  // Using Redirect in render ensures the navigation happens immediately after hydration
+  // and prevents the user from seeing onboarding screens when they already have a profile
+  if (profile && isOnOnboarding) {
+    logger.info(
+      "[AppLayout] Has profile but on onboarding, redirecting to /home",
+    );
+    return <Redirect href="/home" />;
+  }
+
+  // No profile but trying to access protected routes → redirect to onboarding
+  // Using Redirect ensures users without a profile can't access app screens directly
+  // This prevents errors from components expecting profile data to exist
+  if (!profile && isOnProtectedRoute) {
+    logger.info(
+      "[AppLayout] No profile but on protected route, redirecting to onboarding",
+    );
+    return <Redirect href="/" />;
+  }
+
+  // User is authenticated and on correct route → render protected routes
+  logger.debug("[AppLayout] Rendering app routes");
   return <Stack screenOptions={{ headerShown: false }} />;
 }

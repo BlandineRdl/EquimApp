@@ -22,6 +22,7 @@ export interface GroupMemberDetails {
   pseudo: string;
   share_revenue: boolean;
   income_or_weight: number | null;
+  monthly_capacity: number | null;
   joined_at: string;
   is_phantom: boolean;
 }

@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { ArrowLeft, Edit2, User } from "lucide-react-native";
+import { ArrowLeft, Edit2, LogOut, User } from "lucide-react-native";
 import { useState } from "react";
 import {
   ScrollView,
@@ -10,13 +10,33 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { signOut } from "../../src/features/auth/usecases/signOut.usecase";
+import { ManagePersonalExpensesModal } from "../../src/features/user/presentation/ManagePersonalExpensesModal.component";
+import { PersonalExpensesList } from "../../src/features/user/presentation/PersonalExpensesList.component";
+import { selectPersonalExpenses } from "../../src/features/user/presentation/selectPersonalExpenses.selector";
 import { selectUserProfile } from "../../src/features/user/presentation/selectUser.selector";
+import { selectUserCapacity } from "../../src/features/user/presentation/selectUserCapacity.selector";
 import { UpdateIncomeModal } from "../../src/features/user/presentation/UpdateIncomeModal.component";
+import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const user = useSelector(selectUserProfile);
+  const capacity = useSelector(selectUserCapacity);
+  const personalExpenses = useSelector(selectPersonalExpenses);
   const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
+  const [isExpensesModalVisible, setIsExpensesModalVisible] = useState(false);
+
+  const handleSignOut = async () => {
+    await dispatch(signOut());
+    // User will be redirected to sign-in by the layout
+  };
+
+  const totalExpenses = personalExpenses.reduce(
+    (sum, exp) => sum + exp.amount,
+    0,
+  );
 
   if (!user) {
     return (
@@ -77,6 +97,33 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Personal Expenses Card */}
+        <PersonalExpensesList
+          expenses={personalExpenses}
+          onManagePress={() => setIsExpensesModalVisible(true)}
+        />
+
+        {/* Capacity Card */}
+        {capacity !== undefined && (
+          <View style={styles.card}>
+            <View style={styles.capacityBox}>
+              <Text style={styles.capacityLabel}>💰 Capacité de dépense</Text>
+              <Text
+                style={[
+                  styles.capacityValue,
+                  capacity < 0 && styles.negativeCapacity,
+                ]}
+              >
+                {capacity.toLocaleString("fr-FR")} €
+              </Text>
+              <Text style={styles.capacityHint}>
+                Revenu ({user.monthlyIncome.toLocaleString("fr-FR")} €) -
+                Charges ({totalExpenses.toLocaleString("fr-FR")} €)
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Info Section */}
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>À propos du revenu</Text>
@@ -90,6 +137,14 @@ export default function ProfileScreen() {
             vos groupes seront automatiquement recalculées.
           </Text>
         </View>
+
+        {/* Logout Button */}
+        <View style={styles.logoutSection}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
+            <LogOut size={20} color="#ef4444" />
+            <Text style={styles.logoutText}>Se déconnecter</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Update Income Modal */}
@@ -99,6 +154,12 @@ export default function ProfileScreen() {
         onSuccess={() => {
           // Modal will close automatically, shares will update via listeners
         }}
+      />
+
+      {/* Manage Personal Expenses Modal */}
+      <ManagePersonalExpensesModal
+        isVisible={isExpensesModalVisible}
+        onClose={() => setIsExpensesModalVisible(false)}
       />
     </SafeAreaView>
   );
@@ -226,5 +287,50 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     lineHeight: 20,
     marginBottom: 12,
+  },
+  logoutSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 32,
+  },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    borderRadius: 12,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#ef4444",
+  },
+  capacityBox: {
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  capacityLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 8,
+  },
+  capacityValue: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#10b981",
+    marginBottom: 4,
+  },
+  negativeCapacity: {
+    color: "#ef4444",
+  },
+  capacityHint: {
+    fontSize: 12,
+    color: "#6b7280",
+    textAlign: "center",
   },
 });

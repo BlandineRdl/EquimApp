@@ -35,6 +35,10 @@ BEGIN
           WHEN p.share_revenue THEN COALESCE(p.weight_override, p.income_or_weight)
           ELSE NULL
         END,
+        'monthly_capacity', CASE
+          WHEN gm.is_phantom THEN gm.phantom_income
+          ELSE p.monthly_capacity
+        END,
         'joined_at', gm.joined_at,
         'is_phantom', gm.is_phantom
       )
