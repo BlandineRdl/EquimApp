@@ -1,9 +1,13 @@
-name: Build and tests
+name: EAS Build
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
+  # Build auto après succès des tests
+  workflow_run:
+    workflows: ["Tests"]
+    types:
+      - completed
     branches: [main]
+
+  # Build manuel
   workflow_dispatch:
     inputs:
       build_type:
@@ -14,27 +18,25 @@ on:
         options:
         - preview
         - production
+      platform:
+        description: 'Platform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - ios
+        - android
+        - all
 
 jobs:
   build:
-    name: Install and build
+    name: EAS Build
+    # Ne lance que si les tests ont réussi OU si c'est manuel
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
-
-      # Debug : vérifier la structure du projet (optionnel)
-      - name: 🔍 Debug project structure
-        if: ${{ failure() }}
-        run: |
-          echo "=== Current directory ==="
-          pwd
-          echo "=== Files in root ==="
-          ls -la
-          echo "=== package.json content ==="
-          cat package.json || echo "package.json not found"
-          echo "=== pnpm-lock.yaml exists? ==="
-          ls -la pnpm-lock.yaml || echo "pnpm-lock.yaml not found"
 
       - name: 🏗 Setup pnpm
         uses: pnpm/action-setup@v4
@@ -57,32 +59,27 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🧹 Lint code
-        run: pnpm lint
-
-      # TypeScript check - DISABLED (TODO: Fix remaining 55 errors)
-      # - name: 🔍 Type check
-      #   run: pnpm typecheck
-
-      - name: 🧪 Run tests
-        run: pnpm test:run
-        env:
-          NODE_ENV: test
-
-      - name: 🍎 Build Preview (iOS) - Auto  
-        if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
-        run: eas build --platform ios --profile preview --non-interactive --no-wait
+      # Build auto après succès des tests
+      - name: 🍎 Build Preview (Auto après tests)
+        if: github.event_name == 'workflow_run'
+        run: eas build --platform all --profile preview --non-interactive --no-wait
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🍎 Build Preview (iOS) - Manuel
+      # Build manuel - Preview
+      - name: 🍎 Build Preview (Manuel)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'preview'
-        run: eas build --platform ios --profile preview --non-interactive --no-wait
+        run: |
+          PLATFORM="${{ github.event.inputs.platform }}"
+          eas build --platform $PLATFORM --profile preview --non-interactive --no-wait
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🚀 Build Production - Manuel
+      # Build manuel - Production
+      - name: 🚀 Build Production (Manuel)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.build_type == 'production'
-        run: eas build --platform all --profile production --non-interactive --no-wait
+        run: |
+          PLATFORM="${{ github.event.inputs.platform }}"
+          eas build --platform $PLATFORM --profile production --non-interactive --no-wait
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
