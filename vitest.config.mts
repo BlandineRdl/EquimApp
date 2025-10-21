@@ -2,7 +2,6 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  // @ts-expect-error - Vite 7 plugin type incompatibility with @vitejs/plugin-react
   plugins: [react()],
   test: {
     environment: "jsdom",
