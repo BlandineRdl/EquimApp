@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import { selectOnboardingSummary } from "../../../src/features/onboarding/presentation/onboarding.selectors";
 import { completeOnboarding } from "../../../src/features/onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
+import { loadUserProfile } from "../../../src/features/user/usecases/loadUserProfile.usecase";
 import { logger } from "../../../src/lib/logger";
 import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
@@ -25,6 +26,7 @@ export default function SummaryScreen() {
     expensesCount,
     totalExpenses,
     isComplete,
+    skipGroupCreation,
   } = useSelector(selectOnboardingSummary);
 
   const handleCreateAccount = async () => {
@@ -35,6 +37,13 @@ export default function SummaryScreen() {
       logger.info("Starting completeOnboarding");
       const result = await dispatch(completeOnboarding()).unwrap();
       logger.info("completeOnboarding succeeded", { result });
+
+      // Load user profile to trigger navigation via _layout.tsx
+      logger.info("Loading user profile after onboarding");
+      await dispatch(loadUserProfile()).unwrap();
+      logger.info(
+        "User profile loaded, navigation should trigger automatically",
+      );
       // Navigation automatique vers /home via _layout.tsx qui détecte profile
     } catch (error) {
       logger.error("Erreur lors de la création du compte", error);
@@ -62,7 +71,9 @@ export default function SummaryScreen() {
 
           <Text style={styles.title}>Tout est prêt !</Text>
           <Text style={styles.subtitle}>
-            Votre profil et votre groupe "{groupName}" sont configurés.
+            {skipGroupCreation
+              ? "Votre profil est configuré."
+              : `Votre profil et votre groupe "${groupName}" sont configurés.`}
           </Text>
         </View>
 
@@ -80,23 +91,27 @@ export default function SummaryScreen() {
             </Text>
           </View>
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Groupe créé</Text>
-            <Text style={styles.summaryValue}>{groupName}</Text>
-          </View>
+          {!skipGroupCreation && (
+            <>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Groupe créé</Text>
+                <Text style={styles.summaryValue}>{groupName}</Text>
+              </View>
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Dépenses ajoutées</Text>
-            <Text style={styles.summaryValue}>{expensesCount}</Text>
-          </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Dépenses ajoutées</Text>
+                <Text style={styles.summaryValue}>{expensesCount}</Text>
+              </View>
 
-          {totalExpenses > 0 && (
-            <View style={[styles.summaryRow, styles.totalRow]}>
-              <Text style={styles.summaryLabel}>Total mensuel</Text>
-              <Text style={styles.totalValue}>
-                {totalExpenses.toLocaleString()}€
-              </Text>
-            </View>
+              {totalExpenses > 0 && (
+                <View style={[styles.summaryRow, styles.totalRow]}>
+                  <Text style={styles.summaryLabel}>Total mensuel</Text>
+                  <Text style={styles.totalValue}>
+                    {totalExpenses.toLocaleString()}€
+                  </Text>
+                </View>
+              )}
+            </>
           )}
         </View>
 

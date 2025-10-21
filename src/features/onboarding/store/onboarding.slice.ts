@@ -26,6 +26,7 @@ interface OnboardingState {
   groupNameBlurred: boolean;
   expenses: OnboardingExpense[];
   personalExpenses: PersonalExpenseInput[]; // NEW: for storing expenses during onboarding
+  skipGroupCreation: boolean; // NEW: track if user chose to skip group creation
 
   // État de la completion
   completing: boolean;
@@ -47,6 +48,7 @@ const initialState: OnboardingState = {
     amount: String(expense.amount),
   })),
   personalExpenses: [], // NEW
+  skipGroupCreation: false, // NEW
 
   // Completion state
   completing: false,
@@ -102,6 +104,11 @@ export const onboardingSlice = createSlice({
       state.personalExpenses = action.payload;
     },
 
+    // NEW: Set skip group creation flag
+    setSkipGroupCreation: (state, action: { payload: boolean }) => {
+      state.skipGroupCreation = action.payload;
+    },
+
     // Reset onboarding
     resetOnboarding: (_state) => {
       return initialState;
@@ -138,6 +145,7 @@ export const {
   addCustomExpense,
   removeCustomExpense,
   setPersonalExpenses, // NEW
+  setSkipGroupCreation, // NEW
   resetOnboarding,
 } = onboardingSlice.actions;
 

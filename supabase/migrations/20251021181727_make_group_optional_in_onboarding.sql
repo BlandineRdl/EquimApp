@@ -1,6 +1,10 @@
--- RPC function to atomically complete user onboarding
--- Creates profile (required) and optionally creates group with expenses
+-- Migration: Make group creation optional in onboarding
+-- This allows users to skip group creation during onboarding
 
+-- Drop the existing function first
+DROP FUNCTION IF EXISTS public.complete_onboarding(TEXT, NUMERIC, TEXT, JSONB);
+
+-- Recreate with optional group_name parameter
 CREATE OR REPLACE FUNCTION public.complete_onboarding(
   p_pseudo TEXT,
   p_income NUMERIC(12,2),
@@ -72,6 +76,6 @@ $$;
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.complete_onboarding(TEXT, NUMERIC, TEXT, JSONB) TO authenticated;
 
--- Add comment explaining the function
+-- Add comment explaining the change
 COMMENT ON FUNCTION public.complete_onboarding IS
 'Atomically completes user onboarding. Creates profile (required) and optionally creates group with expenses if p_group_name is provided.';

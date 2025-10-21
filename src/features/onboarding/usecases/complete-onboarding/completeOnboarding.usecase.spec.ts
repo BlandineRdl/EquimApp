@@ -6,10 +6,12 @@ import { initSession } from "../../../auth/usecases/manage-session/initSession.u
 import { InMemoryGroupGateway } from "../../../group/infra/inMemoryGroup.gateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryOnboardingGateway } from "../../infra/InMemoryOnboardingGateway";
+import type { CompleteOnboardingResult } from "../../ports/OnboardingGateway";
 import {
   setGroupName,
   setMonthlyIncome,
   setPseudo,
+  setSkipGroupCreation,
   updateExpenseAmount,
 } from "../../store/onboarding.slice";
 import { completeOnboarding } from "./completeOnboarding.usecase";
@@ -218,6 +220,86 @@ describe("Feature: Compléter l'onboarding", () => {
       const payload = result.payload as { profile: { income: number } };
       expect(payload.profile.income).toBe(4500.5);
       expect(typeof payload.profile.income).toBe("number");
+    });
+  });
+
+  describe("Scénario: Création de compte sans groupe (optionnel)", () => {
+    it("should complete onboarding without creating a group when skipped", async () => {
+      // Given un utilisateur qui choisit de sauter la création de groupe
+      store.dispatch(setPseudo("Helen"));
+      store.dispatch(setMonthlyIncome("3200"));
+      store.dispatch(setSkipGroupCreation(true));
+
+      // When il complète l'onboarding
+      const result = await store.dispatch(completeOnboarding());
+
+      // Then l'onboarding est réussi
+      expect(result.type).toBe("onboarding/complete/fulfilled");
+      if (result.type !== "onboarding/complete/fulfilled") {
+        throw new Error("Expected fulfilled action");
+      }
+
+      // Et le profil est créé
+      expect(result.payload).toMatchObject({
+        profileId: expect.any(String),
+        profile: {
+          pseudo: "Helen",
+          income: 3200,
+        },
+      });
+
+      // Mais aucun groupe n'est créé
+      const payload = result.payload as CompleteOnboardingResult & {
+        profile: { pseudo: string; income: number };
+      };
+      expect(payload.groupId).toBeUndefined();
+      expect(payload.shares).toBeUndefined();
+
+      // Et le state onboarding indique la complétion
+      const onboardingState = store.getState().onboarding;
+      expect(onboardingState.completed).toBe(true);
+      expect(onboardingState.completing).toBe(false);
+      expect(onboardingState.error).toBeNull();
+    });
+
+    it("should create profile with personal expenses but no group when skipped", async () => {
+      // Given un utilisateur qui saute la création de groupe mais a des dépenses personnelles
+      store.dispatch(setPseudo("Ivan"));
+      store.dispatch(setMonthlyIncome("2900"));
+      store.dispatch(setSkipGroupCreation(true));
+
+      // Et des dépenses personnelles stockées
+      store.dispatch({
+        type: "onboarding/setPersonalExpenses",
+        payload: [
+          { label: "Car Payment", amount: 300 },
+          { label: "Insurance", amount: 80 },
+        ],
+      });
+
+      // When l'onboarding est complété
+      const result = await store.dispatch(completeOnboarding());
+
+      // Then l'onboarding réussit
+      expect(result.type).toBe("onboarding/complete/fulfilled");
+
+      // Et les dépenses personnelles sont créées
+      const userExpenses = await userGateway.loadPersonalExpenses("user-1");
+      expect(userExpenses).toHaveLength(2);
+      expect(userExpenses).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ label: "Car Payment", amount: 300 }),
+          expect.objectContaining({ label: "Insurance", amount: 80 }),
+        ]),
+      );
+
+      // Mais aucun groupe n'est créé
+      if (result.type === "onboarding/complete/fulfilled") {
+        const payload = result.payload as CompleteOnboardingResult & {
+          profile: { pseudo: string; income: number };
+        };
+        expect(payload.groupId).toBeUndefined();
+      }
     });
   });
 });

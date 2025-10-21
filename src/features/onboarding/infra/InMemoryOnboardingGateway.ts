@@ -17,6 +17,16 @@ export class InMemoryOnboardingGateway implements OnboardingGateway {
       return { ...this.storedResult };
     }
 
+    const profileId = "user-1";
+
+    // Group creation is optional
+    if (!input.groupName) {
+      // No group - return only profile info
+      return {
+        profileId,
+      };
+    }
+
     // Create group
     const { groupId } = await this.groupGateway.createGroup(
       input.groupName,
@@ -24,7 +34,6 @@ export class InMemoryOnboardingGateway implements OnboardingGateway {
     );
 
     // Add member (current user)
-    const profileId = "user-1";
     await this.groupGateway.addMember(groupId, profileId);
 
     // Create expenses (map domain label → group expense name)

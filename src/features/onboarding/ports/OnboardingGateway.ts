@@ -14,24 +14,24 @@ export type ExpenseInput = Pick<Expense, "label" | "amount"> & {
 export interface CompleteOnboardingInput {
   pseudo: string;
   income: number;
-  groupName: string;
+  groupName?: string; // Optional: user can skip group creation
   expenses: ExpenseInput[];
 }
 
 export interface CompleteOnboardingResult {
   profileId: string;
-  groupId: string;
-  shares: Shares;
+  groupId?: string; // Optional: only present if group was created
+  shares?: Shares; // Optional: only present if group was created
 }
 
 export interface OnboardingGateway {
   /**
    * Complete user onboarding in a single atomic transaction
-   * - Creates user profile
-   * - Creates group
-   * - Adds user as first member
-   * - Creates initial expenses
-   * - Returns computed shares
+   * - Creates user profile (always)
+   * - Creates group (optional - only if groupName is provided)
+   * - Adds user as first member (only if group created)
+   * - Creates initial expenses (only if group created)
+   * - Returns computed shares (only if group created)
    */
   completeOnboarding(
     input: CompleteOnboardingInput,

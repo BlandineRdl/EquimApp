@@ -158,11 +158,7 @@ export default function PersonalExpensesScreen() {
       ),
     );
 
-    router.push("/onboarding/create-group");
-  };
-
-  const handleSkip = () => {
-    router.push("/onboarding/create-group");
+    router.push("/onboarding/group-choice");
   };
 
   const subtotal = calculateSubtotal();
@@ -184,8 +180,8 @@ export default function PersonalExpensesScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>Vos charges personnelles</Text>
             <Text style={styles.subtitle}>
-              Entrez vos dépenses individuelles (non partagées) pour calculer
-              votre capacité réelle
+              Ajoutez au moins une dépense individuelle (non partagée) pour
+              calculer votre capacité réelle
             </Text>
           </View>
 
@@ -316,16 +312,6 @@ export default function PersonalExpensesScreen() {
                 ]}
               >
                 {isSubmitting ? "Enregistrement..." : "Continuer →"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.skipButton}
-              onPress={handleSkip}
-              disabled={isSubmitting}
-            >
-              <Text style={styles.skipButtonText}>
-                Passer cette étape (à compléter plus tard)
               </Text>
             </TouchableOpacity>
           </View>
@@ -510,14 +496,5 @@ const styles = StyleSheet.create({
   },
   buttonTextDisabled: {
     color: "#d1d5db",
-  },
-  skipButton: {
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  skipButtonText: {
-    color: "#6b7280",
-    fontSize: 15,
-    textDecorationLine: "underline",
   },
 });

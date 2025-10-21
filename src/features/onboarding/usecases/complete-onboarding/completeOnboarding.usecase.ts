@@ -27,15 +27,20 @@ export const completeOnboarding = createAsyncThunk<
     );
 
     // Prepare input using domain vocabulary
+    // Group creation is optional based on skipGroupCreation flag
     const onboardingInput = {
       pseudo: onboarding.pseudo.trim(),
       income: parseFloat(onboarding.monthlyIncome) || 0,
-      groupName: onboarding.groupName.trim(),
-      expenses: filteredExpenses.map((expense) => ({
-        label: expense.label, // ✅ Domain vocabulary
-        amount: parseFloat(expense.amount),
-        isPredefined: !expense.isCustom,
-      })),
+      groupName: onboarding.skipGroupCreation
+        ? undefined
+        : onboarding.groupName.trim(),
+      expenses: onboarding.skipGroupCreation
+        ? []
+        : filteredExpenses.map((expense) => ({
+            label: expense.label, // ✅ Domain vocabulary
+            amount: parseFloat(expense.amount),
+            isPredefined: !expense.isCustom,
+          })),
     };
 
     const result = await onboardingGateway.completeOnboarding(onboardingInput);

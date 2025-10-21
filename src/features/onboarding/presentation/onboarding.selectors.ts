@@ -112,7 +112,8 @@ export const selectExpensesUI = createSelector(
 export const selectOnboardingSummary = createSelector(
   [selectOnboardingState],
   (onboarding) => {
-    const { pseudo, monthlyIncome, groupName, expenses } = onboarding;
+    const { pseudo, monthlyIncome, groupName, expenses, skipGroupCreation } =
+      onboarding;
 
     // Calculer le total des dépenses
     const totalExpenses = expenses.reduce((sum, expense) => {
@@ -126,10 +127,11 @@ export const selectOnboardingSummary = createSelector(
     ).length;
 
     // Vérifier si tout est prêt pour la création
+    // Group name is only required if user didn't skip group creation
     const isComplete =
       pseudo.trim() !== "" &&
       parseFloat(monthlyIncome) > 0 &&
-      groupName.trim() !== "";
+      (skipGroupCreation || groupName.trim() !== "");
 
     return {
       pseudo,
@@ -138,6 +140,7 @@ export const selectOnboardingSummary = createSelector(
       expensesCount,
       totalExpenses,
       isComplete,
+      skipGroupCreation,
       expenses: expenses.filter((expense) => expense.amount.trim() !== ""),
     };
   },
@@ -151,6 +154,7 @@ export const selectOnboardingProgressByRoute = createSelector(
       { path: "/", label: "pseudo" },
       { path: "/onboarding/income", label: "income" },
       { path: "/onboarding/personal-expenses", label: "personal-expenses" },
+      { path: "/onboarding/group-choice", label: "group-choice" },
       { path: "/onboarding/create-group", label: "group" },
       { path: "/onboarding/expenses", label: "expenses" },
       { path: "/onboarding/summary", label: "summary" },

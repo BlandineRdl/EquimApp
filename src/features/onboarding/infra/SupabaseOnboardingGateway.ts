@@ -29,10 +29,11 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
       }));
 
       // Call complete_onboarding RPC (atomic transaction)
+      // groupName is optional - if not provided, no group will be created
       const { data, error } = await supabase.rpc("complete_onboarding", {
         p_pseudo: input.pseudo,
         p_income: input.income,
-        p_group_name: input.groupName,
+        p_group_name: (input.groupName || null) as string,
         p_expenses: expenses,
       });
 
@@ -53,7 +54,8 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
       logger.debug("Parsed result", { result });
 
       // Validate result structure
-      if (!result.profile_id || !result.group_id || !result.shares) {
+      // profile_id is always required, but group_id and shares are optional (when no group created)
+      if (!result.profile_id) {
         throw new Error(
           `Structure de réponse invalide: ${JSON.stringify(result)}`,
         );
@@ -61,19 +63,21 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
 
       return {
         profileId: result.profile_id,
-        groupId: result.group_id,
-        shares: {
-          totalExpenses: result.shares.total_expenses || 0,
-          shares: Array.isArray(result.shares.shares)
-            ? result.shares.shares.map((s: RpcMemberShare) => ({
-                memberId: s.member_id,
-                userId: s.user_id,
-                pseudo: s.pseudo || "",
-                sharePercentage: s.share_percentage || 0,
-                shareAmount: s.share_amount || 0,
-              }))
-            : [],
-        },
+        groupId: result.group_id || undefined,
+        shares: result.shares
+          ? {
+              totalExpenses: result.shares.total_expenses || 0,
+              shares: Array.isArray(result.shares.shares)
+                ? result.shares.shares.map((s: RpcMemberShare) => ({
+                    memberId: s.member_id,
+                    userId: s.user_id,
+                    pseudo: s.pseudo || "",
+                    sharePercentage: s.share_percentage || 0,
+                    shareAmount: s.share_amount || 0,
+                  }))
+                : [],
+            }
+          : undefined,
       };
     } catch (error) {
       throw createUserFriendlyError(error);

@@ -48,6 +48,7 @@ export interface AppState {
     groupNameBlurred: boolean;
     expenses: OnboardingExpense[];
     personalExpenses: PersonalExpenseInput[];
+    skipGroupCreation: boolean;
     completing: boolean;
     completed: boolean;
     error: string | null;
