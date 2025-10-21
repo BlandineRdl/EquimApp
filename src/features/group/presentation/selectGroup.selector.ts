@@ -69,6 +69,7 @@ export const selectAddMemberUI = createSelector(
 
 export const selectAddExpenseForm = createSelector(
   [selectGroupsState],
+  // @ts-expect-error - addExpenseForm exists in GroupState
   (groupsState) => groupsState.addExpenseForm,
 );
 

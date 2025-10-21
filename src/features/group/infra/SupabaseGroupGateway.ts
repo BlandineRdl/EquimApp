@@ -581,17 +581,18 @@ export class SupabaseGroupGateway implements GroupGateway {
           filter: `group_id=eq.${groupId}`,
         },
         (payload: ExpenseRealtimePayload) => {
-          if (callbacks.onExpenseAdded && payload.new) {
+          if (callbacks.onExpenseAdded && payload.new && "id" in payload.new) {
+            const expense = payload.new;
             callbacks.onExpenseAdded({
-              id: payload.new.id,
-              groupId: payload.new.group_id,
-              name: payload.new.name,
-              amount: Number(payload.new.amount),
-              currency: payload.new.currency_code,
-              isPredefined: payload.new.is_predefined,
-              createdBy: payload.new.created_by,
-              createdAt: payload.new.created_at,
-              updatedAt: payload.new.updated_at,
+              id: expense.id,
+              groupId: expense.group_id,
+              name: expense.name,
+              amount: Number(expense.amount),
+              currency: expense.currency_code,
+              isPredefined: expense.is_predefined,
+              createdBy: expense.created_by,
+              createdAt: expense.created_at,
+              updatedAt: expense.updated_at,
             });
           }
         },
@@ -605,17 +606,22 @@ export class SupabaseGroupGateway implements GroupGateway {
           filter: `group_id=eq.${groupId}`,
         },
         (payload: ExpenseRealtimePayload) => {
-          if (callbacks.onExpenseUpdated && payload.new) {
+          if (
+            callbacks.onExpenseUpdated &&
+            payload.new &&
+            "id" in payload.new
+          ) {
+            const expense = payload.new;
             callbacks.onExpenseUpdated({
-              id: payload.new.id,
-              groupId: payload.new.group_id,
-              name: payload.new.name,
-              amount: Number(payload.new.amount),
-              currency: payload.new.currency_code,
-              isPredefined: payload.new.is_predefined,
-              createdBy: payload.new.created_by,
-              createdAt: payload.new.created_at,
-              updatedAt: payload.new.updated_at,
+              id: expense.id,
+              groupId: expense.group_id,
+              name: expense.name,
+              amount: Number(expense.amount),
+              currency: expense.currency_code,
+              isPredefined: expense.is_predefined,
+              createdBy: expense.created_by,
+              createdAt: expense.created_at,
+              updatedAt: expense.updated_at,
             });
           }
         },
@@ -629,7 +635,12 @@ export class SupabaseGroupGateway implements GroupGateway {
           filter: `group_id=eq.${groupId}`,
         },
         (payload: ExpenseRealtimePayload) => {
-          if (callbacks.onExpenseDeleted && payload.old) {
+          if (
+            callbacks.onExpenseDeleted &&
+            payload.old &&
+            "id" in payload.old &&
+            payload.old.id
+          ) {
             callbacks.onExpenseDeleted(payload.old.id);
           }
         },
@@ -643,35 +654,43 @@ export class SupabaseGroupGateway implements GroupGateway {
           filter: `group_id=eq.${groupId}`,
         },
         async (payload: GroupMemberRealtimePayload) => {
-          if (callbacks.onMemberAdded && payload.new) {
+          if (callbacks.onMemberAdded && payload.new && "id" in payload.new) {
+            const member = payload.new;
             // Handle phantom members
-            if (payload.new.is_phantom) {
+            if (member.is_phantom) {
+              // @ts-expect-error - phantom members have guaranteed pseudo and income
+              const phantomPseudo: string = member.phantom_pseudo;
+              // @ts-expect-error
+              const phantomIncome: number = member.phantom_income;
               callbacks.onMemberAdded({
-                id: payload.new.id,
+                id: member.id,
                 userId: null,
-                pseudo: payload.new.phantom_pseudo,
+                pseudo: phantomPseudo,
                 shareRevenue: true,
-                incomeOrWeight: payload.new.phantom_income,
-                joinedAt: payload.new.joined_at,
+                incomeOrWeight: phantomIncome,
+                monthlyCapacity: phantomIncome, // Phantom members have no personal expenses
+                joinedAt: member.joined_at,
                 isPhantom: true,
               });
             } else {
-              // Fetch member details for real users
+              // @ts-expect-error - user_id is guaranteed for non-phantom members
+              const userId: string = member.user_id;
               const { data: profile } = await supabase
                 .from("profiles")
                 .select("*")
-                .eq("id", payload.new.user_id)
+                .eq("id", userId)
                 .single();
 
               if (profile) {
                 callbacks.onMemberAdded({
-                  id: payload.new.id,
-                  userId: payload.new.user_id,
+                  id: member.id,
+                  userId: userId,
                   pseudo: profile.pseudo || "",
                   shareRevenue: profile.share_revenue,
                   incomeOrWeight:
                     profile.income_or_weight || profile.weight_override || 0,
-                  joinedAt: payload.new.joined_at,
+                  monthlyCapacity: profile.monthly_capacity,
+                  joinedAt: member.joined_at,
                   isPhantom: false,
                 });
               }
@@ -688,7 +707,12 @@ export class SupabaseGroupGateway implements GroupGateway {
           filter: `group_id=eq.${groupId}`,
         },
         (payload: GroupMemberRealtimePayload) => {
-          if (callbacks.onMemberRemoved && payload.old) {
+          if (
+            callbacks.onMemberRemoved &&
+            payload.old &&
+            "user_id" in payload.old &&
+            payload.old.user_id
+          ) {
             callbacks.onMemberRemoved(payload.old.user_id);
           }
         },

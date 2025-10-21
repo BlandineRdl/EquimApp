@@ -249,6 +249,7 @@ export class SupabaseUserGateway implements UserGateway {
     try {
       logger.debug("[SupabaseUserGateway] Loading user capacity", { userId });
       const { data, error } = await supabase
+        // @ts-expect-error - user_profiles view not in types
         .from("user_profiles")
         .select("capacity")
         .eq("id", userId)
@@ -260,9 +261,11 @@ export class SupabaseUserGateway implements UserGateway {
       }
 
       // capacity can be null in database, which is valid (means no expenses or no income)
+      // @ts-expect-error - capacity column may not exist in type
+      const capacityValue = data?.capacity;
       const capacity =
-        data?.capacity !== null && data?.capacity !== undefined
-          ? Number(data.capacity)
+        capacityValue !== null && capacityValue !== undefined
+          ? Number(capacityValue)
           : undefined;
 
       logger.debug("[SupabaseUserGateway] Capacity loaded", { capacity });

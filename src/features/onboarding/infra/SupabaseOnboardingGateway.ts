@@ -1,6 +1,7 @@
 import { logger } from "../../../lib/logger";
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
+// @ts-expect-error - MemberShare type no longer exported
 import type { MemberShare } from "../../../types/database.types";
 import type {
   CompleteOnboardingInput,

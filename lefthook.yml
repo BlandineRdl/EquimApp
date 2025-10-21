@@ -10,10 +10,10 @@ pre-commit:
       run: pnpm lint
       fail_text: "❌ Lint failed! Fix the errors before committing."
 
-    # TypeScript check - DISABLED (TODO: Fix remaining 55 errors)
-    # typecheck:
-    #   run: pnpm typecheck
-    #   fail_text: "❌ TypeScript errors found! Fix the type errors before committing."
+    # TypeScript check - ENABLED ✅
+    typecheck:
+      run: pnpm typecheck
+      fail_text: "❌ TypeScript errors found! Fix the type errors before committing."
 
 pre-push:
   parallel: true

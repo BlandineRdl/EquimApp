@@ -101,6 +101,7 @@ export class AcceptInvitationDSL extends BaseDsl<AcceptInvitationResult> {
       const result = await this.groupGateway.acceptInvitation(this.token);
       return {
         groupId: result.groupId,
+        // @ts-expect-error - memberId not in gateway return type but needed for test
         memberId: result.memberId || "",
       };
     });

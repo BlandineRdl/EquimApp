@@ -195,7 +195,7 @@ export const GroupDetailsScreen = () => {
   };
 
   const handleAddExpense = async () => {
-    if (addExpenseUI.form && addExpenseUI.canSubmit && !loading) {
+    if (addExpenseUI.form && addExpenseUI.canSubmit && !addExpenseUI.loading) {
       await dispatch(
         addExpenseToGroup({
           groupId: addExpenseUI.form.groupId,
@@ -484,13 +484,13 @@ export const GroupDetailsScreen = () => {
             <TouchableOpacity
               style={[
                 styles.modalButton,
-                loading && styles.modalButtonDisabled,
+                addExpenseUI.loading && styles.modalButtonDisabled,
               ]}
               onPress={handleAddExpense}
-              disabled={loading}
+              disabled={addExpenseUI.loading}
             >
               <Text style={styles.modalButtonText}>
-                {loading ? "Ajout..." : "Ajouter"}
+                {addExpenseUI.loading ? "Ajout..." : "Ajouter"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity

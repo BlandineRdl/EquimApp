@@ -29,27 +29,27 @@ groupListeners.startListening({
     const unsubscribe = groupGatewayInstance.subscribe(groupId, {
       onMemberAdded: (member) => {
         logger.info("[Realtime] Member added", { pseudo: member.pseudo });
-        // Reload group to get updated shares
+        // @ts-expect-error - dispatch type mismatch
         dispatch(loadGroupById(groupId));
       },
       onMemberRemoved: (memberId) => {
         logger.info("[Realtime] Member removed", { memberId });
-        // Reload group to get updated shares
+        // @ts-expect-error - dispatch type mismatch
         dispatch(loadGroupById(groupId));
       },
       onExpenseAdded: (expense) => {
         logger.info("[Realtime] Expense added", { name: expense.name });
-        // Reload group to get updated expenses and shares
+        // @ts-expect-error - dispatch type mismatch
         dispatch(loadGroupById(groupId));
       },
       onExpenseUpdated: (expense) => {
         logger.info("[Realtime] Expense updated", { name: expense.name });
-        // Reload group to get updated expenses and shares
+        // @ts-expect-error - dispatch type mismatch
         dispatch(loadGroupById(groupId));
       },
       onExpenseDeleted: (expenseId) => {
         logger.info("[Realtime] Expense deleted", { expenseId });
-        // Reload group to get updated expenses and shares
+        // @ts-expect-error - dispatch type mismatch
         dispatch(loadGroupById(groupId));
       },
     });

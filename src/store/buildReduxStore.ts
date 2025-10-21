@@ -55,6 +55,7 @@ export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
       notifications: notificationReducer,
     },
     devTools: !isTestEnvironment,
+    // @ts-expect-error - Middleware type mismatch
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         thunk: {

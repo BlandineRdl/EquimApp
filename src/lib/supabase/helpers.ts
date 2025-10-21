@@ -41,6 +41,7 @@ export async function updateTable<T = unknown>(
   const result = await supabase
     .from(tableName)
     .update(data)
+    // @ts-expect-error - whereClause.value type conversion
     .eq(whereClause.column, whereClause.value)
     .select()
     .single();

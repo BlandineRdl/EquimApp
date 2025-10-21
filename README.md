@@ -8,7 +8,7 @@ Application mobile React Native permettant la gestion de groupes et l'invitation
 - **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (file-based routing)
 - **État Global**: Redux Toolkit avec React Redux
 - **Backend**: [Supabase](https://supabase.com/) (authentification, base de données)
-- **Styling**: NativeWind (TailwindCSS pour React Native)
+- **Styling**: React Native StyleSheet
 - **Icônes**: Lucide React Native
 - **TypeScript**: Support complet avec typed routes
 - **Tests**: Vitest avec support des tests unitaires et d'intégration
@@ -243,5 +243,5 @@ pnpm nuke
 - [Expo Documentation](https://docs.expo.dev/)
 - [Expo Router](https://docs.expo.dev/router/introduction/)
 - [Supabase Documentation](https://supabase.com/docs)
-- [NativeWind](https://www.nativewind.dev/)
+- [React Native StyleSheet](https://reactnative.dev/docs/stylesheet)
 - [Redux Toolkit](https://redux-toolkit.js.org/)

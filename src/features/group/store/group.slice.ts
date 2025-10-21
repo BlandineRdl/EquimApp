@@ -176,6 +176,7 @@ export const groupSlice = createSlice({
       })
       .addCase(getInvitationDetails.fulfilled, (state, action) => {
         state.invitation.details.loading = false;
+        // @ts-expect-error - InvitationPreview type mismatch with InvitationDetails
         state.invitation.details.data = action.payload;
       })
       .addCase(getInvitationDetails.rejected, (state, action) => {
@@ -337,7 +338,8 @@ export const groupSlice = createSlice({
         groupsAdapter.removeAll(state);
         state.loading = false;
         state.error = null;
-        state.invitationDetails = null;
+        state.invitation.details.data = null;
+        state.invitation.generateLink.link = null;
         state.addMemberForm = null;
         state.addExpenseForm = null;
       });

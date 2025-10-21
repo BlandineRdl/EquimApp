@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Code Quality Analyzer",
+  "description": "Monitors source code files for changes and provides automated code quality analysis including code smells, design patterns, and best practices suggestions",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "app/**/*.ts",
+      "app/**/*.tsx",
+      "supabase/**/*.sql"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the modified code files for potential improvements. Focus on:\n\n1. **Code Smells**: Identify long functions, complex conditionals, duplicated code, magic numbers, and poor naming\n2. **Design Patterns**: Suggest appropriate patterns (hooks, HOCs, composition, etc.) where beneficial\n3. **Best Practices**: Check for TypeScript best practices, React/React Native patterns, performance optimizations\n4. **Maintainability**: Assess code readability, modularity, and adherence to project structure\n5. **Performance**: Identify potential performance bottlenecks and optimization opportunities\n\nFor each suggestion:\n- Explain the issue clearly\n- Provide specific code examples showing the improvement\n- Maintain existing functionality\n- Follow the project's TypeScript, React Native, and Expo Router conventions\n- Consider the feature-based architecture and Redux Toolkit patterns used in this codebase\n\nGenerate actionable recommendations that improve code quality while respecting the existing architecture and coding standards."
+  }
+}

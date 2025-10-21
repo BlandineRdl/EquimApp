@@ -58,7 +58,7 @@ export default function AcceptInvitationScreen() {
             "[AcceptInvitation] No profile, redirecting to onboarding",
           );
           router.replace({
-            pathname: "/onboarding",
+            pathname: "/onboarding/income",
             params: { returnTo: `/group/accept-invitation?token=${token}` },
           });
           return;

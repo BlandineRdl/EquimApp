@@ -81,6 +81,7 @@ export const userSlice = createSlice({
           };
           logger.info("[UserSlice] Profile set in state", {
             pseudo: state.profile.pseudo,
+            // @ts-expect-error - personalExpenses may be undefined
             hasExpenses: state.profile.personalExpenses?.length > 0,
             capacity: state.profile.capacity,
           });

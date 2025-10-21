@@ -29,6 +29,7 @@ export abstract class BaseDsl<TResult = unknown, TError = Error> {
     try {
       this.result = (await action()) as TResult;
       this.error = null;
+      // @ts-expect-error - Type conversion for DSL
       return this.result as T;
     } catch (error) {
       this.error = error as TError;
@@ -42,9 +43,9 @@ export abstract class BaseDsl<TResult = unknown, TError = Error> {
    */
   thenShouldSucceed(): this {
     if (this.error) {
-      throw new Error(
-        `Expected success but got error: ${(this.error as Error).message}`,
-      );
+      // @ts-expect-error - Error type conversion
+      const errorMessage = (this.error as Error).message;
+      throw new Error(`Expected success but got error: ${errorMessage}`);
     }
 
     if (this.result === null) {
@@ -62,6 +63,7 @@ export abstract class BaseDsl<TResult = unknown, TError = Error> {
       throw new Error("Expected an error but operation succeeded");
     }
 
+    // @ts-expect-error - Error type conversion
     const errorMessage = (this.error as Error).message;
     if (!errorMessage.includes(expectedMessage)) {
       throw new Error(

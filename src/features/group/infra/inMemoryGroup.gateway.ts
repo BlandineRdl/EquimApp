@@ -45,6 +45,9 @@ export class InMemoryGroupGateway implements GroupGateway {
       name,
       currency,
       creatorId: "current-user",
+      members: [],
+      expenses: [],
+      shares: { totalExpenses: 0, shares: [] },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
@@ -95,7 +98,7 @@ export class InMemoryGroupGateway implements GroupGateway {
       creatorId: group.creatorId,
       members,
       expenses: groupExpenses,
-      shares: shares.shares,
+      shares,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,
     };
@@ -197,7 +200,6 @@ export class InMemoryGroupGateway implements GroupGateway {
     if (!group) return null;
 
     return {
-      groupId: invitation.groupId,
       groupName: group.name,
       creatorPseudo: "Test User",
       expiresAt: invitation.expiresAt,

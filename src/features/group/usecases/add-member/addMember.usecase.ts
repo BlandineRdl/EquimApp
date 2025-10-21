@@ -59,6 +59,7 @@ export const addMemberToGroup = createAsyncThunk<
       pseudo: normalizedData.pseudo,
       shareRevenue: true,
       incomeOrWeight: normalizedData.monthlyIncome,
+      monthlyCapacity: normalizedData.monthlyIncome, // Phantom members have no personal expenses
       joinedAt: new Date().toISOString(),
       isPhantom: true,
     };
