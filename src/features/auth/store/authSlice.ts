@@ -1,11 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { Session, User } from "@supabase/supabase-js";
-
-import { deleteAccount } from "../usecases/deleteAccount.usecase";
-import { initSession } from "../usecases/initSession.usecase";
-import { signInWithEmail } from "../usecases/signInWithEmail.usecase";
-import { signOut } from "../usecases/signOut.usecase";
-import { verifyOtp } from "../usecases/verifyOtp.usecase";
+import { signInWithEmail } from "../usecases/authenticate-with-email/signInWithEmail.usecase";
+import { verifyOtp } from "../usecases/authenticate-with-email/verifyOtp.usecase";
+import { deleteAccount } from "../usecases/delete-account/deleteAccount.usecase";
+import { initSession } from "../usecases/manage-session/initSession.usecase";
+import { signOut } from "../usecases/manage-session/signOut.usecase";
 
 // State interface
 export interface AuthState {

@@ -7,7 +7,7 @@ import {
   TOAST_TIMEOUT_DEFAULT,
   TOAST_TIMEOUT_ERROR,
   TOAST_TOP_OFFSET,
-} from "../domain/notification.constants";
+} from "../presentation/toast/toast.constants";
 import { addNotification } from "./notification.slice";
 
 function getToastTitle(type: "success" | "error" | "info"): string {

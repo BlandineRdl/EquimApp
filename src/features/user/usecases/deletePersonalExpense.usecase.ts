@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../store/appState";
-import { userGateway } from "../infra/gateway";
 import type { UserGateway } from "../ports/UserGateway";
 
 export const deletePersonalExpense = createAsyncThunk<
@@ -20,8 +19,7 @@ export const deletePersonalExpense = createAsyncThunk<
       }
 
       // Delete expense via gateway
-      const gateway = extra?.userGateway || userGateway;
-      await gateway.deletePersonalExpense(userId, expenseId);
+      await extra.userGateway.deletePersonalExpense(userId, expenseId);
 
       // Return the expenseId so the reducer can remove it from state
       return expenseId;

@@ -3,7 +3,7 @@ import type { AppState } from "../../../../store/appState";
 import {
   normalizeMemberData,
   validateMemberData,
-} from "../../domain/memberValidation.service";
+} from "../../domain/manage-members/member-validation";
 import type {
   GroupGateway,
   GroupMember,

@@ -1,7 +1,8 @@
 import type { EntityState } from "@reduxjs/toolkit";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
-import { signOut } from "../../auth/usecases/signOut.usecase";
-import type { Group, InvitationDetails } from "../domain/group.model";
+import { signOut } from "../../auth/usecases/manage-session/signOut.usecase";
+import type { Group } from "../domain/manage-group/group.model";
+import type { InvitationPreview } from "../ports/GroupGateway";
 import { addMemberToGroup } from "../usecases/add-member/addMember.usecase";
 import { createGroup } from "../usecases/create-group/createGroup.usecase";
 import { deleteGroup } from "../usecases/delete-group/deleteGroup.usecase";
@@ -42,7 +43,7 @@ interface GroupState extends EntityState<Group, string> {
     };
     details: {
       loading: boolean;
-      data: InvitationDetails | null;
+      data: InvitationPreview | null;
       error: string | null;
     };
   };
@@ -176,7 +177,6 @@ export const groupSlice = createSlice({
       })
       .addCase(getInvitationDetails.fulfilled, (state, action) => {
         state.invitation.details.loading = false;
-        // @ts-expect-error - InvitationPreview type mismatch with InvitationDetails
         state.invitation.details.data = action.payload;
       })
       .addCase(getInvitationDetails.rejected, (state, action) => {

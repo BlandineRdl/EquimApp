@@ -1,16 +1,12 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../store/appState";
-import { validateExpense } from "../domain/expenseValidation.service";
-import type {
-  CreatePersonalExpenseDTO,
-  PersonalExpense,
-} from "../domain/personalExpense.model";
-import { userGateway } from "../infra/gateway";
-import type { UserGateway } from "../ports/UserGateway";
+import type { PersonalExpense } from "../domain/manage-personal-expenses/personal-expense";
+import { validateExpense } from "../domain/manage-personal-expenses/validate-expense";
+import type { NewPersonalExpense, UserGateway } from "../ports/UserGateway";
 
 export const addPersonalExpense = createAsyncThunk<
   PersonalExpense, // Return the created expense
-  CreatePersonalExpenseDTO,
+  NewPersonalExpense,
   { extra: { userGateway: UserGateway }; state: AppState }
 >(
   "user/addPersonalExpense",
@@ -28,8 +24,10 @@ export const addPersonalExpense = createAsyncThunk<
       }
 
       // Add expense via gateway
-      const gateway = extra?.userGateway || userGateway;
-      const createdExpense = await gateway.addPersonalExpense(userId, expense);
+      const createdExpense = await extra.userGateway.addPersonalExpense(
+        userId,
+        expense,
+      );
 
       // Return the created expense so the reducer can add it to state
       return createdExpense;

@@ -3,7 +3,7 @@
  * Implements the new GroupGateway interface with full validation
  */
 
-import { MIN_PSEUDO_LENGTH } from "../domain/group.constants";
+import { MIN_PSEUDO_LENGTH } from "../domain/manage-members/member.constants";
 import type {
   Expense,
   GroupFull,

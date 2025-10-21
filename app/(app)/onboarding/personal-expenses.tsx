@@ -20,7 +20,7 @@ import {
   MAX_EXPENSE_AMOUNT,
   MAX_LABEL_LENGTH,
   MIN_EXPENSE_AMOUNT,
-} from "../../../src/features/user/domain/personalExpense.constants";
+} from "../../../src/features/user/domain/manage-personal-expenses/personal-expense.constants";
 import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
 interface ExpenseRow {

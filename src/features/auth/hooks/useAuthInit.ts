@@ -7,7 +7,7 @@ import type { AppState } from "../../../store/appState";
 import { useAppDispatch } from "../../../store/buildReduxStore";
 import { loadUserProfile } from "../../user/usecases/loadUserProfile.usecase";
 import { setSession } from "../store/authSlice";
-import { initSession } from "../usecases/initSession.usecase";
+import { initSession } from "../usecases/manage-session/initSession.usecase";
 
 /**
  * Hook to initialize auth on app startup

@@ -1,8 +1,15 @@
 // src/features/onboarding/store/onboarding.slice.ts
 import { createSlice } from "@reduxjs/toolkit";
-import { PREDEFINED_EXPENSES } from "../domain/expense.model";
-import type { OnboardingExpense } from "../domain/onboarding.model";
+import { PREDEFINED_EXPENSES } from "../domain/manage-predefined-expenses/predefined-expense.constants";
 import { completeOnboarding } from "../usecases/complete-onboarding/completeOnboarding.usecase";
+
+// Type spécifique au formulaire (amount en string pour l'input utilisateur)
+interface OnboardingExpense {
+  id: string;
+  label: string;
+  amount: string; // string car c'est un input formulaire
+  isCustom: boolean;
+}
 
 interface PersonalExpenseInput {
   label: string;
@@ -34,7 +41,11 @@ const initialState: OnboardingState = {
   incomeBlurred: false,
   groupName: "",
   groupNameBlurred: false,
-  expenses: [...PREDEFINED_EXPENSES],
+  // Map PREDEFINED_EXPENSES (number) to OnboardingExpense (string for form)
+  expenses: PREDEFINED_EXPENSES.map((expense) => ({
+    ...expense,
+    amount: String(expense.amount),
+  })),
   personalExpenses: [], // NEW
 
   // Completion state

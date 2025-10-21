@@ -12,9 +12,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { RESEND_OTP_COOLDOWN_SECONDS } from "../../src/features/auth/domain/auth.constants";
-import { signInWithEmail } from "../../src/features/auth/usecases/signInWithEmail.usecase";
-import { verifyOtp } from "../../src/features/auth/usecases/verifyOtp.usecase";
+import { RESEND_OTP_COOLDOWN_SECONDS } from "../../src/features/auth/domain/authenticate-with-email/otp.constants";
+import { signInWithEmail } from "../../src/features/auth/usecases/authenticate-with-email/signInWithEmail.usecase";
+import { verifyOtp } from "../../src/features/auth/usecases/authenticate-with-email/verifyOtp.usecase";
 import { RateLimiter } from "../../src/lib/rateLimiter";
 import type { AppState } from "../../src/store/appState";
 import { useAppDispatch } from "../../src/store/buildReduxStore";

@@ -1,8 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { logger } from "../../../../lib/logger";
-import { supabase } from "../../../../lib/supabase/client";
 import type { AppState } from "../../../../store/appState";
-import { MIN_PSEUDO_LENGTH } from "../../domain/group.constants";
+import type { AuthGateway } from "../../../auth/ports/AuthGateway";
+import type { UserGateway } from "../../../user/ports/UserGateway";
+import { MIN_PSEUDO_LENGTH } from "../../domain/manage-members/member.constants";
 import type { GroupGateway } from "../../ports/GroupGateway";
 
 export interface AcceptInvitationInput {
@@ -16,11 +17,18 @@ export const acceptInvitation = createAsyncThunk<
   AcceptInvitationInput,
   {
     state: AppState;
-    extra: { groupGateway: GroupGateway };
+    extra: {
+      groupGateway: GroupGateway;
+      authGateway: AuthGateway;
+      userGateway: UserGateway;
+    };
   }
 >(
   "groups/acceptInvitation",
-  async ({ token, pseudo, monthlyIncome }, { extra: { groupGateway } }) => {
+  async (
+    { token, pseudo, monthlyIncome },
+    { extra: { groupGateway, authGateway, userGateway } },
+  ) => {
     logger.debug("[acceptInvitation] Starting", {
       token,
       pseudo,
@@ -49,24 +57,37 @@ export const acceptInvitation = createAsyncThunk<
       throw new Error("Le revenu mensuel doit être positif");
     }
 
-    // Get current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    // Get current user session
+    const session = await authGateway.getSession();
+    if (!session?.user) {
       throw new Error("Utilisateur non authentifié");
     }
 
-    // Update or create user profile first
-    const { error: profileError } = await supabase.from("profiles").upsert({
-      id: user.id,
-      pseudo: pseudo.trim(),
-      income_or_weight: monthlyIncome,
-      share_revenue: true,
-    });
+    const userId = session.user.id;
 
-    if (profileError) {
-      throw new Error("Erreur lors de la création du profil");
+    // Update or create user profile first
+    // Check if profile exists
+    const existingProfile = await userGateway.getProfileById(userId);
+
+    if (existingProfile) {
+      // Update existing profile
+      await userGateway.updateProfile(userId, {
+        pseudo: pseudo.trim(),
+        monthlyIncome,
+        shareRevenue: true,
+      });
+      logger.debug("[acceptInvitation] Updated existing profile", { userId });
+    } else {
+      // Create new profile
+      // Note: We need to provide currency, defaulting to EUR
+      await userGateway.createProfile({
+        id: userId,
+        pseudo: pseudo.trim(),
+        monthlyIncome,
+        shareRevenue: true,
+        currency: "EUR",
+      });
+      logger.debug("[acceptInvitation] Created new profile", { userId });
     }
 
     // Now accept invitation

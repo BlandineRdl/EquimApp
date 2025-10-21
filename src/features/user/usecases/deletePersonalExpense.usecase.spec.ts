@@ -1,5 +1,5 @@
 import { beforeEach, describe, it } from "vitest";
-import { InMemoryUserGateway } from "../infra/inMemoryUser.gateway";
+import { InMemoryUserGateway } from "../infra/InMemoryUserGateway";
 import type { UserGateway } from "../ports/UserGateway";
 
 describe("Delete Personal Expense Use Case", () => {
@@ -12,7 +12,7 @@ describe("Delete Personal Expense Use Case", () => {
     await userGateway.createProfile({
       id: userId,
       pseudo: "Test User",
-      income: 2000,
+      monthlyIncome: 2000,
       currency: "EUR",
       shareRevenue: true,
     });

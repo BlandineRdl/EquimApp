@@ -658,10 +658,8 @@ export class SupabaseGroupGateway implements GroupGateway {
             const member = payload.new;
             // Handle phantom members
             if (member.is_phantom) {
-              // @ts-expect-error - phantom members have guaranteed pseudo and income
-              const phantomPseudo: string = member.phantom_pseudo;
-              // @ts-expect-error
-              const phantomIncome: number = member.phantom_income;
+              const phantomPseudo = member.phantom_pseudo as string;
+              const phantomIncome = member.phantom_income as number;
               callbacks.onMemberAdded({
                 id: member.id,
                 userId: null,
@@ -673,8 +671,7 @@ export class SupabaseGroupGateway implements GroupGateway {
                 isPhantom: true,
               });
             } else {
-              // @ts-expect-error - user_id is guaranteed for non-phantom members
-              const userId: string = member.user_id;
+              const userId = member.user_id as string;
               const { data: profile } = await supabase
                 .from("profiles")
                 .select("*")

@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { SUGGESTED_GROUP_NAMES } from "../../../src/features/group/domain/group.constants";
+import { SUGGESTED_GROUP_NAMES } from "../../../src/features/group/domain/manage-group/group.constants";
 import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import { selectGroupUI } from "../../../src/features/onboarding/presentation/onboarding.selectors";
 import {

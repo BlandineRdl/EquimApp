@@ -8,14 +8,13 @@ import { useDispatch } from "react-redux";
 import type { AuthGateway } from "../features/auth/ports/AuthGateway";
 import authReducer from "../features/auth/store/authSlice";
 import type { GroupGateway } from "../features/group/ports/GroupGateway";
-import { groupListeners } from "../features/group/store/group.listeners";
+import { createGroupListeners } from "../features/group/store/group.listeners";
 import { groupReducer } from "../features/group/store/group.slice";
 import { notificationListeners } from "../features/notification/store/notification.listeners";
 import { notificationReducer } from "../features/notification/store/notification.slice";
 import type { OnboardingGateway } from "../features/onboarding/ports/OnboardingGateway";
 import { onboardingReducer } from "../features/onboarding/store/onboarding.slice";
 import type { UserGateway } from "../features/user/ports/UserGateway";
-import { userListeners } from "../features/user/store/user.listeners";
 import { userReducer } from "../features/user/store/user.slice";
 import { logger } from "../lib/logger";
 import type { AppState } from "./appState";
@@ -46,6 +45,11 @@ if (!isTestEnvironment) {
 }
 
 export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
+  // Create group listeners with injected dependency
+  const groupListeners = dependencies.groupGateway
+    ? createGroupListeners(dependencies.groupGateway)
+    : null;
+
   return configureStore({
     reducer: {
       auth: authReducer,
@@ -56,8 +60,8 @@ export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
     },
     devTools: !isTestEnvironment,
     // @ts-expect-error - Middleware type mismatch
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
+    middleware: (getDefaultMiddleware) => {
+      const middleware = getDefaultMiddleware({
         thunk: {
           extraArgument: {
             authGateway: dependencies.authGateway,
@@ -66,10 +70,15 @@ export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
             groupGateway: dependencies.groupGateway,
           },
         },
-      })
-        .prepend(notificationListeners.middleware)
-        .prepend(groupListeners.middleware)
-        .prepend(userListeners.middleware),
+      }).prepend(notificationListeners.middleware);
+
+      // Only add group listeners if groupGateway is provided
+      if (groupListeners) {
+        return middleware.prepend(groupListeners.middleware);
+      }
+
+      return middleware;
+    },
     // @ts-expect-error - Redux DevTools Expo plugin type mismatch
     enhancers: (getDefaultEnhancers) => {
       if (isTestEnvironment) {

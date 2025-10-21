@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { logger } from "../../../lib/logger";
 import type { AppState } from "../../../store/appState";
-import { validateIncome } from "../domain/incomeValidation.service";
+import { validateIncome } from "../domain/manage-profile/validate-income";
 import type { UserGateway } from "../ports/UserGateway";
 
 export interface UpdateUserIncomeInput {
@@ -31,7 +31,7 @@ export const updateUserIncome = createAsyncThunk<
     }
 
     // Update profile in database
-    await userGateway.updateProfile(userId, { income: newIncome });
+    await userGateway.updateProfile(userId, { monthlyIncome: newIncome });
 
     logger.info("Income updated successfully", { userId, newIncome });
     return { income: newIncome };

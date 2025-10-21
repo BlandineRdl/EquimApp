@@ -14,11 +14,14 @@ import {
 import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../store/buildReduxStore";
-import { validateIncome } from "../domain/incomeValidation.service";
-import { MAX_INCOME, MIN_INCOME } from "../domain/user.constants";
+import {
+  MAX_INCOME,
+  MIN_INCOME,
+} from "../domain/manage-profile/profile.constants";
+import { validateIncome } from "../domain/manage-profile/validate-income";
 import { updateUserIncome } from "../usecases/updateUserIncome.usecase";
-import { selectPersonalExpenses } from "./selectPersonalExpenses.selector";
-import { selectUserProfile } from "./selectUser.selector";
+import { selectPersonalExpenses } from "./selectors/selectPersonalExpenses.selector";
+import { selectUserProfile } from "./selectors/selectUser.selector";
 
 export interface UpdateIncomeModalProps {
   isVisible: boolean;

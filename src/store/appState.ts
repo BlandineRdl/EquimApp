@@ -1,15 +1,31 @@
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
-import type {
-  Group,
-  InvitationDetails,
-} from "../features/group/domain/group.model";
-import type { OnboardingExpense } from "../features/onboarding/domain/onboarding.model";
-import type { User } from "../features/user/domain/user.model";
+import type { Group } from "../features/group/domain/manage-group/group.model";
+import type { InvitationPreview } from "../features/group/ports/GroupGateway";
+import type { User } from "../features/user/domain/manage-profile/profile";
 
 interface AddMemberForm {
   groupId: string;
   pseudo: string;
   monthlyIncome: string;
+}
+
+interface AddExpenseForm {
+  groupId: string;
+  name: string;
+  amount: string;
+}
+
+// Type formulaire onboarding (amount en string pour les inputs)
+interface OnboardingExpense {
+  id: string;
+  label: string;
+  amount: string;
+  isCustom: boolean;
+}
+
+interface PersonalExpenseInput {
+  label: string;
+  amount: number;
 }
 
 export interface AppState {
@@ -31,6 +47,7 @@ export interface AppState {
     groupName: string;
     groupNameBlurred: boolean;
     expenses: OnboardingExpense[];
+    personalExpenses: PersonalExpenseInput[];
     completing: boolean;
     completed: boolean;
     error: string | null;
@@ -46,6 +63,7 @@ export interface AppState {
     loading: boolean;
     error: string | null;
     addMemberForm?: AddMemberForm;
+    addExpenseForm?: AddExpenseForm;
     invitation: {
       generateLink: {
         loading: boolean;
@@ -54,7 +72,7 @@ export interface AppState {
       };
       details: {
         loading: boolean;
-        data: InvitationDetails | null;
+        data: InvitationPreview | null;
         error: string | null;
       };
     };

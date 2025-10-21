@@ -10,12 +10,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { signOut } from "../../src/features/auth/usecases/signOut.usecase";
+import { signOut } from "../../src/features/auth/usecases/manage-session/signOut.usecase";
 import { ManagePersonalExpensesModal } from "../../src/features/user/presentation/ManagePersonalExpensesModal.component";
-import { PersonalExpensesList } from "../../src/features/user/presentation/PersonalExpensesList.component";
-import { selectPersonalExpenses } from "../../src/features/user/presentation/selectPersonalExpenses.selector";
-import { selectUserProfile } from "../../src/features/user/presentation/selectUser.selector";
-import { selectUserCapacity } from "../../src/features/user/presentation/selectUserCapacity.selector";
+import { selectPersonalExpenses } from "../../src/features/user/presentation/selectors/selectPersonalExpenses.selector";
+import { selectUserProfile } from "../../src/features/user/presentation/selectors/selectUser.selector";
+import { selectUserCapacity } from "../../src/features/user/presentation/selectors/selectUserCapacity.selector";
 import { UpdateIncomeModal } from "../../src/features/user/presentation/UpdateIncomeModal.component";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 
@@ -98,10 +97,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Personal Expenses Card */}
-        <PersonalExpensesList
-          expenses={personalExpenses}
-          onManagePress={() => setIsExpensesModalVisible(true)}
-        />
+        {/* TODO: PersonalExpensesList component is missing */}
 
         {/* Capacity Card */}
         {capacity !== undefined && (

@@ -18,11 +18,11 @@ import {
   MAX_EXPENSE_AMOUNT,
   MAX_LABEL_LENGTH,
   MIN_EXPENSE_AMOUNT,
-} from "../domain/personalExpense.constants";
+} from "../domain/manage-personal-expenses/personal-expense.constants";
 import { addPersonalExpense } from "../usecases/addPersonalExpense.usecase";
 import { deletePersonalExpense } from "../usecases/deletePersonalExpense.usecase";
 import { updatePersonalExpense } from "../usecases/updatePersonalExpense.usecase";
-import { selectPersonalExpenses } from "./selectPersonalExpenses.selector";
+import { selectPersonalExpenses } from "./selectors/selectPersonalExpenses.selector";
 
 interface ManagePersonalExpensesModalProps {
   isVisible: boolean;

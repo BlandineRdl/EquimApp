@@ -4,12 +4,12 @@
  */
 
 import type { Shares } from "../../group/ports/GroupGateway";
+import type { Expense } from "../domain/manage-predefined-expenses/predefined-expense";
 
-export interface ExpenseInput {
-  name: string;
-  amount: number;
+// Gateway input type - uses domain vocabulary (label, not name)
+export type ExpenseInput = Pick<Expense, "label" | "amount"> & {
   isPredefined?: boolean;
-}
+};
 
 export interface CompleteOnboardingInput {
   pseudo: string;

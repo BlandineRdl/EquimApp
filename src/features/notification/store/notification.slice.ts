@@ -1,14 +1,9 @@
 // src/features/notification/store/notification.slice.ts
 import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
-
-export type NotificationType = "success" | "error" | "info";
-
-export interface Notification {
-  id: string;
-  type: NotificationType;
-  message: string;
-  timestamp: number;
-}
+import type {
+  Notification,
+  NotificationType,
+} from "../domain/manage-notifications/notification";
 
 interface NotificationState {
   notifications: Notification[];

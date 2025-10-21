@@ -1,22 +1,29 @@
 import { logger } from "../../../lib/logger";
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
-// @ts-expect-error - MemberShare type no longer exported
-import type { MemberShare } from "../../../types/database.types";
 import type {
   CompleteOnboardingInput,
   CompleteOnboardingResult,
   OnboardingGateway,
 } from "../ports/OnboardingGateway";
 
+// Type local pour le mapping des données de la RPC
+interface RpcMemberShare {
+  member_id: string;
+  user_id: string | null;
+  pseudo: string;
+  share_percentage: number;
+  share_amount: number;
+}
+
 export class SupabaseOnboardingGateway implements OnboardingGateway {
   async completeOnboarding(
     input: CompleteOnboardingInput,
   ): Promise<CompleteOnboardingResult> {
     try {
-      // Format expenses for RPC (JSONB)
+      // Map domain (label) to RPC (name) + snake_case
       const expenses = input.expenses.map((e) => ({
-        name: e.name,
+        name: e.label, // ✅ Infra maps domain → DB
         amount: e.amount,
         is_predefined: e.isPredefined ?? false,
       }));
@@ -58,7 +65,7 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
         shares: {
           totalExpenses: result.shares.total_expenses || 0,
           shares: Array.isArray(result.shares.shares)
-            ? result.shares.shares.map((s: MemberShare) => ({
+            ? result.shares.shares.map((s: RpcMemberShare) => ({
                 memberId: s.member_id,
                 userId: s.user_id,
                 pseudo: s.pseudo || "",

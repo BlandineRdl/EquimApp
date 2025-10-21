@@ -1,35 +1,26 @@
-import type {
-  CreatePersonalExpenseDTO,
-  PersonalExpense,
-  UpdatePersonalExpenseDTO,
-} from "../domain/personalExpense.model";
+import type { PersonalExpense } from "../domain/manage-personal-expenses/personal-expense";
+import type { User } from "../domain/manage-profile/profile";
 
 /**
  * User Gateway Interface
  * Defines the contract for user profile operations
  */
 
-export interface CreateProfileInput {
-  id: string;
-  pseudo: string;
-  income: number;
-  currency: string;
-  shareRevenue: boolean;
-}
+// Gateway input types - represent what the gateway needs to perform operations
 
-export interface ProfileData {
-  id: string;
-  pseudo: string;
-  income: number;
-  shareRevenue: boolean;
-  currency: string;
-  createdAt: string;
-  capacity?: number;
-}
+/** Data needed to create a new personal expense */
+export type NewPersonalExpense = Omit<PersonalExpense, "id" | "userId">;
 
+/** Data needed to update an existing personal expense */
+export type PersonalExpenseUpdate = Omit<PersonalExpense, "userId">;
+
+/** Data needed to create a new user profile */
+export type CreateProfileInput = Omit<User, "personalExpenses" | "capacity">;
+
+/** Data needed to update an existing user profile */
 export interface UpdateProfileInput {
   pseudo?: string;
-  income?: number;
+  monthlyIncome?: number;
   shareRevenue?: boolean;
 }
 
@@ -43,7 +34,7 @@ export interface UserGateway {
    * Get profile by user ID
    * Returns null if not found or soft-deleted
    */
-  getProfileById(id: string): Promise<ProfileData | null>;
+  getProfileById(id: string): Promise<User | null>;
 
   /**
    * Update user profile
@@ -55,7 +46,7 @@ export interface UserGateway {
    */
   addPersonalExpense(
     userId: string,
-    expense: CreatePersonalExpenseDTO,
+    expense: NewPersonalExpense,
   ): Promise<PersonalExpense>;
 
   /**
@@ -63,7 +54,7 @@ export interface UserGateway {
    */
   updatePersonalExpense(
     userId: string,
-    expense: UpdatePersonalExpenseDTO,
+    expense: PersonalExpenseUpdate,
   ): Promise<PersonalExpense>;
 
   /**

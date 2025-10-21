@@ -1,10 +1,10 @@
 // src/features/user/store/user.slice.ts
 import { createSlice } from "@reduxjs/toolkit";
 import { logger } from "../../../lib/logger";
-import { signOut } from "../../auth/usecases/signOut.usecase";
+import { signOut } from "../../auth/usecases/manage-session/signOut.usecase";
 import { completeOnboarding } from "../../onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
-import type { PersonalExpense } from "../domain/personalExpense.model";
-import type { User } from "../domain/user.model";
+import type { PersonalExpense } from "../domain/manage-personal-expenses/personal-expense";
+import type { User } from "../domain/manage-profile/profile";
 import { addPersonalExpense } from "../usecases/addPersonalExpense.usecase";
 import { deletePersonalExpense } from "../usecases/deletePersonalExpense.usecase";
 import { loadUserProfile } from "../usecases/loadUserProfile.usecase";
@@ -73,16 +73,11 @@ export const userSlice = createSlice({
         });
         state.loading = false;
         if (action.payload) {
-          state.profile = {
-            ...action.payload,
-            shareRevenue: true, // Default value, will be loaded from backend if available
-            personalExpenses: action.payload.personalExpenses || [],
-            capacity: action.payload.capacity,
-          };
+          // Gateway already returns a complete User entity
+          state.profile = action.payload;
           logger.info("[UserSlice] Profile set in state", {
             pseudo: state.profile.pseudo,
-            // @ts-expect-error - personalExpenses may be undefined
-            hasExpenses: state.profile.personalExpenses?.length > 0,
+            hasExpenses: (state.profile.personalExpenses?.length ?? 0) > 0,
             capacity: state.profile.capacity,
           });
         } else {
@@ -100,19 +95,14 @@ export const userSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || "Failed to load profile";
       })
-      // Listen to completeOnboarding to set profile immediately
+      // Listen to completeOnboarding - profile will be loaded separately
       .addCase(completeOnboarding.fulfilled, (state, action) => {
-        // Profile was just created - set it from the payload
-        logger.debug("completeOnboarding.fulfilled received in user slice");
-        logger.debug("Payload", { payload: action.payload });
+        logger.debug("completeOnboarding.fulfilled received in user slice", {
+          profileId: action.payload.profileId,
+        });
+        // Note: The actual profile will be loaded via loadUserProfile
+        // We don't set state.profile here because we need the complete User entity
         state.loading = false;
-        state.profile = {
-          id: action.payload.profileId,
-          pseudo: action.payload.profile.pseudo,
-          monthlyIncome: action.payload.profile.income,
-          shareRevenue: true, // Default value from onboarding
-        };
-        logger.debug("Profile set in state", { profile: state.profile });
       })
       // Update income with optimistic update (don't set loading to avoid layout re-render)
       .addCase(updateUserIncome.pending, (state, action) => {

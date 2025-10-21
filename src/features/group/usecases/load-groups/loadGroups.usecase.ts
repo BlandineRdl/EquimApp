@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { logger } from "../../../../lib/logger";
 import type { AppState } from "../../../../store/appState";
-import type { Group } from "../../domain/group.model";
+import type { Group } from "../../domain/manage-group/group.model";
 import type { GroupGateway } from "../../ports/GroupGateway";
 
 export const loadUserGroups = createAsyncThunk<

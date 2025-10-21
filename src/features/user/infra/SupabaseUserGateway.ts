@@ -1,14 +1,12 @@
 import { logger } from "../../../lib/logger";
 import { supabase } from "../../../lib/supabase/client";
 import { createUserFriendlyError } from "../../../lib/supabase/errors";
-import type {
-  CreatePersonalExpenseDTO,
-  PersonalExpense,
-  UpdatePersonalExpenseDTO,
-} from "../domain/personalExpense.model";
+import type { PersonalExpense } from "../domain/manage-personal-expenses/personal-expense";
+import type { User } from "../domain/manage-profile/profile";
 import type {
   CreateProfileInput,
-  ProfileData,
+  NewPersonalExpense,
+  PersonalExpenseUpdate,
   UpdateProfileInput,
   UserGateway,
 } from "../ports/UserGateway";
@@ -19,7 +17,7 @@ export class SupabaseUserGateway implements UserGateway {
       const { error } = await supabase.from("profiles").insert({
         id: input.id,
         pseudo: input.pseudo,
-        income_or_weight: input.income,
+        income_or_weight: input.monthlyIncome, // ✅ Map domain → DB
         currency_code: input.currency,
         share_revenue: input.shareRevenue,
       });
@@ -32,7 +30,7 @@ export class SupabaseUserGateway implements UserGateway {
     }
   }
 
-  async getProfileById(id: string): Promise<ProfileData | null> {
+  async getProfileById(id: string): Promise<User | null> {
     try {
       logger.debug("Loading profile for user", { userId: id });
 
@@ -64,10 +62,12 @@ export class SupabaseUserGateway implements UserGateway {
       return {
         id: data.id,
         pseudo: data.pseudo || "",
-        income: Number(data.income_or_weight || data.weight_override || 0),
+        monthlyIncome: Number(
+          data.income_or_weight || data.weight_override || 0,
+        ), // ✅ Map DB → domain
         shareRevenue: data.share_revenue,
         currency: data.currency_code,
-        createdAt: String(data.created_at),
+        personalExpenses: undefined, // Will be loaded separately if needed
         capacity: data.monthly_capacity
           ? Number(data.monthly_capacity)
           : undefined,
@@ -86,8 +86,9 @@ export class SupabaseUserGateway implements UserGateway {
       if (patch.pseudo !== undefined) {
         updates.pseudo = patch.pseudo;
       }
-      if (patch.income !== undefined) {
-        updates.income_or_weight = patch.income;
+      if (patch.monthlyIncome !== undefined) {
+        // ✅ Use domain vocabulary
+        updates.income_or_weight = patch.monthlyIncome; // ✅ Map domain → DB
       }
       if (patch.shareRevenue !== undefined) {
         updates.share_revenue = patch.shareRevenue;
@@ -109,7 +110,7 @@ export class SupabaseUserGateway implements UserGateway {
 
   async addPersonalExpense(
     userId: string,
-    expense: CreatePersonalExpenseDTO,
+    expense: NewPersonalExpense,
   ): Promise<PersonalExpense> {
     try {
       const { data, error } = await supabase
@@ -143,7 +144,7 @@ export class SupabaseUserGateway implements UserGateway {
 
   async updatePersonalExpense(
     userId: string,
-    expense: UpdatePersonalExpenseDTO,
+    expense: PersonalExpenseUpdate,
   ): Promise<PersonalExpense> {
     try {
       const { data, error } = await supabase
@@ -249,9 +250,8 @@ export class SupabaseUserGateway implements UserGateway {
     try {
       logger.debug("[SupabaseUserGateway] Loading user capacity", { userId });
       const { data, error } = await supabase
-        // @ts-expect-error - user_profiles view not in types
-        .from("user_profiles")
-        .select("capacity")
+        .from("profiles")
+        .select("monthly_capacity")
         .eq("id", userId)
         .single();
 
@@ -261,8 +261,7 @@ export class SupabaseUserGateway implements UserGateway {
       }
 
       // capacity can be null in database, which is valid (means no expenses or no income)
-      // @ts-expect-error - capacity column may not exist in type
-      const capacityValue = data?.capacity;
+      const capacityValue = data?.monthly_capacity;
       const capacity =
         capacityValue !== null && capacityValue !== undefined
           ? Number(capacityValue)

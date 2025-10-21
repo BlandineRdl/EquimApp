@@ -8,6 +8,27 @@ global.__DEV__ = true;
 // Mock react-native-url-polyfill pour éviter l'erreur d'import React Native
 vi.mock("react-native-url-polyfill/auto", () => ({}));
 
+// Mock expo-constants pour éviter l'erreur d'import React Native
+vi.mock("expo-constants", () => ({
+  default: {
+    expoConfig: {},
+    manifest: {},
+  },
+}));
+
+// Mock Supabase client pour éviter l'erreur de variables d'environnement manquantes
+vi.mock("../lib/supabase/client", () => ({
+  supabase: {
+    from: vi.fn(),
+    auth: {
+      signUp: vi.fn(),
+      signInWithPassword: vi.fn(),
+      signOut: vi.fn(),
+      getSession: vi.fn(),
+    },
+  },
+}));
+
 // Mock de react-native-toast-message
 vi.mock("react-native-toast-message", () => ({
   default: {
