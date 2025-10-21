@@ -92,7 +92,7 @@ describe("Get Invitation Details Use Case", () => {
   describe("Token expiration", () => {
     it("should handle expired tokens gracefully", async () => {
       // For now, just verify it returns null or throws appropriate error
-      const expiredToken = "invite-expired-token-123";
+      const expiredToken = "expired-token-123";
       const details = await groupGateway.getInvitationDetails(expiredToken);
 
       if (details !== null) {

@@ -63,6 +63,17 @@ CREATE TABLE IF NOT EXISTS test.expenses (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS test.invitations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  group_id UUID NOT NULL REFERENCES test.groups(id) ON DELETE CASCADE,
+  token TEXT NOT NULL UNIQUE,
+  created_by UUID NOT NULL REFERENCES test.profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ,
+  consumed_at TIMESTAMPTZ,
+  consumed_by UUID REFERENCES test.profiles(id)
+);
+
 -- Create test version of calculate_user_capacity function
 CREATE OR REPLACE FUNCTION test.calculate_user_capacity(user_id UUID)
 RETURNS NUMERIC(12,2) AS $$

@@ -47,12 +47,7 @@ describe("Generate Invite Link Use Case", () => {
     it("should generate valid token format", async () => {
       const result = await groupGateway.generateInvitation(groupId);
 
-      // Token should start with the prefix
-      if (!result.token.startsWith("invite-")) {
-        throw new Error("Expected token to start with 'invite-' prefix");
-      }
-
-      // Token should have sufficient length
+      // Token should have sufficient length (cryptographically secure)
       if (result.token.length < 20) {
         throw new Error("Expected token to have minimum length");
       }

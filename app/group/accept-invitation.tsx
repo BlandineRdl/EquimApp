@@ -13,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { INVITATION_TOKEN_PREFIX } from "../../src/features/group/domain/group.constants";
 import { acceptInvitation } from "../../src/features/group/usecases/invitation/acceptInvitation.usecase";
 import { loadUserGroups } from "../../src/features/group/usecases/load-groups/loadGroups.usecase";
 import { loadUserProfile } from "../../src/features/user/usecases/loadUserProfile.usecase";
@@ -108,10 +107,9 @@ export default function AcceptInvitationScreen() {
     setError(null);
 
     try {
-      const fullToken = `${INVITATION_TOKEN_PREFIX}${token}`;
       const result = await dispatch(
         acceptInvitation({
-          token: fullToken,
+          token,
           pseudo: pseudo.trim(),
           monthlyIncome: income,
         }),

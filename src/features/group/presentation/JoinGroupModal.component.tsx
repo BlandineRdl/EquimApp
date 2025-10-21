@@ -57,7 +57,7 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
         acceptInvitation({
           token,
           pseudo: profile.pseudo,
-          monthlyIncome: profile.income,
+          monthlyIncome: profile.monthlyIncome,
         }),
       ).unwrap();
 
