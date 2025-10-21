@@ -73,6 +73,23 @@ export class InMemoryAuthGateway implements AuthGateway {
     this.notifyAuthStateChange(null);
   }
 
+  async resetAccount(): Promise<void> {
+    const session = this.currentSession;
+    if (!session) {
+      throw new Error("No user to reset");
+    }
+
+    console.log(`[InMemory] RESET account for user ${session.user.id}`);
+
+    // Clear session
+    this.currentSession = null;
+
+    // Notify listeners
+    for (const listener of this.authStateListeners) {
+      listener(null);
+    }
+  }
+
   private notifyAuthStateChange(session: Session | null): void {
     for (const listener of this.authStateListeners) {
       listener(session);

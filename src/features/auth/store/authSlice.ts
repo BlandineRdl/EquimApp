@@ -5,6 +5,7 @@ import { verifyOtp } from "../usecases/authenticate-with-email/verifyOtp.usecase
 import { deleteAccount } from "../usecases/delete-account/deleteAccount.usecase";
 import { initSession } from "../usecases/manage-session/initSession.usecase";
 import { signOut } from "../usecases/manage-session/signOut.usecase";
+import { resetAccount } from "../usecases/reset-account/resetAccount.usecase";
 
 // State interface
 export interface AuthState {
@@ -106,6 +107,29 @@ const authSlice = createSlice({
       .addCase(deleteAccount.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || "Failed to delete account";
+      });
+
+    // Reset account
+    builder
+      .addCase(resetAccount.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resetAccount.fulfilled, (state) => {
+        // Reset all auth state
+        state.user = null;
+        state.userId = null;
+        state.session = null;
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.profileDeleted = true;
+        state.error = null;
+      })
+      .addCase(resetAccount.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error =
+          action.error.message ||
+          "Erreur lors de la réinitialisation du compte";
       });
 
     // Init session

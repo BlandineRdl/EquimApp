@@ -121,4 +121,44 @@ export class SupabaseAuthGateway implements AuthGateway {
       throw createUserFriendlyError(error);
     }
   }
+
+  async resetAccount(): Promise<void> {
+    try {
+      // Get current user ID
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw createUserFriendlyError(userError || new Error("User not found"));
+      }
+
+      logger.warn("[RESET] Permanently deleting user and all data", {
+        userId: user.id,
+      });
+
+      // Hard delete profile (will cascade to groups, expenses, etc via DB constraints)
+      const { error: deleteError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", user.id);
+
+      if (deleteError) {
+        throw createUserFriendlyError(deleteError);
+      }
+
+      // Note: The database trigger or RLS policy should handle deleting the auth user
+      // from auth.users table when the profile is deleted. If not, you need to create
+      // a Supabase Edge Function with admin privileges to delete the auth user.
+
+      // Sign out
+      await this.signOut();
+
+      logger.info("[RESET] Account reset complete");
+    } catch (error) {
+      logger.error("[RESET] Reset account failed", error);
+      throw createUserFriendlyError(error);
+    }
+  }
 }

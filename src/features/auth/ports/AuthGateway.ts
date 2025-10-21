@@ -37,4 +37,10 @@ export interface AuthGateway {
    * Delete current user's account (soft delete)
    */
   deleteAccount(): Promise<void>;
+
+  /**
+   * Reset account: permanently delete user and all associated data
+   * WARNING: This is a hard delete and cannot be undone
+   */
+  resetAccount(): Promise<void>;
 }

@@ -1,7 +1,14 @@
 import { useRouter } from "expo-router";
-import { ArrowLeft, Edit2, LogOut, User } from "lucide-react-native";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Edit2,
+  LogOut,
+  User,
+} from "lucide-react-native";
 import { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { signOut } from "../../src/features/auth/usecases/manage-session/signOut.usecase";
+import { resetAccount } from "../../src/features/auth/usecases/reset-account/resetAccount.usecase";
 import { ManagePersonalExpensesModal } from "../../src/features/user/presentation/ManagePersonalExpensesModal.component";
 import { PersonalExpensesList } from "../../src/features/user/presentation/PersonalExpensesList.component";
 import { selectPersonalExpenses } from "../../src/features/user/presentation/selectors/selectPersonalExpenses.selector";
@@ -31,6 +39,27 @@ export default function ProfileScreen() {
   const handleSignOut = async () => {
     await dispatch(signOut());
     // User will be redirected to sign-in by the layout
+  };
+
+  const handleReset = () => {
+    Alert.alert(
+      "⚠️ Réinitialiser le compte",
+      "Cette action est IRRÉVERSIBLE. Toutes vos données seront définitivement supprimées :\n\n• Votre profil\n• Tous vos groupes\n• Toutes vos dépenses\n• Toutes vos invitations\n\nÊtes-vous absolument sûr ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel",
+        },
+        {
+          text: "Confirmer la suppression",
+          style: "destructive",
+          onPress: async () => {
+            await dispatch(resetAccount());
+            // User will be redirected to sign-in by the layout
+          },
+        },
+      ],
+    );
   };
 
   const totalExpenses = personalExpenses.reduce(
@@ -135,6 +164,17 @@ export default function ProfileScreen() {
           <Text style={styles.infoText}>
             Vous pouvez modifier votre revenu à tout moment. Les parts de tous
             vos groupes seront automatiquement recalculées.
+          </Text>
+        </View>
+
+        {/* Reset Account Button */}
+        <View style={styles.dangerSection}>
+          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+            <AlertTriangle size={20} color="#dc2626" />
+            <Text style={styles.resetText}>Réinitialiser le compte</Text>
+          </TouchableOpacity>
+          <Text style={styles.resetWarning}>
+            ⚠️ Supprime définitivement toutes vos données
           </Text>
         </View>
 
@@ -287,6 +327,33 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     lineHeight: 20,
     marginBottom: 12,
+  },
+  dangerSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  resetButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fef2f2",
+    borderWidth: 2,
+    borderColor: "#dc2626",
+    borderRadius: 12,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  resetText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#dc2626",
+  },
+  resetWarning: {
+    fontSize: 12,
+    color: "#dc2626",
+    textAlign: "center",
+    marginTop: 8,
+    fontStyle: "italic",
   },
   logoutSection: {
     marginHorizontal: 16,
