@@ -1,5 +1,6 @@
 -- RPC function to atomically accept a group invitation
--- Validates token, adds user to group, marks invitation as consumed, calculates shares
+-- Validates token, adds user to group, calculates shares
+-- No longer marks as consumed (multiple usage allowed)
 
 CREATE OR REPLACE FUNCTION public.accept_invite(p_token TEXT)
 RETURNS JSON
@@ -14,25 +15,19 @@ BEGIN
   -- Set search_path to prevent SQL injection via shadowing
   SET search_path = public;
 
-  -- Lock and fetch invitation
+  -- Fetch invitation
   SELECT * INTO v_invitation
   FROM public.invitations
-  WHERE token = p_token
-  FOR UPDATE;
+  WHERE token = p_token;
 
   -- Validate: token exists
   IF NOT FOUND THEN
     RAISE EXCEPTION 'invalid_token' USING ERRCODE = 'P0001', DETAIL = 'invalid_token';
   END IF;
 
-  -- Validate: not expired
+  -- Validate: not expired (if expires_at is set)
   IF v_invitation.expires_at IS NOT NULL AND v_invitation.expires_at < NOW() THEN
     RAISE EXCEPTION 'expired_token' USING ERRCODE = 'P0001', DETAIL = 'expired_token';
-  END IF;
-
-  -- Validate: not already consumed
-  IF v_invitation.consumed_at IS NOT NULL THEN
-    RAISE EXCEPTION 'already_consumed' USING ERRCODE = 'P0001', DETAIL = 'already_consumed';
   END IF;
 
   -- Check if already a member
@@ -49,10 +44,7 @@ BEGIN
   VALUES (v_invitation.group_id, auth.uid())
   RETURNING * INTO v_new_member;
 
-  -- Mark invitation as consumed
-  UPDATE public.invitations
-  SET accepted_by = auth.uid(), consumed_at = NOW()
-  WHERE token = p_token;
+  -- Note: Invitation is NOT marked as consumed - multiple users can use the same link
 
   -- Calculate updated shares with new member
   v_shares := public.compute_shares(v_invitation.group_id);
@@ -67,3 +59,6 @@ $$;
 
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.accept_invite(TEXT) TO authenticated;
+
+COMMENT ON FUNCTION public.accept_invite IS
+'Accepte une invitation de groupe. Usage multiple autorisé (pas de marquage consumed).';

@@ -19,6 +19,11 @@ BEGIN
   -- Set search_path to prevent SQL injection via shadowing
   SET search_path = public;
 
+  -- Validate pseudo: prevent reserved "Membre-" prefix
+  IF p_pseudo LIKE 'Membre-%' THEN
+    RAISE EXCEPTION 'Le préfixe "Membre-" est réservé. Choisissez un autre pseudo.';
+  END IF;
+
   -- Create profile (always required)
   INSERT INTO public.profiles (id, pseudo, income_or_weight, currency_code, share_revenue)
   VALUES (auth.uid(), p_pseudo, p_income, 'EUR', true);

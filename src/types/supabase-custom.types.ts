@@ -41,6 +41,14 @@ export interface AcceptInviteResult {
 
 export interface AddPhantomMemberResult {
   member_id: string;
+  pseudo: string; // Auto-generated pseudo (Membre-{N})
+  shares: SharesResult;
+}
+
+export interface UpdatePhantomMemberResult {
+  member_id: string;
+  pseudo: string; // Updated pseudo (Membre-{custom})
+  income: number;
   shares: SharesResult;
 }
 

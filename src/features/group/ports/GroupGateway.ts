@@ -151,13 +151,24 @@ export interface GroupGateway {
 
   /**
    * Add a phantom member (without account)
-   * Can be claimed later by a real user
+   * Pseudo is required (backend prepends "Membre-")
+   * Income defaults to 0
    */
   addPhantomMember(
     groupId: string,
     pseudo: string,
-    income: number,
-  ): Promise<{ memberId: string; shares: Shares }>;
+    income?: number,
+  ): Promise<{ memberId: string; pseudo: string; shares: Shares }>;
+
+  /**
+   * Update a phantom member (rename and/or change income)
+   * Pseudo must start with "Membre-"
+   */
+  updatePhantomMember(
+    memberId: string,
+    newPseudo: string,
+    newIncome?: number,
+  ): Promise<{ memberId: string; pseudo: string; shares: Shares }>;
 
   /**
    * Remove a member from a group

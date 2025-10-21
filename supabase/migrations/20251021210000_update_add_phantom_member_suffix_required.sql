@@ -1,8 +1,11 @@
--- RPC function to add a phantom member to a group
--- Pseudo is custom with auto "Membre-" prefix (p_suffix is required)
--- Income defaults to 0 (can be modified later)
+-- Migration: Make suffix required for add_phantom_member
+-- Changes parameter name from p_pseudo to p_suffix (required)
 
-CREATE OR REPLACE FUNCTION public.add_phantom_member(
+-- Drop old function signature (UUID, TEXT, NUMERIC)
+DROP FUNCTION IF EXISTS public.add_phantom_member(UUID, TEXT, NUMERIC);
+
+-- Create new function with required suffix parameter
+CREATE FUNCTION public.add_phantom_member(
   p_group_id UUID,
   p_suffix TEXT,
   p_income NUMERIC(12,2) DEFAULT 0

@@ -1,7 +1,6 @@
 import { Copy, Share, UserPlus, X } from "lucide-react-native";
 import React from "react";
 import {
-  Alert,
   Clipboard,
   Modal,
   Share as ShareAPI,
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import { generateInviteLink } from "../../usecases/invitation/generateInviteLink.usecase";
@@ -41,34 +41,54 @@ export const InviteModal: React.FC<InviteModalProps> = ({
 
   const handleCopyLink = async () => {
     if (!inviteLink) {
-      Alert.alert("Erreur", "Aucun lien d'invitation généré");
+      Toast.show({
+        type: "error",
+        text1: "Aucun lien généré",
+      });
       return;
     }
 
     try {
       await Clipboard.setString(inviteLink);
-      Alert.alert(
-        "Lien copié",
-        "Le lien d'invitation a été copié dans le presse-papiers",
-      );
+      Toast.show({
+        type: "success",
+        text1: "Lien copié !",
+        text2: "Collez-le dans WhatsApp ou SMS",
+      });
     } catch (_error) {
-      Alert.alert("Erreur", "Impossible de copier le lien");
+      Toast.show({
+        type: "error",
+        text1: "Impossible de copier",
+      });
     }
   };
 
   const handleShareLink = async () => {
     if (!inviteLink) {
-      Alert.alert("Erreur", "Aucun lien d'invitation généré");
+      Toast.show({
+        type: "error",
+        text1: "Aucun lien généré",
+      });
       return;
     }
 
+    const message =
+      `🎉 Rejoins mon groupe "${groupName}" sur EquimApp !\n\n` +
+      `👉 Clique ici pour accepter l'invitation :\n${inviteLink}\n\n` +
+      `📱 Si le lien ne fonctionne pas :\n` +
+      `1. Télécharge EquimApp sur ton app store\n` +
+      `2. Ouvre l'app et utilise ce lien pour rejoindre le groupe`;
+
     try {
       await ShareAPI.share({
-        message: `Rejoignez mon groupe sur Justo: ${inviteLink}`,
-        url: inviteLink,
+        message: message,
+        title: `Invitation au groupe ${groupName}`,
       });
     } catch (_error) {
-      Alert.alert("Erreur", "Impossible de partager le lien");
+      Toast.show({
+        type: "error",
+        text1: "Impossible de partager",
+      });
     }
   };
 
@@ -77,7 +97,10 @@ export const InviteModal: React.FC<InviteModalProps> = ({
       try {
         await dispatch(generateInviteLink({ groupId })).unwrap();
       } catch (_error) {
-        Alert.alert("Erreur", "Impossible de générer le lien d'invitation");
+        Toast.show({
+          type: "error",
+          text1: "Impossible de générer le lien",
+        });
       }
     }
   }, [dispatch, groupId]);

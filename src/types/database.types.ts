@@ -7,11 +7,6 @@ export type Json =
   | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5";
-  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -294,13 +289,17 @@ export type Database = {
         Returns: Json;
       };
       add_phantom_member: {
-        Args: { p_group_id: string; p_income: number; p_pseudo: string };
+        Args: { p_group_id: string; p_income?: number; p_suffix: string };
         Returns: Json;
+      };
+      calculate_user_capacity: {
+        Args: { p_user_id: string };
+        Returns: number;
       };
       complete_onboarding: {
         Args: {
-          p_expenses: Json;
-          p_group_name: string;
+          p_expenses?: Json;
+          p_group_name?: string;
           p_income: number;
           p_pseudo: string;
         };
@@ -340,6 +339,14 @@ export type Database = {
       };
       remove_group_member: {
         Args: { p_group_id: string; p_member_id: string };
+        Returns: Json;
+      };
+      update_phantom_member: {
+        Args: {
+          p_member_id: string;
+          p_new_income?: number;
+          p_new_pseudo: string;
+        };
         Returns: Json;
       };
     };

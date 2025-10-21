@@ -12,7 +12,6 @@ import {
 } from "../../../../store/buildReduxStore";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
-import { MIN_PSEUDO_LENGTH } from "../../domain/manage-members/member.constants";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
 import { loadGroupById } from "../load-group/loadGroup.usecase";
 import { addMemberToGroup } from "./addMember.usecase";
@@ -66,7 +65,7 @@ describe("Feature: Add member to group", () => {
           shares: { totalExpenses: number };
         };
         expect(response.groupId).toBe(groupId);
-        expect(response.newMember.pseudo).toBe("PhantomUser");
+        expect(response.newMember.pseudo).toBe("Membre-PhantomUser");
         expect(response.newMember.incomeOrWeight).toBe(2000);
         expect(response.newMember.isPhantom).toBe(true);
         expect(response.newMember.id).toBeDefined();
@@ -103,7 +102,7 @@ describe("Feature: Add member to group", () => {
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as { newMember: { pseudo: string } };
-        expect(response.newMember.pseudo).toBe("SpacedUser");
+        expect(response.newMember.pseudo).toBe("Membre-SpacedUser");
       }
     });
 
@@ -218,7 +217,7 @@ describe("Feature: Add member to group", () => {
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
       if ("error" in result) {
-        expect(result.error.message).toContain("vide");
+        expect(result.error.message).toContain("1 et 50 caractères");
       }
     });
 
@@ -243,18 +242,18 @@ describe("Feature: Add member to group", () => {
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
       if ("error" in result) {
-        expect(result.error.message).toContain("vide");
+        expect(result.error.message).toContain("1 et 50 caractères");
       }
     });
 
-    it(`should reject pseudo shorter than ${MIN_PSEUDO_LENGTH} characters`, async () => {
+    it("should allow single character pseudo", async () => {
       // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter un membre avec un pseudo trop court
+      // When on ajoute un membre avec un pseudo d'un seul caractère
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -265,21 +264,22 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout échoue
-      expect(result.type).toBe("groups/addMemberToGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("caractères");
+      // Then l'ajout réussit (1 caractère est autorisé)
+      expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
+      if ("payload" in result && result.payload) {
+        const response = result.payload as { newMember: { pseudo: string } };
+        expect(response.newMember.pseudo).toBe("Membre-A");
       }
     });
 
-    it("should reject zero monthly income", async () => {
+    it("should allow zero monthly income", async () => {
       // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter un membre avec un revenu de 0
+      // When on ajoute un membre avec un revenu de 0
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -290,10 +290,13 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout échoue
-      expect(result.type).toBe("groups/addMemberToGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("positif");
+      // Then l'ajout réussit (0 est autorisé pour les membres fantômes)
+      expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
+      if ("payload" in result && result.payload) {
+        const response = result.payload as {
+          newMember: { incomeOrWeight: number };
+        };
+        expect(response.newMember.incomeOrWeight).toBe(0);
       }
     });
 
@@ -318,7 +321,7 @@ describe("Feature: Add member to group", () => {
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
       if ("error" in result) {
-        expect(result.error.message).toContain("positif");
+        expect(result.error.message).toContain("négatif");
       }
     });
   });

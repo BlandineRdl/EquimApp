@@ -3,7 +3,6 @@
  * Implements the new GroupGateway interface with full validation
  */
 
-import { MIN_PSEUDO_LENGTH } from "../domain/manage-members/member.constants";
 import type {
   Expense,
   GroupFull,
@@ -259,24 +258,27 @@ export class InMemoryGroupGateway implements GroupGateway {
 
   async addPhantomMember(
     groupId: string,
-    pseudo: string,
-    income: number,
-  ): Promise<{ memberId: string; shares: Shares }> {
-    // Validate pseudo
-    if (!pseudo.trim()) {
-      throw new Error("Le pseudo ne peut pas être vide");
+    suffix: string,
+    income: number = 0,
+  ): Promise<{ memberId: string; pseudo: string; shares: Shares }> {
+    // Validate income >= 0
+    if (income < 0) {
+      throw new Error("Le revenu ne peut pas être négatif");
     }
 
-    if (pseudo.trim().length < MIN_PSEUDO_LENGTH) {
+    // Trim and validate suffix
+    const trimmedSuffix = suffix.trim();
+    if (trimmedSuffix.length < 1 || trimmedSuffix.length > 50) {
+      throw new Error("Le nom doit faire entre 1 et 50 caractères");
+    }
+    if (!/^[a-zA-Z0-9\s-]+$/.test(trimmedSuffix)) {
       throw new Error(
-        `Le pseudo doit contenir au moins ${MIN_PSEUDO_LENGTH} caractères`,
+        "Le nom ne peut contenir que des lettres, chiffres, tirets et espaces",
       );
     }
 
-    // Validate income
-    if (income <= 0) {
-      throw new Error("Le revenu mensuel doit être positif");
-    }
+    // Generate pseudo with suffix
+    const pseudo = `Membre-${trimmedSuffix}`;
 
     const members = this.members.get(groupId) || [];
     const memberId = `phantom-${++this.memberCounter}`;
@@ -284,7 +286,7 @@ export class InMemoryGroupGateway implements GroupGateway {
     members.push({
       id: memberId,
       userId: null,
-      pseudo: pseudo.trim(),
+      pseudo,
       shareRevenue: true,
       incomeOrWeight: income,
       monthlyCapacity: income,
@@ -294,7 +296,66 @@ export class InMemoryGroupGateway implements GroupGateway {
     this.members.set(groupId, members);
 
     const { shares } = await this.refreshGroupShares(groupId);
-    return { memberId, shares };
+    return { memberId, pseudo, shares };
+  }
+
+  async updatePhantomMember(
+    memberId: string,
+    newPseudo: string,
+    newIncome?: number,
+  ): Promise<{ memberId: string; pseudo: string; shares: Shares }> {
+    // Validate format
+    if (!newPseudo.startsWith("Membre-")) {
+      throw new Error(
+        'Le pseudo d\'un membre fantôme doit commencer par "Membre-"',
+      );
+    }
+
+    const suffix = newPseudo.substring(7);
+    if (suffix.length < 1 || suffix.length > 50) {
+      throw new Error(
+        "Le pseudo doit faire entre 8 et 57 caractères (Membre-X où X fait 1-50 caractères)",
+      );
+    }
+
+    // Validate characters
+    if (!/^[a-zA-Z0-9\s-]+$/.test(suffix)) {
+      throw new Error(
+        'Le pseudo ne peut contenir que des lettres, chiffres, tirets et espaces après "Membre-"',
+      );
+    }
+
+    // Validate income if provided
+    if (newIncome !== undefined && newIncome < 0) {
+      throw new Error("Le revenu ne peut pas être négatif");
+    }
+
+    // Find the member
+    let foundMember: GroupMember | undefined;
+    let groupId: string | undefined;
+
+    for (const [gId, members] of this.members.entries()) {
+      const member = members.find((m) => m.id === memberId && m.isPhantom);
+      if (member) {
+        foundMember = member;
+        groupId = gId;
+        break;
+      }
+    }
+
+    if (!foundMember || !groupId) {
+      throw new Error("Membre fantôme non trouvé");
+    }
+
+    // Update
+    foundMember.pseudo = newPseudo;
+    if (newIncome !== undefined) {
+      foundMember.incomeOrWeight = newIncome;
+      foundMember.monthlyCapacity = newIncome;
+    }
+
+    const { shares } = await this.refreshGroupShares(groupId);
+    return { memberId, pseudo: newPseudo, shares };
   }
 
   async removeMember(

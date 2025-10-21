@@ -17,6 +17,7 @@ import type {
   MemberShare,
   RemoveGroupMemberResult,
   SharesResult,
+  UpdatePhantomMemberResult,
 } from "../../../types/supabase-custom.types";
 import type {
   Expense,
@@ -433,12 +434,12 @@ export class SupabaseGroupGateway implements GroupGateway {
   async addPhantomMember(
     groupId: string,
     pseudo: string,
-    income: number,
-  ): Promise<{ memberId: string; shares: Shares }> {
+    income: number = 0,
+  ): Promise<{ memberId: string; pseudo: string; shares: Shares }> {
     try {
       const { data, error } = await supabase.rpc("add_phantom_member", {
         p_group_id: groupId,
-        p_pseudo: pseudo,
+        p_suffix: pseudo,
         p_income: income,
       });
 
@@ -453,6 +454,47 @@ export class SupabaseGroupGateway implements GroupGateway {
       const result = data as unknown as AddPhantomMemberResult;
       return {
         memberId: result.member_id,
+        pseudo: result.pseudo,
+        shares: {
+          totalExpenses: result.shares.total_expenses,
+          shares: result.shares.shares.map((s: MemberShare) => ({
+            memberId: s.member_id,
+            userId: s.user_id,
+            pseudo: s.pseudo,
+            sharePercentage: s.share_percentage,
+            shareAmount: s.share_amount,
+          })),
+        },
+      };
+    } catch (error) {
+      throw createUserFriendlyError(error);
+    }
+  }
+
+  async updatePhantomMember(
+    memberId: string,
+    newPseudo: string,
+    newIncome?: number,
+  ): Promise<{ memberId: string; pseudo: string; shares: Shares }> {
+    try {
+      const { data, error } = await supabase.rpc("update_phantom_member", {
+        p_member_id: memberId,
+        p_new_pseudo: newPseudo,
+        p_new_income: newIncome,
+      });
+
+      if (error) {
+        throw createUserFriendlyError(error);
+      }
+
+      if (!data) {
+        throw new Error("No data returned from update_phantom_member");
+      }
+
+      const result = data as unknown as UpdatePhantomMemberResult;
+      return {
+        memberId: result.member_id,
+        pseudo: result.pseudo,
         shares: {
           totalExpenses: result.shares.total_expenses,
           shares: result.shares.shares.map((s: MemberShare) => ({

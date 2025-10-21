@@ -1,9 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
-import {
-  normalizeMemberData,
-  validateMemberData,
-} from "../../domain/manage-members/member-validation";
 import type {
   GroupGateway,
   GroupMember,
@@ -11,8 +7,8 @@ import type {
 } from "../../ports/GroupGateway";
 
 export interface AddMemberData {
-  pseudo: string;
-  monthlyIncome: number;
+  pseudo: string; // Required custom name (backend will prepend "Membre-")
+  monthlyIncome?: number; // Optional, defaults to 0
 }
 
 export const addMemberToGroup = createAsyncThunk<
@@ -29,15 +25,6 @@ export const addMemberToGroup = createAsyncThunk<
 >(
   "groups/addMemberToGroup",
   async ({ groupId, memberData }, { getState, extra: { groupGateway } }) => {
-    // Normalize data first (trim, parse, etc.)
-    const normalizedData = normalizeMemberData(memberData);
-
-    // Validate member data using domain service
-    const validation = validateMemberData(normalizedData);
-    if (!validation.isValid) {
-      throw new Error(validation.errors[0]);
-    }
-
     // Vérifier que le groupe existe (logique métier)
     const state = getState();
     const groupExists = state.groups.entities[groupId];
@@ -45,21 +32,38 @@ export const addMemberToGroup = createAsyncThunk<
       throw new Error("Groupe non trouvé");
     }
 
-    // Add phantom member via gateway
+    // Validate income
+    const income = memberData.monthlyIncome ?? 0;
+    if (income < 0) {
+      throw new Error("Le revenu ne peut pas être négatif");
+    }
+
+    // Validate pseudo (required)
+    const trimmedPseudo = memberData.pseudo.trim();
+    if (trimmedPseudo.length < 1 || trimmedPseudo.length > 50) {
+      throw new Error("Le nom doit faire entre 1 et 50 caractères");
+    }
+    if (!/^[a-zA-Z0-9\s-]+$/.test(trimmedPseudo)) {
+      throw new Error(
+        "Le nom ne peut contenir que des lettres, chiffres, tirets et espaces",
+      );
+    }
+
+    // Add phantom member via gateway with custom pseudo
     const result = await groupGateway.addPhantomMember(
       groupId,
-      normalizedData.pseudo,
-      normalizedData.monthlyIncome,
+      trimmedPseudo,
+      income,
     );
 
-    // Create the new member object with the ID returned from backend
+    // Create the new member object with the generated pseudo
     const newMember: GroupMember = {
       id: result.memberId,
       userId: null,
-      pseudo: normalizedData.pseudo,
+      pseudo: result.pseudo, // Membre-{suffix}
       shareRevenue: true,
-      incomeOrWeight: normalizedData.monthlyIncome,
-      monthlyCapacity: normalizedData.monthlyIncome, // Phantom members have no personal expenses
+      incomeOrWeight: income,
+      monthlyCapacity: income, // Phantom members have no personal expenses
       joinedAt: new Date().toISOString(),
       isPhantom: true,
     };

@@ -15,6 +15,7 @@ import { leaveGroup } from "../usecases/leave-group/leaveGroup.usecase";
 import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
 import { loadUserGroups } from "../usecases/load-groups/loadGroups.usecase";
 import { removeMemberFromGroup } from "../usecases/remove-member/removeMember.usecase";
+import { updatePhantomMember } from "../usecases/update-phantom-member/updatePhantomMember.usecase";
 
 interface AddMemberForm {
   groupId: string;
@@ -221,6 +222,34 @@ export const groupSlice = createSlice({
         state.loading = false;
         state.error =
           action.error.message || "Erreur lors de la suppression du membre";
+      })
+      // Update phantom member
+      .addCase(updatePhantomMember.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updatePhantomMember.fulfilled, (state, action) => {
+        state.loading = false;
+        const { groupId, memberId, pseudo, income, shares } = action.payload;
+
+        const group = state.entities[groupId];
+        if (group) {
+          // Find and update the phantom member
+          const member = group.members.find((m) => m.id === memberId);
+          if (member?.isPhantom) {
+            member.pseudo = pseudo;
+            member.incomeOrWeight = income;
+            member.monthlyCapacity = income;
+          }
+          // Update shares
+          group.shares = shares;
+          group.totalMonthlyBudget = shares.totalExpenses;
+        }
+      })
+      .addCase(updatePhantomMember.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Erreur lors de la modification du membre";
       })
       // Add expense to group
       .addCase(addExpenseToGroup.pending, (state) => {

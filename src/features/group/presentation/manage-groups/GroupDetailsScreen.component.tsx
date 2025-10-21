@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   Calendar,
+  Edit,
   LogOut,
   Plus,
   Trash2,
@@ -19,10 +20,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
 import { logger } from "../../../../lib/logger";
 import type { AppState } from "../../../../store/appState";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
+import type { GroupMember } from "../../ports/GroupGateway";
 import {
   closeAddExpenseForm,
   closeAddMemberForm,
@@ -38,6 +41,9 @@ import { deleteExpense } from "../../usecases/expense/deleteExpense.usecase";
 import { leaveGroup } from "../../usecases/leave-group/leaveGroup.usecase";
 import { loadGroupById } from "../../usecases/load-group/loadGroup.usecase";
 import { removeMemberFromGroup } from "../../usecases/remove-member/removeMember.usecase";
+import { InviteModal } from "../manage-invitations/InviteModal.component";
+import { EditPhantomMemberModal } from "../manage-members/EditPhantomMemberModal.component";
+import { MemberTypeChoiceModal } from "../manage-members/MemberTypeChoiceModal.component";
 import { selectAddExpenseUI, selectAddMemberUI } from "./selectGroup.selector";
 import {
   selectGroupDetails,
@@ -50,6 +56,9 @@ export const GroupDetailsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showAllExpenses, setShowAllExpenses] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
+  const [showMemberTypeChoice, setShowMemberTypeChoice] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
 
@@ -88,8 +97,18 @@ export const GroupDetailsScreen = () => {
 
   const { group, members } = groupDetails;
 
-  // Fonctions pour gérer la modal
-  const openModal = () => {
+  // Fonctions pour gérer les modales
+  const openMemberTypeChoice = () => {
+    setShowMemberTypeChoice(true);
+  };
+
+  const handleSelectInvite = () => {
+    setShowMemberTypeChoice(false);
+    setShowInviteModal(true);
+  };
+
+  const handleSelectPhantom = () => {
+    setShowMemberTypeChoice(false);
     dispatch(openAddMemberForm(groupId));
   };
 
@@ -97,17 +116,50 @@ export const GroupDetailsScreen = () => {
     dispatch(closeAddMemberForm());
   };
 
-  const handleAddMember = () => {
-    if (addMemberUI.form && addMemberUI.canSubmit) {
-      dispatch(
-        addMemberToGroup({
-          groupId: addMemberUI.form.groupId,
-          memberData: {
-            pseudo: addMemberUI.form.pseudo.trim(),
-            monthlyIncome: parseFloat(addMemberUI.form.monthlyIncome),
-          },
-        }),
-      );
+  const handleAddMember = async () => {
+    if (addMemberUI.form) {
+      const pseudo = addMemberUI.form.pseudo?.trim() || "";
+      const income = addMemberUI.form.monthlyIncome
+        ? parseFloat(addMemberUI.form.monthlyIncome)
+        : 0;
+
+      // Validate pseudo is not empty
+      if (!pseudo) {
+        Toast.show({
+          type: "error",
+          text1: "Erreur",
+          text2: "Le nom est obligatoire",
+        });
+        return;
+      }
+
+      try {
+        const result = await dispatch(
+          addMemberToGroup({
+            groupId: addMemberUI.form.groupId,
+            memberData: {
+              pseudo,
+              monthlyIncome: income,
+            },
+          }),
+        ).unwrap();
+
+        // Show success toast with generated pseudo
+        Toast.show({
+          type: "success",
+          text1: "Membre ajouté !",
+          text2: `${result.newMember.pseudo} a été ajouté au groupe`,
+        });
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Erreur",
+          text2:
+            error instanceof Error
+              ? error.message
+              : "Impossible d'ajouter le membre",
+        });
+      }
     }
   };
 
@@ -350,7 +402,7 @@ export const GroupDetailsScreen = () => {
             </View>
             <TouchableOpacity
               style={styles.addMemberButton}
-              onPress={openModal}
+              onPress={openMemberTypeChoice}
             >
               <Plus size={16} color="#666" />
               <Users size={16} color="#666" style={{ marginLeft: 4 }} />
@@ -365,50 +417,62 @@ export const GroupDetailsScreen = () => {
                 index < members.length - 1 && styles.memberItemWithBorder,
               ]}
             >
-              <View style={styles.memberInfo}>
-                <View style={styles.memberFirstRow}>
-                  <View style={styles.memberNameRow}>
-                    <Text style={styles.memberName}>{member.pseudo}</Text>
-                    {member.userId === group.creatorId && (
-                      <View style={styles.creatorBadge}>
-                        <Text style={styles.creatorBadgeText}>Créateur</Text>
-                      </View>
-                    )}
-                  </View>
-                  <View style={styles.memberFirstRowRight}>
-                    <Text style={styles.revenueLabel}>
-                      Capacité:{" "}
-                      {(member.monthlyCapacity || 0).toLocaleString("fr-FR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{" "}
-                      €/mois
-                    </Text>
-                    {isCreator && member.userId !== group.creatorId && (
-                      <TouchableOpacity
-                        onPress={() => handleRemoveMember(member.id)}
-                        style={styles.removeMemberButton}
-                      >
-                        <Trash2 size={16} color="#ef4444" />
-                      </TouchableOpacity>
-                    )}
-                  </View>
+              {/* Ligne 1: Nom + Badge + Actions */}
+              <View style={styles.memberHeaderRow}>
+                <View style={styles.memberNameRow}>
+                  <Text style={styles.memberName} numberOfLines={1}>
+                    {member.pseudo}
+                  </Text>
+                  {member.userId === group.creatorId && (
+                    <View style={styles.creatorBadge}>
+                      <Text style={styles.creatorBadgeText}>Créateur</Text>
+                    </View>
+                  )}
                 </View>
-                <View style={styles.quotePart}>
-                  <Text style={styles.quotePartLabel}>Quote-part</Text>
-                  <View style={styles.quotePartValues}>
-                    <Text style={styles.sharePercentage}>
-                      {member.sharePercentage}%
-                    </Text>
-                    <Text style={styles.shareAmount}>
-                      {member.shareAmount.toLocaleString("fr-FR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{" "}
-                      €
-                    </Text>
-                  </View>
-                </View>
+                {isCreator &&
+                  (member.isPhantom || member.userId !== group.creatorId) && (
+                    <View style={styles.memberActions}>
+                      {member.isPhantom && (
+                        <TouchableOpacity
+                          onPress={() => setEditingMember(member)}
+                          style={styles.editMemberButton}
+                        >
+                          <Edit size={16} color="#0284c7" />
+                        </TouchableOpacity>
+                      )}
+                      {member.userId !== group.creatorId && (
+                        <TouchableOpacity
+                          onPress={() => handleRemoveMember(member.id)}
+                          style={styles.removeMemberButton}
+                        >
+                          <Trash2 size={16} color="#ef4444" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+              </View>
+
+              {/* Ligne 2: Valeurs uniquement */}
+              <View style={styles.memberDetailsRow}>
+                <Text style={styles.memberCapacity}>
+                  {(member.monthlyCapacity || 0).toLocaleString("fr-FR", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                  €/mois
+                </Text>
+                <Text style={styles.memberDetailsSeparator}>•</Text>
+                <Text style={styles.sharePercentageBold}>
+                  {member.sharePercentage}%
+                </Text>
+                <Text style={styles.shareAmountGreen}>
+                  (
+                  {member.shareAmount.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                  €)
+                </Text>
               </View>
             </View>
           ))}
@@ -433,16 +497,20 @@ export const GroupDetailsScreen = () => {
       {addMemberUI.isOpen && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Ajouter un membre</Text>
+            <Text style={styles.modalTitle}>Ajouter un membre fantôme</Text>
+            <Text style={styles.infoText}>
+              💡 Le préfixe "Membre-" sera ajouté automatiquement
+            </Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="Pseudo"
+              placeholder="Nom (ex: Bob)"
               value={addMemberUI.form?.pseudo}
               onChangeText={onPseudoChange}
+              maxLength={50}
             />
             <TextInput
               style={styles.modalInput}
-              placeholder="Revenu mensuel (€)"
+              placeholder="Revenu mensuel (€) - optionnel"
               keyboardType="numeric"
               value={addMemberUI.form?.monthlyIncome}
               onChangeText={onIncomeChange}
@@ -531,6 +599,33 @@ export const GroupDetailsScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+      )}
+
+      {/* Modal de choix du type de membre */}
+      <MemberTypeChoiceModal
+        visible={showMemberTypeChoice}
+        onClose={() => setShowMemberTypeChoice(false)}
+        onSelectInvite={handleSelectInvite}
+        onSelectPhantom={handleSelectPhantom}
+      />
+
+      {/* Modal d'invitation */}
+      {groupId && (
+        <InviteModal
+          isVisible={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          groupId={groupId}
+        />
+      )}
+
+      {/* Modal de modification de membre fantôme */}
+      {editingMember && groupId && (
+        <EditPhantomMemberModal
+          visible={editingMember !== null}
+          onClose={() => setEditingMember(null)}
+          member={editingMember}
+          groupId={groupId}
+        />
       )}
     </SafeAreaView>
   );
@@ -779,85 +874,78 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   memberItem: {
-    paddingVertical: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
   },
   memberItemWithBorder: {
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
-    paddingBottom: 16,
-    marginBottom: 16,
   },
-  memberInfo: {
-    flex: 1,
-  },
-  memberFirstRow: {
+  memberHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
-  },
-  memberFirstRowRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    marginBottom: 4,
   },
   memberNameRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    flex: 1,
   },
   memberName: {
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 15,
+    fontWeight: "600",
     color: "#000",
+    flexShrink: 1,
   },
   creatorBadge: {
     backgroundColor: "#10b981",
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   creatorBadgeText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "600",
+  },
+  memberActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  editMemberButton: {
+    padding: 4,
   },
   removeMemberButton: {
     padding: 4,
-    marginLeft: 8,
   },
-  memberRevenue: {
-    marginBottom: 4,
-  },
-  revenueLabel: {
-    fontSize: 14,
-    color: "#666",
-  },
-  quotePart: {
+  memberDetailsRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
   },
-  quotePartLabel: {
+  memberCapacity: {
     fontSize: 14,
     color: "#666",
+    fontWeight: "500",
   },
-  quotePartValues: {
-    alignItems: "flex-end",
+  memberDetailsSeparator: {
+    fontSize: 14,
+    color: "#d1d5db",
+    marginHorizontal: 2,
   },
-  memberShare: {
-    alignItems: "flex-end",
-  },
-  sharePercentage: {
-    fontSize: 18,
+  sharePercentageBold: {
+    fontSize: 14,
     fontWeight: "700",
     color: "#000",
-    marginBottom: 2,
   },
-  shareAmount: {
+  shareAmountGreen: {
     fontSize: 14,
     fontWeight: "600",
     color: "#10b981",
+    marginLeft: 4,
   },
   calculationNote: {
     flexDirection: "row",
@@ -907,8 +995,14 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 12,
     color: "#000",
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 16,
+    lineHeight: 20,
   },
   modalInput: {
     width: "100%",

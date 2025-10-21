@@ -1,5 +1,7 @@
 -- RPC function to generate a secure invitation token
 -- Generates cryptographically secure token server-side
+-- Returns existing invitation if one already exists (one link per group, no expiration)
+-- Only group creator can generate invitation
 
 CREATE OR REPLACE FUNCTION public.generate_invitation(p_group_id UUID)
 RETURNS JSON
@@ -8,22 +10,40 @@ SECURITY DEFINER
 AS $$
 DECLARE
   v_token TEXT;
-  v_expires_at TIMESTAMPTZ;
+  v_existing_invitation RECORD;
+  v_group RECORD;
 BEGIN
   -- Set search_path to prevent SQL injection via shadowing
   SET search_path = public;
 
-  -- Verify user is member of the group
-  IF NOT EXISTS (
-    SELECT 1 FROM public.group_members
-    WHERE group_id = p_group_id
-    AND user_id = auth.uid()
-  ) THEN
-    RAISE EXCEPTION 'Vous n''êtes pas membre de ce groupe';
+  -- Get the group
+  SELECT * INTO v_group FROM public.groups WHERE id = p_group_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Groupe non trouvé';
   END IF;
 
-  -- Generate cryptographically secure random token using gen_random_uuid()
-  -- Combine multiple UUIDs for more entropy
+  -- Verify user is the creator of the group
+  IF v_group.creator_id != auth.uid() THEN
+    RAISE EXCEPTION 'Seul le créateur du groupe peut générer un lien d''invitation';
+  END IF;
+
+  -- Check if an active invitation already exists (without expiration)
+  SELECT * INTO v_existing_invitation
+  FROM public.invitations
+  WHERE group_id = p_group_id
+    AND expires_at IS NULL
+  LIMIT 1;
+
+  -- If an invitation exists, return it
+  IF FOUND THEN
+    RETURN json_build_object(
+      'token', v_existing_invitation.token,
+      'expires_at', NULL
+    );
+  END IF;
+
+  -- Generate new cryptographically secure token
   v_token := replace(
     concat(
       replace(gen_random_uuid()::text, '-', ''),
@@ -31,13 +51,9 @@ BEGIN
     ),
     '-', ''
   );
-  -- Take first 32 characters for a clean token
   v_token := substring(v_token, 1, 32);
 
-  -- Set expiration to 7 days from now
-  v_expires_at := NOW() + INTERVAL '7 days';
-
-  -- Insert invitation
+  -- Insert invitation without expiration
   INSERT INTO public.invitations (
     group_id,
     token,
@@ -48,16 +64,19 @@ BEGIN
     p_group_id,
     v_token,
     auth.uid(),
-    v_expires_at
+    NULL
   );
 
-  -- Return token and expiry
+  -- Return token (no expiry)
   RETURN json_build_object(
     'token', v_token,
-    'expires_at', v_expires_at
+    'expires_at', NULL
   );
 END;
 $$;
 
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.generate_invitation(UUID) TO authenticated;
+
+COMMENT ON FUNCTION public.generate_invitation IS
+'Génère un lien d''invitation unique par groupe, sans expiration, usage multiple. Seul le créateur peut générer.';
