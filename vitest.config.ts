@@ -1,6 +1,9 @@
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // @ts-expect-error - Vite 7 plugin type incompatibility with @vitejs/plugin-react
+  plugins: [react()],
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
@@ -17,10 +20,10 @@ export default defineConfig({
   resolve: {
     alias: {
       // Prevent Vite from trying to process React Native's Flow-based files
-      'react-native': 'react-native-web',
+      "react-native": "react-native-web",
     },
   },
   optimizeDeps: {
-    exclude: ['react-native'],
+    exclude: ["react-native"],
   },
 });
