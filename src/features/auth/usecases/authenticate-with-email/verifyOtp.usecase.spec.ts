@@ -6,15 +6,19 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
 import { InMemoryAuthGateway } from "../../infra/InMemoryAuthGateway";
-import type { AuthGateway } from "../../ports/AuthGateway";
 import { verifyOtp } from "./verifyOtp.usecase";
 
 describe("Feature: Verify OTP code", () => {
-  let authGateway: AuthGateway;
+  let store: ReduxStore;
 
   beforeEach(() => {
-    authGateway = new InMemoryAuthGateway();
+    const authGateway = new InMemoryAuthGateway();
+    store = initReduxStore({ authGateway });
   });
 
   describe("Success scenarios", () => {
@@ -24,15 +28,12 @@ describe("Feature: Verify OTP code", () => {
       const token = "123456";
 
       // When on vérifie le code OTP
-      const action = verifyOtp({ email, token });
-      const result = await action(
-        vi.fn(),
-        vi.fn(() => ({ auth: {} }) as any),
-        { authGateway } as any,
-      );
+      await store.dispatch(verifyOtp({ email, token }));
 
       // Then la vérification réussit
-      expect(result.type).toBe("auth/verifyOtp/fulfilled");
+      const state = store.getState();
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.error).toBeNull();
     });
 
     it("should accept OTP with any token format", async () => {
@@ -45,15 +46,12 @@ describe("Feature: Verify OTP code", () => {
 
       // When on vérifie chaque code
       for (const { email, token } of testCases) {
-        const action = verifyOtp({ email, token });
-        const result = await action(
-          vi.fn(),
-          vi.fn(() => ({ auth: {} }) as any),
-          { authGateway } as any,
-        );
+        await store.dispatch(verifyOtp({ email, token }));
 
         // Then la vérification réussit
-        expect(result.type).toBe("auth/verifyOtp/fulfilled");
+        const state = store.getState();
+        expect(state.auth.isLoading).toBe(false);
+        expect(state.auth.error).toBeNull();
       }
     });
   });

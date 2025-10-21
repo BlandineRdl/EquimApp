@@ -5,73 +5,36 @@
  * Afin de suivre les dépenses communes du groupe.
  */
 
-import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { AppState } from "../../../../store/appState";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { initSession } from "../../../auth/usecases/manage-session/initSession.usecase";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import { loadGroupById } from "../load-group/loadGroup.usecase";
 import { addExpenseToGroup } from "./addExpense.usecase";
 
 describe("Feature: Add expense", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
-  const userId = "test-user-id";
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
+  const userEmail = "test-user@example.com";
+  const userId = `user-${userEmail}`;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
+
+    // Setup auth session using verifyOtp and initSession
+    await authGateway.verifyOtp(userEmail, "123456");
+    await store.dispatch(initSession());
   });
-
-  const createMockState = (hasGroup: boolean, groupId?: string): AppState => {
-    const mockSession: Session = {
-      access_token: "mock-token",
-      refresh_token: "mock-refresh",
-      expires_in: 3600,
-      expires_at: Date.now() / 1000 + 3600,
-      token_type: "bearer",
-      user: {
-        id: userId,
-        email: "user@example.com",
-        aud: "authenticated",
-        role: "authenticated",
-        created_at: new Date().toISOString(),
-        app_metadata: {},
-        user_metadata: {},
-      },
-    };
-
-    const groupEntity =
-      hasGroup && groupId
-        ? {
-            [groupId]: {
-              id: groupId,
-              name: "Test Group",
-              currency: "EUR",
-              creatorId: userId,
-              members: [],
-              expenses: [],
-              shares: { totalExpenses: 0, shares: [] },
-            },
-          }
-        : {};
-
-    return {
-      auth: {
-        isAuthenticated: true,
-        session: mockSession,
-        user: mockSession.user,
-      },
-      groups: {
-        entities: groupEntity,
-        ids: hasGroup ? [groupId!] : [],
-        loading: false,
-        error: null,
-        details: {
-          loading: false,
-          data: null,
-          error: null,
-        },
-      },
-    } as any as AppState;
-  };
 
   describe("Success scenarios", () => {
     it("should add expense with valid name and amount", async () => {
@@ -80,16 +43,16 @@ describe("Feature: Add expense", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute une dépense
-      const action = addExpenseToGroup({
-        groupId,
-        name: "Courses",
-        amount: 50,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "Courses",
+          amount: 50,
+        }),
+      );
 
       // Then la dépense est ajoutée
       expect(result.type).toBe("groups/addExpense/fulfilled");
@@ -103,6 +66,11 @@ describe("Feature: Add expense", () => {
         expect(payload.expense.amount).toBe(50);
         expect(payload.expense.id).toBeDefined();
       }
+
+      // Verify store state
+      const state = store.getState();
+      const group = state.groups.entities[groupId];
+      expect(group?.expenses.length).toBeGreaterThan(0);
     });
 
     it("should trim whitespace from expense name", async () => {
@@ -111,16 +79,16 @@ describe("Feature: Add expense", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute une dépense avec des espaces
-      const action = addExpenseToGroup({
-        groupId,
-        name: "  Restaurant  ",
-        amount: 80,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "  Restaurant  ",
+          amount: 80,
+        }),
+      );
 
       // Then la dépense est ajoutée avec le nom trimmed
       expect(result.type).toBe("groups/addExpense/fulfilled");
@@ -136,17 +104,16 @@ describe("Feature: Add expense", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      const mockState = createMockState(true, groupId);
-      mockState.groups.entities[groupId]!.currency = "USD";
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute une dépense
-      const action = addExpenseToGroup({
-        groupId,
-        name: "Shopping",
-        amount: 100,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "Shopping",
+          amount: 100,
+        }),
+      );
 
       // Then la devise du groupe est utilisée
       expect(result.type).toBe("groups/addExpense/fulfilled");
@@ -162,16 +129,16 @@ describe("Feature: Add expense", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute une dépense
-      const action = addExpenseToGroup({
-        groupId,
-        name: "Loyer",
-        amount: 1200,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "Loyer",
+          amount: 1200,
+        }),
+      );
 
       // Then les parts sont recalculées
       expect(result.type).toBe("groups/addExpense/fulfilled");
@@ -186,16 +153,15 @@ describe("Feature: Add expense", () => {
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
       // Given un groupe qui n'existe pas
-      const mockState = createMockState(false);
-      const getState = vi.fn(() => mockState);
 
       // When on essaie d'ajouter une dépense
-      const action = addExpenseToGroup({
-        groupId: "non-existent-group",
-        name: "Test",
-        amount: 50,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId: "non-existent-group",
+          name: "Test",
+          amount: 50,
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
@@ -209,16 +175,16 @@ describe("Feature: Add expense", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter une dépense avec un nom vide
-      const action = addExpenseToGroup({
-        groupId,
-        name: "",
-        amount: 50,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "",
+          amount: 50,
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
@@ -232,16 +198,16 @@ describe("Feature: Add expense", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter une dépense avec seulement des espaces
-      const action = addExpenseToGroup({
-        groupId,
-        name: "   ",
-        amount: 50,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "   ",
+          amount: 50,
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
@@ -255,16 +221,16 @@ describe("Feature: Add expense", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter une dépense de 0€
-      const action = addExpenseToGroup({
-        groupId,
-        name: "Test",
-        amount: 0,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "Test",
+          amount: 0,
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
@@ -278,16 +244,16 @@ describe("Feature: Add expense", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter une dépense négative
-      const action = addExpenseToGroup({
-        groupId,
-        name: "Test",
-        amount: -50,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "Test",
+          amount: -50,
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
@@ -304,16 +270,16 @@ describe("Feature: Add expense", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute une dépense manuelle
-      const action = addExpenseToGroup({
-        groupId,
-        name: "Custom Expense",
-        amount: 75,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "Custom Expense",
+          amount: 75,
+        }),
+      );
 
       // Then la dépense n'est pas prédéfinie
       expect(result.type).toBe("groups/addExpense/fulfilled");
@@ -331,16 +297,16 @@ describe("Feature: Add expense", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      const mockState = createMockState(true, groupId);
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute une dépense
-      const action = addExpenseToGroup({
-        groupId,
-        name: "My Expense",
-        amount: 60,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addExpenseToGroup({
+          groupId,
+          name: "My Expense",
+          amount: 60,
+        }),
+      );
 
       // Then le créateur est l'utilisateur courant
       expect(result.type).toBe("groups/addExpense/fulfilled");

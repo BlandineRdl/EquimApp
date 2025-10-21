@@ -6,15 +6,26 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
 import { createGroup } from "./createGroup.usecase";
 
 describe("Feature: Create group", () => {
-  let groupGateway: GroupGateway;
+  let store: ReduxStore;
+  let groupGateway: InMemoryGroupGateway;
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
 
   beforeEach(() => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
   });
 
   describe("Success scenarios", () => {
@@ -23,8 +34,7 @@ describe("Feature: Create group", () => {
       const name = "Ma Coloc";
 
       // When on crée le groupe
-      const action = createGroup({ name });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(createGroup({ name }));
 
       // Then le groupe est créé
       expect(result.type).toBe("groups/createGroup/fulfilled");
@@ -39,8 +49,7 @@ describe("Feature: Create group", () => {
       const name = "  Mon Groupe  ";
 
       // When on crée le groupe
-      const action = createGroup({ name });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(createGroup({ name }));
 
       // Then le groupe est créé (nom trimmed)
       expect(result.type).toBe("groups/createGroup/fulfilled");
@@ -51,8 +60,7 @@ describe("Feature: Create group", () => {
       const name = "Test Group";
 
       // When on crée le groupe
-      const action = createGroup({ name });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(createGroup({ name }));
 
       // Then le groupe est créé avec EUR par défaut
       expect(result.type).toBe("groups/createGroup/fulfilled");
@@ -64,8 +72,7 @@ describe("Feature: Create group", () => {
       const currency = "USD";
 
       // When on crée le groupe
-      const action = createGroup({ name, currency });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(createGroup({ name, currency }));
 
       // Then le groupe est créé avec la devise spécifiée
       expect(result.type).toBe("groups/createGroup/fulfilled");
@@ -78,8 +85,7 @@ describe("Feature: Create group", () => {
       const name = "";
 
       // When on crée le groupe
-      const action = createGroup({ name });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(createGroup({ name }));
 
       // Then la création échoue
       expect(result.type).toBe("groups/createGroup/rejected");
@@ -93,8 +99,7 @@ describe("Feature: Create group", () => {
       const name = "   ";
 
       // When on crée le groupe
-      const action = createGroup({ name });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(createGroup({ name }));
 
       // Then la création échoue
       expect(result.type).toBe("groups/createGroup/rejected");
@@ -108,8 +113,7 @@ describe("Feature: Create group", () => {
       const name = "A";
 
       // When on crée le groupe
-      const action = createGroup({ name });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(createGroup({ name }));
 
       // Then la création échoue
       expect(result.type).toBe("groups/createGroup/rejected");
@@ -123,8 +127,7 @@ describe("Feature: Create group", () => {
       const name = "A".repeat(51);
 
       // When on crée le groupe
-      const action = createGroup({ name });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(createGroup({ name }));
 
       // Then la création échoue
       expect(result.type).toBe("groups/createGroup/rejected");

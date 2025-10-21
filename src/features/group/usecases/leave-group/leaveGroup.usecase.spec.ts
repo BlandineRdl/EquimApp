@@ -6,16 +6,28 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import { loadGroupById } from "../load-group/loadGroup.usecase";
 import { leaveGroup } from "./leaveGroup.usecase";
 
 describe("Feature: Leave group", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
   const userId = "test-user-id";
 
   beforeEach(() => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
   });
 
   describe("Success scenarios", () => {
@@ -25,21 +37,10 @@ describe("Feature: Leave group", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              id: groupId,
-              name: "Test Group",
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on quitte le groupe
-      const action = leaveGroup({ groupId });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(leaveGroup({ groupId }));
 
       // Then on quitte avec succès
       expect(result.type).toBe("groups/leaveGroup/fulfilled");
@@ -51,6 +52,10 @@ describe("Feature: Leave group", () => {
         expect(response.groupId).toBe(groupId);
         expect(response.groupDeleted).toBeDefined();
       }
+
+      // Verify group is removed from store
+      const state = store.getState();
+      expect(state.groups.entities[groupId]).toBeUndefined();
     });
 
     it("should indicate when group is deleted (last member)", async () => {
@@ -59,21 +64,10 @@ describe("Feature: Leave group", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              id: groupId,
-              name: "Solo Group",
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When le dernier membre quitte
-      const action = leaveGroup({ groupId });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(leaveGroup({ groupId }));
 
       // Then le groupe est supprimé
       expect(result.type).toBe("groups/leaveGroup/fulfilled");
@@ -90,21 +84,10 @@ describe("Feature: Leave group", () => {
       await groupGateway.addMember(groupId, userId);
       await groupGateway.addMember(groupId, "other-user-id");
 
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              id: groupId,
-              name: "Multi Group",
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When un membre quitte
-      const action = leaveGroup({ groupId });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(leaveGroup({ groupId }));
 
       // Then le groupe n'est pas supprimé
       expect(result.type).toBe("groups/leaveGroup/fulfilled");
@@ -118,16 +101,11 @@ describe("Feature: Leave group", () => {
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
       // Given un groupe qui n'existe pas dans l'état
-      const mockState = {
-        groups: {
-          entities: {},
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
 
       // When on essaie de quitter
-      const action = leaveGroup({ groupId: "non-existent-group" });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        leaveGroup({ groupId: "non-existent-group" }),
+      );
 
       // Then la sortie échoue
       expect(result.type).toBe("groups/leaveGroup/rejected");

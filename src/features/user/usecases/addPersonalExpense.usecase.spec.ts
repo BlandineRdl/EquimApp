@@ -6,19 +6,34 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../auth/infra/InMemoryAuthGateway";
+import { initSession } from "../../auth/usecases/manage-session/initSession.usecase";
 import { InMemoryUserGateway } from "../infra/InMemoryUserGateway";
-import type { UserGateway } from "../ports/UserGateway";
+import { addPersonalExpense } from "./addPersonalExpense.usecase";
+import { loadUserProfile } from "./loadUserProfile.usecase";
 
 describe("Feature: Gérer mes dépenses personnelles", () => {
-  let userGateway: UserGateway;
-  const userId = "test-user-123";
+  let store: ReduxStore;
+  let userGateway: InMemoryUserGateway;
+  let authGateway: InMemoryAuthGateway;
+  const testEmail = "test@example.com";
+  let userId: string;
 
   beforeEach(async () => {
-    // Arrange - Setup infrastructure
     userGateway = new InMemoryUserGateway();
+    authGateway = new InMemoryAuthGateway();
+    store = initReduxStore({ userGateway, authGateway });
 
-    // Arrange - Create user profile with 2000€ monthly income
-    // NOTE: Using domain vocabulary (monthlyIncome), not infra vocabulary (income)
+    // Setup authenticated user session using verifyOtp
+    const session = await authGateway.verifyOtp(testEmail, "123456");
+    userId = session.user.id;
+    await store.dispatch(initSession());
+
+    // Setup initial profile data
     await userGateway.createProfile({
       id: userId,
       pseudo: "TestUser",
@@ -26,6 +41,9 @@ describe("Feature: Gérer mes dépenses personnelles", () => {
       currency: "EUR",
       shareRevenue: true,
     });
+
+    // Load the profile into Redux state
+    await store.dispatch(loadUserProfile());
   });
 
   describe("Success scenarios", () => {
@@ -39,19 +57,20 @@ describe("Feature: Gérer mes dépenses personnelles", () => {
      */
     it("Ajouter un loyer diminue la capacité", async () => {
       // Act
-      const expense = await userGateway.addPersonalExpense(userId, {
-        label: "Loyer",
-        amount: 800,
-      });
+      await store.dispatch(
+        addPersonalExpense({
+          label: "Loyer",
+          amount: 800,
+        }),
+      );
 
-      // Assert - Expense is created
-      expect(expense.id).toBeDefined();
-      expect(expense.label).toBe("Loyer");
-      expect(expense.amount).toBe(800);
-
-      // Assert - Capacity is updated
-      const profile = await userGateway.getProfileById(userId);
-      expect(profile?.capacity).toBe(1200);
+      // Assert - Redux state is updated
+      const state = store.getState();
+      expect(state.user.profile).toBeDefined();
+      expect(state.user.profile?.personalExpenses).toHaveLength(1);
+      expect(state.user.profile?.personalExpenses?.[0].label).toBe("Loyer");
+      expect(state.user.profile?.personalExpenses?.[0].amount).toBe(800);
+      expect(state.user.profile?.capacity).toBe(1200);
     });
 
     /**
@@ -63,14 +82,16 @@ describe("Feature: Gérer mes dépenses personnelles", () => {
      */
     it("Autoriser une capacité négative si dépenses > revenu", async () => {
       // Act
-      await userGateway.addPersonalExpense(userId, {
-        label: "Loyer",
-        amount: 2500,
-      });
+      await store.dispatch(
+        addPersonalExpense({
+          label: "Loyer",
+          amount: 2500,
+        }),
+      );
 
       // Assert - Capacity can be negative
-      const profile = await userGateway.getProfileById(userId);
-      expect(profile?.capacity).toBe(-500);
+      const state = store.getState();
+      expect(state.user.profile?.capacity).toBe(-500);
     });
 
     /**
@@ -83,24 +104,27 @@ describe("Feature: Gérer mes dépenses personnelles", () => {
      */
     it("Ajouter plusieurs dépenses accumule les montants", async () => {
       // Arrange - Add first expense
-      await userGateway.addPersonalExpense(userId, {
-        label: "Loyer",
-        amount: 800,
-      });
+      await store.dispatch(
+        addPersonalExpense({
+          label: "Loyer",
+          amount: 800,
+        }),
+      );
 
       // Act - Add second expense
-      await userGateway.addPersonalExpense(userId, {
-        label: "Transport",
-        amount: 100,
-      });
+      await store.dispatch(
+        addPersonalExpense({
+          label: "Transport",
+          amount: 100,
+        }),
+      );
 
       // Assert - Capacity reflects both expenses
-      const profile = await userGateway.getProfileById(userId);
-      expect(profile?.capacity).toBe(1100);
+      const state = store.getState();
+      expect(state.user.profile?.capacity).toBe(1100);
 
       // Assert - Both expenses exist
-      const expenses = await userGateway.loadPersonalExpenses(userId);
-      expect(expenses).toHaveLength(2);
+      expect(state.user.profile?.personalExpenses).toHaveLength(2);
     });
 
     /**
@@ -112,14 +136,16 @@ describe("Feature: Gérer mes dépenses personnelles", () => {
      */
     it("Accepter des montants décimaux", async () => {
       // Act
-      await userGateway.addPersonalExpense(userId, {
-        label: "Café",
-        amount: 3.5,
-      });
+      await store.dispatch(
+        addPersonalExpense({
+          label: "Café",
+          amount: 3.5,
+        }),
+      );
 
       // Assert
-      const profile = await userGateway.getProfileById(userId);
-      expect(profile?.capacity).toBe(1996.5);
+      const state = store.getState();
+      expect(state.user.profile?.capacity).toBe(1996.5);
     });
   });
 
@@ -145,7 +171,14 @@ describe("Feature: Gérer mes dépenses personnelles", () => {
     ])("Calcul de capacité", ({ revenu, label, montant, capacite }) => {
       it(`Revenu ${revenu}€ - ${label} ${montant}€ → Capacité ${capacite}€`, async () => {
         // Arrange - Create user with specific income
-        const testUserId = `user-${revenu}`;
+        const testUserEmail = `test-${revenu}@example.com`;
+        const testSession = await authGateway.verifyOtp(
+          testUserEmail,
+          "123456",
+        );
+        const testUserId = testSession.user.id;
+        await store.dispatch(initSession());
+
         await userGateway.createProfile({
           id: testUserId,
           pseudo: "TestUser",
@@ -154,15 +187,20 @@ describe("Feature: Gérer mes dépenses personnelles", () => {
           shareRevenue: true,
         });
 
+        // Load profile into state
+        await store.dispatch(loadUserProfile());
+
         // Act
-        await userGateway.addPersonalExpense(testUserId, {
-          label,
-          amount: montant,
-        });
+        await store.dispatch(
+          addPersonalExpense({
+            label,
+            amount: montant,
+          }),
+        );
 
         // Assert
-        const profile = await userGateway.getProfileById(testUserId);
-        expect(profile?.capacity).toBe(capacite);
+        const state = store.getState();
+        expect(state.user.profile?.capacity).toBe(capacite);
       });
     });
   });

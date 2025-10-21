@@ -6,15 +6,27 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import { loadGroupById } from "../load-group/loadGroup.usecase";
 import { generateInviteLink } from "./generateInviteLink.usecase";
 
 describe("Feature: Generate invitation link", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
 
   beforeEach(() => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
   });
 
   describe("Success scenarios", () => {
@@ -23,21 +35,10 @@ describe("Feature: Generate invitation link", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              id: groupId,
-              name: "Test Group",
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on génère un lien d'invitation
-      const action = generateInviteLink({ groupId });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(generateInviteLink({ groupId }));
 
       // Then le lien est généré
       expect(result.type).toBe("groups/generateInviteLink/fulfilled");
@@ -47,6 +48,10 @@ describe("Feature: Generate invitation link", () => {
         expect(typeof link).toBe("string");
         expect(link.length).toBeGreaterThan(0);
       }
+
+      // Verify link is stored in state
+      const state = store.getState();
+      expect(state.groups.invitation.generateLink.link).toBeDefined();
     });
 
     it("should generate unique links for same group", async () => {
@@ -54,24 +59,11 @@ describe("Feature: Generate invitation link", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              id: groupId,
-              name: "Test Group",
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on génère deux liens d'invitation
-      const action1 = generateInviteLink({ groupId });
-      const result1 = await action1(vi.fn(), getState, { groupGateway } as any);
-
-      const action2 = generateInviteLink({ groupId });
-      const result2 = await action2(vi.fn(), getState, { groupGateway } as any);
+      const result1 = await store.dispatch(generateInviteLink({ groupId }));
+      const result2 = await store.dispatch(generateInviteLink({ groupId }));
 
       // Then les liens sont différents
       expect(result1.type).toBe("groups/generateInviteLink/fulfilled");
@@ -88,16 +80,11 @@ describe("Feature: Generate invitation link", () => {
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
       // Given un groupe qui n'existe pas dans l'état
-      const mockState = {
-        groups: {
-          entities: {},
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
 
       // When on essaie de générer un lien
-      const action = generateInviteLink({ groupId: "non-existent-group" });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        generateInviteLink({ groupId: "non-existent-group" }),
+      );
 
       // Then la génération échoue
       expect(result.type).toBe("groups/generateInviteLink/rejected");

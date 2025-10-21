@@ -6,17 +6,29 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { MIN_PSEUDO_LENGTH } from "../../domain/manage-members/member.constants";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import { loadGroupById } from "../load-group/loadGroup.usecase";
 import { addMemberToGroup } from "./addMember.usecase";
 
 describe("Feature: Add member to group", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
   const userId = "test-user-id";
 
   beforeEach(() => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
   });
 
   describe("Success scenarios", () => {
@@ -26,29 +38,19 @@ describe("Feature: Add member to group", () => {
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      // Get actual group for state
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      // Load group into store
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute un membre fantôme
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "PhantomUser",
-          monthlyIncome: 2000,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "PhantomUser",
+            monthlyIncome: 2000,
+          },
+        }),
+      );
 
       // Then l'ajout réussit
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
@@ -70,35 +72,32 @@ describe("Feature: Add member to group", () => {
         expect(response.newMember.id).toBeDefined();
         expect(response.shares).toBeDefined();
       }
+
+      // Verify store state
+      const state = store.getState();
+      const group = state.groups.entities[groupId];
+      expect(group).toBeDefined();
+      expect(group?.members.length).toBeGreaterThan(0);
     });
 
     it("should trim whitespace from pseudo", async () => {
       // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
+      await groupGateway.addMember(groupId, userId);
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute un membre avec des espaces
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "  SpacedUser  ",
-          monthlyIncome: 2000,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "  SpacedUser  ",
+            monthlyIncome: 2000,
+          },
+        }),
+      );
 
       // Then le pseudo est trimmed
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
@@ -121,28 +120,18 @@ describe("Feature: Add member to group", () => {
         isPredefined: false,
       });
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute un membre
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "NewMember",
-          monthlyIncome: 1800,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "NewMember",
+            monthlyIncome: 1800,
+          },
+        }),
+      );
 
       // Then les parts sont recalculées
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
@@ -161,28 +150,18 @@ describe("Feature: Add member to group", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute un membre fantôme
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "Phantom",
-          monthlyIncome: 2500,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "Phantom",
+            monthlyIncome: 2500,
+          },
+        }),
+      );
 
       // Then la capacité égale le revenu (pas de dépenses personnelles)
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
@@ -199,22 +178,17 @@ describe("Feature: Add member to group", () => {
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
       // Given un groupe qui n'existe pas
-      const mockState = {
-        groups: {
-          entities: {},
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
 
       // When on essaie d'ajouter un membre
-      const action = addMemberToGroup({
-        groupId: "non-existent-group",
-        memberData: {
-          pseudo: "TestUser",
-          monthlyIncome: 2000,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId: "non-existent-group",
+          memberData: {
+            pseudo: "TestUser",
+            monthlyIncome: 2000,
+          },
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
@@ -228,28 +202,18 @@ describe("Feature: Add member to group", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter un membre avec un pseudo vide
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "",
-          monthlyIncome: 2000,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "",
+            monthlyIncome: 2000,
+          },
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
@@ -263,28 +227,18 @@ describe("Feature: Add member to group", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter un membre avec seulement des espaces
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "   ",
-          monthlyIncome: 2000,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "   ",
+            monthlyIncome: 2000,
+          },
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
@@ -298,28 +252,18 @@ describe("Feature: Add member to group", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter un membre avec un pseudo trop court
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "A",
-          monthlyIncome: 2000,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "A",
+            monthlyIncome: 2000,
+          },
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
@@ -333,28 +277,18 @@ describe("Feature: Add member to group", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter un membre avec un revenu de 0
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "TestUser",
-          monthlyIncome: 0,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "TestUser",
+            monthlyIncome: 0,
+          },
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
@@ -368,28 +302,18 @@ describe("Feature: Add member to group", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie d'ajouter un membre avec un revenu négatif
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "TestUser",
-          monthlyIncome: -1000,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "TestUser",
+            monthlyIncome: -1000,
+          },
+        }),
+      );
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
@@ -405,28 +329,18 @@ describe("Feature: Add member to group", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute un membre
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "PhantomMember",
-          monthlyIncome: 2000,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "PhantomMember",
+            monthlyIncome: 2000,
+          },
+        }),
+      );
 
       // Then le membre est marqué comme fantôme
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
@@ -444,28 +358,18 @@ describe("Feature: Add member to group", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on ajoute un membre
-      const action = addMemberToGroup({
-        groupId,
-        memberData: {
-          pseudo: "TestMember",
-          monthlyIncome: 1500,
-        },
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        addMemberToGroup({
+          groupId,
+          memberData: {
+            pseudo: "TestMember",
+            monthlyIncome: 1500,
+          },
+        }),
+      );
 
       // Then shareRevenue est true
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");

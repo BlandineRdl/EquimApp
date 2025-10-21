@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ReduxStore } from "../../../../store/buildReduxStore";
 import { initReduxStore } from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { initSession } from "../../../auth/usecases/manage-session/initSession.usecase";
 import { InMemoryGroupGateway } from "../../../group/infra/inMemoryGroup.gateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryOnboardingGateway } from "../../infra/InMemoryOnboardingGateway";
@@ -14,27 +16,28 @@ import { completeOnboarding } from "./completeOnboarding.usecase";
 
 describe("Feature: Compléter l'onboarding", () => {
   let store: ReduxStore;
+  let authGateway: InMemoryAuthGateway;
   let onboardingGateway: InMemoryOnboardingGateway;
   let userGateway: InMemoryUserGateway;
   let groupGateway: InMemoryGroupGateway;
-  const userId = "test-user-123";
+  const testEmail = "test@example.com";
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    authGateway = new InMemoryAuthGateway();
     groupGateway = new InMemoryGroupGateway();
     onboardingGateway = new InMemoryOnboardingGateway(groupGateway);
     userGateway = new InMemoryUserGateway();
 
     store = initReduxStore({
+      authGateway,
       onboardingGateway,
       userGateway,
       groupGateway,
     }) as ReduxStore;
 
-    // Simulate auth state
-    store.dispatch({
-      type: "auth/signIn/fulfilled",
-      payload: { userId },
-    });
+    // Setup authenticated user session using verifyOtp
+    await authGateway.verifyOtp(testEmail, "123456");
+    await store.dispatch(initSession());
   });
 
   describe("Scénario: Création complète d'un compte avec profil et groupe", () => {

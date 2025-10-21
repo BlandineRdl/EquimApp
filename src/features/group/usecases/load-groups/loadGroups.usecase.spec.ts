@@ -5,58 +5,35 @@
  * Afin de voir la liste de mes groupes avec leurs détails.
  */
 
-import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { AppState } from "../../../../store/appState";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { initSession } from "../../../auth/usecases/manage-session/initSession.usecase";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
 import { loadUserGroups } from "./loadGroups.usecase";
 
 describe("Feature: Load user groups", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
-  const userId = "test-user-id";
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
+  const userEmail = "test-user@example.com";
+  const userId = `user-${userEmail}`;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
+
+    // Setup auth session using verifyOtp and initSession
+    await authGateway.verifyOtp(userEmail, "123456");
+    await store.dispatch(initSession());
   });
-
-  const createMockState = (): AppState => {
-    const mockSession: Session = {
-      access_token: "mock-token",
-      refresh_token: "mock-refresh",
-      expires_in: 3600,
-      expires_at: Date.now() / 1000 + 3600,
-      token_type: "bearer",
-      user: {
-        id: userId,
-        email: "user@example.com",
-        aud: "authenticated",
-        role: "authenticated",
-        created_at: new Date().toISOString(),
-        app_metadata: {},
-        user_metadata: {},
-      },
-    };
-
-    return {
-      auth: {
-        isAuthenticated: true,
-        session: mockSession,
-        user: mockSession.user,
-      },
-      groups: {
-        entities: {},
-        ids: [],
-        loading: false,
-        error: null,
-        details: {
-          loading: false,
-          data: null,
-          error: null,
-        },
-      },
-    } as any as AppState;
-  };
 
   describe("Success scenarios", () => {
     it("should load all user groups", async () => {
@@ -66,12 +43,8 @@ describe("Feature: Load user groups", () => {
       await groupGateway.addMember(group1.groupId, userId);
       await groupGateway.addMember(group2.groupId, userId);
 
-      const mockState = createMockState();
-      const getState = vi.fn(() => mockState);
-
       // When on charge tous les groupes
-      const action = loadUserGroups();
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(loadUserGroups());
 
       // Then tous les groupes sont chargés
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
@@ -80,16 +53,17 @@ describe("Feature: Load user groups", () => {
         expect(groups).toBeDefined();
         expect(groups.length).toBeGreaterThan(0);
       }
+
+      // Verify groups are stored in state
+      const state = store.getState();
+      expect(Object.keys(state.groups.entities).length).toBeGreaterThan(0);
     });
 
     it("should return empty array when user has no groups", async () => {
       // Given un utilisateur sans groupes
-      const mockState = createMockState();
-      const getState = vi.fn(() => mockState);
 
       // When on charge les groupes
-      const action = loadUserGroups();
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(loadUserGroups());
 
       // Then un tableau vide est retourné
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
@@ -113,12 +87,8 @@ describe("Feature: Load user groups", () => {
         isPredefined: false,
       });
 
-      const mockState = createMockState();
-      const getState = vi.fn(() => mockState);
-
       // When on charge les groupes
-      const action = loadUserGroups();
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(loadUserGroups());
 
       // Then les détails complets sont inclus
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
@@ -160,12 +130,8 @@ describe("Feature: Load user groups", () => {
         isPredefined: false,
       });
 
-      const mockState = createMockState();
-      const getState = vi.fn(() => mockState);
-
       // When on charge les groupes
-      const action = loadUserGroups();
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(loadUserGroups());
 
       // Then le budget mensuel total est calculé
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
@@ -185,13 +151,11 @@ describe("Feature: Load user groups", () => {
   describe("Error scenarios", () => {
     it("should reject when user is not authenticated", async () => {
       // Given un utilisateur non authentifié
-      const mockState = createMockState();
-      mockState.auth.user = null;
-      const getState = vi.fn(() => mockState);
+      await authGateway.signOut();
+      await store.dispatch(initSession()); // Update Redux state after signOut
 
       // When on essaie de charger les groupes
-      const action = loadUserGroups();
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(loadUserGroups());
 
       // Then le chargement échoue
       expect(result.type).toBe("groups/loadUserGroups/rejected");
@@ -218,12 +182,8 @@ describe("Feature: Load user groups", () => {
         isPredefined: false,
       });
 
-      const mockState = createMockState();
-      const getState = vi.fn(() => mockState);
-
       // When on charge tous les groupes
-      const action = loadUserGroups();
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(loadUserGroups());
 
       // Then chaque groupe a toutes ses données
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
@@ -240,14 +200,14 @@ describe("Feature: Load user groups", () => {
         // Group 1 should have expense
         const loadedGroup1 = groups.find((g) => g.name === "Group 1");
         expect(loadedGroup1).toBeDefined();
-        expect(loadedGroup1!.expenses.length).toBe(1);
-        expect(loadedGroup1!.currency).toBe("EUR");
+        expect(loadedGroup1?.expenses.length).toBe(1);
+        expect(loadedGroup1?.currency).toBe("EUR");
 
         // Group 2 should have no expenses
         const loadedGroup2 = groups.find((g) => g.name === "Group 2");
         expect(loadedGroup2).toBeDefined();
-        expect(loadedGroup2!.expenses.length).toBe(0);
-        expect(loadedGroup2!.currency).toBe("USD");
+        expect(loadedGroup2?.expenses.length).toBe(0);
+        expect(loadedGroup2?.currency).toBe("USD");
       }
     });
   });

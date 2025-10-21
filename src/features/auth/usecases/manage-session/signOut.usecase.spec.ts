@@ -7,15 +7,20 @@
 
 import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
 import { InMemoryAuthGateway } from "../../infra/InMemoryAuthGateway";
-import type { AuthGateway } from "../../ports/AuthGateway";
 import { signOut } from "./signOut.usecase";
 
 describe("Feature: Sign out", () => {
+  let store: ReduxStore;
   let authGateway: InMemoryAuthGateway;
 
   beforeEach(() => {
     authGateway = new InMemoryAuthGateway();
+    store = initReduxStore({ authGateway });
   });
 
   describe("Success scenarios", () => {
@@ -41,11 +46,17 @@ describe("Feature: Sign out", () => {
       authGateway.setCurrentSession(mockSession);
 
       // When on se déconnecte
-      const action = signOut();
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signOut());
 
       // Then la déconnexion réussit
-      expect(result.type).toBe("auth/signOut/fulfilled");
+      const state = store.getState();
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.user).toBeNull();
+      expect(state.auth.userId).toBeNull();
+      expect(state.auth.session).toBeNull();
+      expect(state.auth.isAuthenticated).toBe(false);
+      expect(state.auth.profileDeleted).toBe(false);
+      expect(state.auth.error).toBeNull();
 
       // And la session est supprimée
       const currentSession = await authGateway.getSession();
@@ -57,11 +68,15 @@ describe("Feature: Sign out", () => {
       // (authGateway est vide)
 
       // When on se déconnecte
-      const action = signOut();
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signOut());
 
       // Then la déconnexion réussit quand même
-      expect(result.type).toBe("auth/signOut/fulfilled");
+      const state = store.getState();
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.user).toBeNull();
+      expect(state.auth.session).toBeNull();
+      expect(state.auth.isAuthenticated).toBe(false);
+      expect(state.auth.error).toBeNull();
     });
   });
 });

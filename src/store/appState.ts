@@ -62,8 +62,8 @@ export interface AppState {
     ids: string[];
     loading: boolean;
     error: string | null;
-    addMemberForm?: AddMemberForm;
-    addExpenseForm?: AddExpenseForm;
+    addMemberForm: AddMemberForm | null;
+    addExpenseForm: AddExpenseForm | null;
     invitation: {
       generateLink: {
         loading: boolean;

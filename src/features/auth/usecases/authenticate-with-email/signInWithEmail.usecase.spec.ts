@@ -6,15 +6,19 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
 import { InMemoryAuthGateway } from "../../infra/InMemoryAuthGateway";
-import type { AuthGateway } from "../../ports/AuthGateway";
 import { signInWithEmail } from "./signInWithEmail.usecase";
 
 describe("Feature: Sign in with email", () => {
-  let authGateway: AuthGateway;
+  let store: ReduxStore;
 
   beforeEach(() => {
-    authGateway = new InMemoryAuthGateway();
+    const authGateway = new InMemoryAuthGateway();
+    store = initReduxStore({ authGateway });
   });
 
   describe("Success scenarios", () => {
@@ -23,11 +27,12 @@ describe("Feature: Sign in with email", () => {
       const email = "user@example.com";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then l'envoi réussit
-      expect(result.type).toBe("auth/signIn/fulfilled");
+      const state = store.getState();
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.error).toBeNull();
     });
 
     it("should normalize email to lowercase", async () => {
@@ -35,11 +40,12 @@ describe("Feature: Sign in with email", () => {
       const email = "User@Example.COM";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then l'envoi réussit (email normalisé)
-      expect(result.type).toBe("auth/signIn/fulfilled");
+      const state = store.getState();
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.error).toBeNull();
     });
 
     it("should trim whitespace from email", async () => {
@@ -47,11 +53,12 @@ describe("Feature: Sign in with email", () => {
       const email = "  user@example.com  ";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then l'envoi réussit (email trimmed)
-      expect(result.type).toBe("auth/signIn/fulfilled");
+      const state = store.getState();
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.error).toBeNull();
     });
   });
 
@@ -61,14 +68,11 @@ describe("Feature: Sign in with email", () => {
       const email = "userexample.com";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then la demande échoue
-      expect(result.type).toBe("auth/signIn/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("valid email");
-      }
+      const state = store.getState();
+      expect(state.auth.error).toContain("valid email");
     });
 
     it("should reject email without domain", async () => {
@@ -76,14 +80,11 @@ describe("Feature: Sign in with email", () => {
       const email = "user@";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then la demande échoue
-      expect(result.type).toBe("auth/signIn/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("valid email");
-      }
+      const state = store.getState();
+      expect(state.auth.error).toContain("valid email");
     });
 
     it("should reject email without local part", async () => {
@@ -91,14 +92,11 @@ describe("Feature: Sign in with email", () => {
       const email = "@example.com";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then la demande échoue
-      expect(result.type).toBe("auth/signIn/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("valid email");
-      }
+      const state = store.getState();
+      expect(state.auth.error).toContain("valid email");
     });
 
     it("should reject empty email", async () => {
@@ -106,14 +104,11 @@ describe("Feature: Sign in with email", () => {
       const email = "";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then la demande échoue
-      expect(result.type).toBe("auth/signIn/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("valid email");
-      }
+      const state = store.getState();
+      expect(state.auth.error).toContain("valid email");
     });
 
     it("should reject whitespace-only email", async () => {
@@ -121,14 +116,11 @@ describe("Feature: Sign in with email", () => {
       const email = "   ";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then la demande échoue
-      expect(result.type).toBe("auth/signIn/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("valid email");
-      }
+      const state = store.getState();
+      expect(state.auth.error).toContain("valid email");
     });
 
     it("should reject email with spaces", async () => {
@@ -136,14 +128,11 @@ describe("Feature: Sign in with email", () => {
       const email = "user name@example.com";
 
       // When on envoie une demande de connexion
-      const action = signInWithEmail(email);
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(signInWithEmail(email));
 
       // Then la demande échoue
-      expect(result.type).toBe("auth/signIn/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("valid email");
-      }
+      const state = store.getState();
+      expect(state.auth.error).toContain("valid email");
     });
   });
 });

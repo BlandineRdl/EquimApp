@@ -38,13 +38,14 @@ export class InMemoryGroupGateway implements GroupGateway {
   async createGroup(
     name: string,
     currency: string = "EUR",
+    creatorId: string = "current-user",
   ): Promise<{ groupId: string }> {
     const groupId = `group-${Date.now()}-${Math.random()}`;
     this.groups.set(groupId, {
       id: groupId,
       name,
       currency,
-      creatorId: "current-user",
+      creatorId,
       members: [],
       expenses: [],
       shares: { totalExpenses: 0, shares: [] },
@@ -96,8 +97,8 @@ export class InMemoryGroupGateway implements GroupGateway {
       name: group.name,
       currency: group.currency,
       creatorId: group.creatorId,
-      members,
-      expenses: groupExpenses,
+      members: members.map((m) => ({ ...m })), // Return a copy to avoid mutation issues
+      expenses: groupExpenses.map((e) => ({ ...e })), // Return a copy
       shares,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,

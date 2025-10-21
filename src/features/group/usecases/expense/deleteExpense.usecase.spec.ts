@@ -7,24 +7,29 @@
 
 import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { AppState } from "../../../../store/appState";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import { loadGroupById } from "../load-group/loadGroup.usecase";
 import { deleteExpense } from "./deleteExpense.usecase";
 
 describe("Feature: Delete expense", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
   const userId = "test-user-id";
 
   beforeEach(() => {
     groupGateway = new InMemoryGroupGateway();
-  });
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
 
-  const createMockState = (
-    hasGroup: boolean,
-    hasExpense: boolean,
-    expenseId?: string,
-  ): AppState => {
     const mockSession: Session = {
       access_token: "mock-token",
       refresh_token: "mock-refresh",
@@ -41,57 +46,8 @@ describe("Feature: Delete expense", () => {
         user_metadata: {},
       },
     };
-
-    const expenses =
-      hasExpense && expenseId
-        ? [
-            {
-              id: expenseId,
-              groupId: "group-123",
-              name: "Test Expense",
-              amount: 50,
-              currency: "EUR",
-              isPredefined: false,
-              createdBy: userId,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-          ]
-        : [];
-
-    const groupEntity = hasGroup
-      ? {
-          "group-123": {
-            id: "group-123",
-            name: "Test Group",
-            currency: "EUR",
-            creatorId: userId,
-            members: [],
-            expenses,
-            shares: { totalExpenses: 0, shares: [] },
-          },
-        }
-      : {};
-
-    return {
-      auth: {
-        isAuthenticated: true,
-        session: mockSession,
-        user: mockSession.user,
-      },
-      groups: {
-        entities: groupEntity,
-        ids: hasGroup ? ["group-123"] : [],
-        loading: false,
-        error: null,
-        details: {
-          loading: false,
-          data: null,
-          error: null,
-        },
-      },
-    } as any as AppState;
-  };
+    authGateway.setCurrentSession(mockSession);
+  });
 
   describe("Success scenarios", () => {
     it("should delete expense successfully", async () => {
@@ -109,20 +65,12 @@ describe("Feature: Delete expense", () => {
       });
       const expenseId = expenseResult.expenseId;
 
-      // Get the actual group from gateway to use in state
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = createMockState(true, true, expenseId);
-      (mockState.groups.entities as any)[groupId] = {
-        ...actualGroup,
-        totalMonthlyBudget: actualGroup.shares.totalExpenses,
-      };
-      delete (mockState.groups.entities as any)["group-123"];
-
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on supprime la dépense
-      const action = deleteExpense({ groupId, expenseId });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        deleteExpense({ groupId, expenseId }),
+      );
 
       // Then la suppression réussit
       expect(result.type).toBe("groups/deleteExpense/fulfilled");
@@ -134,6 +82,11 @@ describe("Feature: Delete expense", () => {
         expect(deleted.groupId).toBe(groupId);
         expect(deleted.expenseId).toBe(expenseId);
       }
+
+      // Verify expense is removed from store
+      const state = store.getState();
+      const group = state.groups.entities[groupId];
+      expect(group?.expenses.find((e) => e.id === expenseId)).toBeUndefined();
     });
 
     it("should recalculate shares after deleting expense", async () => {
@@ -151,35 +104,12 @@ describe("Feature: Delete expense", () => {
       });
       const expenseId = expenseResult.expenseId;
 
-      const mockState = createMockState(true, true, expenseId);
-      (mockState.groups.entities as any)[groupId] = {
-        id: groupId,
-        name: "Test Group",
-        currency: "EUR",
-        creatorId: userId,
-        members: [],
-        expenses: [
-          {
-            id: expenseId,
-            groupId,
-            name: "Test Expense",
-            amount: 100,
-            currency: "EUR",
-            isPredefined: false,
-            createdBy: userId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ],
-        shares: { totalExpenses: 100, shares: [] },
-      };
-      delete (mockState.groups.entities as any)["group-123"];
-
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on supprime la dépense
-      const action = deleteExpense({ groupId, expenseId });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        deleteExpense({ groupId, expenseId }),
+      );
 
       // Then les parts sont recalculées
       expect(result.type).toBe("groups/deleteExpense/fulfilled");
@@ -194,15 +124,14 @@ describe("Feature: Delete expense", () => {
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
       // Given un groupe qui n'existe pas
-      const mockState = createMockState(false, false);
-      const getState = vi.fn(() => mockState);
 
       // When on essaie de supprimer une dépense
-      const action = deleteExpense({
-        groupId: "non-existent-group",
-        expenseId: "some-expense",
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        deleteExpense({
+          groupId: "non-existent-group",
+          expenseId: "some-expense",
+        }),
+      );
 
       // Then la suppression échoue
       expect(result.type).toBe("groups/deleteExpense/rejected");
@@ -213,15 +142,18 @@ describe("Feature: Delete expense", () => {
 
     it("should reject when expense does not exist", async () => {
       // Given un groupe sans la dépense spécifiée
-      const mockState = createMockState(true, false);
-      const getState = vi.fn(() => mockState);
+      const createResult = await groupGateway.createGroup("Test Group", "EUR");
+      const groupId = createResult.groupId;
+
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie de supprimer une dépense qui n'existe pas
-      const action = deleteExpense({
-        groupId: "group-123",
-        expenseId: "non-existent-expense",
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        deleteExpense({
+          groupId,
+          expenseId: "non-existent-expense",
+        }),
+      );
 
       // Then la suppression échoue
       expect(result.type).toBe("groups/deleteExpense/rejected");
@@ -247,7 +179,7 @@ describe("Feature: Delete expense", () => {
         isPredefined: false,
       });
 
-      const expense2 = await groupGateway.createExpense({
+      await groupGateway.createExpense({
         groupId,
         name: "Expense 2",
         amount: 50,
@@ -255,49 +187,15 @@ describe("Feature: Delete expense", () => {
         isPredefined: false,
       });
 
-      const mockState = createMockState(true, true, expense1.expenseId);
-      (mockState.groups.entities as any)[groupId] = {
-        id: groupId,
-        name: "Test Group",
-        currency: "EUR",
-        creatorId: userId,
-        members: [],
-        expenses: [
-          {
-            id: expense1.expenseId,
-            groupId,
-            name: "Expense 1",
-            amount: 100,
-            currency: "EUR",
-            isPredefined: false,
-            createdBy: userId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: expense2.expenseId,
-            groupId,
-            name: "Expense 2",
-            amount: 50,
-            currency: "EUR",
-            isPredefined: false,
-            createdBy: userId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ],
-        shares: { totalExpenses: 150, shares: [] },
-      };
-      delete mockState.groups.entities["group-123"];
-
-      const getState = vi.fn(() => mockState);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on supprime la première dépense
-      const action = deleteExpense({
-        groupId,
-        expenseId: expense1.expenseId,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        deleteExpense({
+          groupId,
+          expenseId: expense1.expenseId,
+        }),
+      );
 
       // Then le budget total est mis à jour
       expect(result.type).toBe("groups/deleteExpense/fulfilled");

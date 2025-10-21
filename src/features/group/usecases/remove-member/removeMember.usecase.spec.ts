@@ -6,17 +6,28 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import { loadGroupById } from "../load-group/loadGroup.usecase";
 import { removeMemberFromGroup } from "./removeMember.usecase";
 
 describe("Feature: Remove member", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
   const creatorId = "creator-user-id";
-  const memberId = "member-user-id";
 
   beforeEach(() => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
   });
 
   describe("Success scenarios", () => {
@@ -34,27 +45,15 @@ describe("Feature: Remove member", () => {
       );
       const phantomMemberId = phantomResult.memberId;
 
-      // Get actual group for state
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-              creatorId: creatorId,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on retire le membre
-      const action = removeMemberFromGroup({
-        groupId,
-        memberId: phantomMemberId,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        removeMemberFromGroup({
+          groupId,
+          memberId: phantomMemberId,
+        }),
+      );
 
       // Then le retrait réussit
       expect(result.type).toBe("groups/removeMember/fulfilled");
@@ -68,6 +67,13 @@ describe("Feature: Remove member", () => {
         expect(response.memberId).toBe(phantomMemberId);
         expect(response.shares).toBeDefined();
       }
+
+      // Verify member is removed from store
+      const state = store.getState();
+      const group = state.groups.entities[groupId];
+      expect(
+        group?.members.find((m) => m.id === phantomMemberId),
+      ).toBeUndefined();
     });
 
     it("should recalculate shares after removing member", async () => {
@@ -82,26 +88,15 @@ describe("Feature: Remove member", () => {
         2000,
       );
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-              creatorId: creatorId,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on retire un membre
-      const action = removeMemberFromGroup({
-        groupId,
-        memberId: phantomResult.memberId,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        removeMemberFromGroup({
+          groupId,
+          memberId: phantomResult.memberId,
+        }),
+      );
 
       // Then les parts sont recalculées
       expect(result.type).toBe("groups/removeMember/fulfilled");
@@ -115,19 +110,14 @@ describe("Feature: Remove member", () => {
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
       // Given un groupe qui n'existe pas
-      const mockState = {
-        groups: {
-          entities: {},
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
 
       // When on essaie de retirer un membre
-      const action = removeMemberFromGroup({
-        groupId: "non-existent-group",
-        memberId: "some-member",
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        removeMemberFromGroup({
+          groupId: "non-existent-group",
+          memberId: "some-member",
+        }),
+      );
 
       // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");
@@ -141,25 +131,15 @@ describe("Feature: Remove member", () => {
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
+      await store.dispatch(loadGroupById(groupId));
 
       // When on essaie de retirer un membre inexistant
-      const action = removeMemberFromGroup({
-        groupId,
-        memberId: "non-existent-member",
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        removeMemberFromGroup({
+          groupId,
+          memberId: "non-existent-member",
+        }),
+      );
 
       // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");
@@ -170,15 +150,27 @@ describe("Feature: Remove member", () => {
 
     it("should reject removing the group creator", async () => {
       // Given un groupe avec le créateur
-      const createResult = await groupGateway.createGroup("Test Group", "EUR");
+      const createResult = await groupGateway.createGroup(
+        "Test Group",
+        "EUR",
+        creatorId,
+      );
       const groupId = createResult.groupId;
 
       await groupGateway.addMember(groupId, creatorId);
 
-      const actualGroup = await groupGateway.getGroupById(groupId);
+      await store.dispatch(loadGroupById(groupId));
+
+      // Get the group from state
+      const state = store.getState();
+      const group = state.groups.entities[groupId];
+
+      if (!group) {
+        throw new Error("Group not found in store");
+      }
 
       // Find the actual member that has the creator's userId
-      const creatorMemberInGroup = actualGroup.members.find(
+      const creatorMemberInGroup = group.members.find(
         (m) => m.userId === creatorId,
       );
 
@@ -186,25 +178,13 @@ describe("Feature: Remove member", () => {
         throw new Error("Creator member not found in group");
       }
 
-      const mockState = {
-        groups: {
-          entities: {
-            [groupId]: {
-              ...actualGroup,
-              totalMonthlyBudget: actualGroup.shares.totalExpenses,
-              creatorId: creatorId,
-            },
-          },
-        },
-      };
-      const getState = vi.fn(() => mockState as any);
-
       // When on essaie de retirer le créateur
-      const action = removeMemberFromGroup({
-        groupId,
-        memberId: creatorMemberInGroup.id,
-      });
-      const result = await action(vi.fn(), getState, { groupGateway } as any);
+      const result = await store.dispatch(
+        removeMemberFromGroup({
+          groupId,
+          memberId: creatorMemberInGroup.id,
+        }),
+      );
 
       // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");

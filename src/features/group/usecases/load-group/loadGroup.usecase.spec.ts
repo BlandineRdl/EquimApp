@@ -6,15 +6,26 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
 import { loadGroupById } from "./loadGroup.usecase";
 
 describe("Feature: Load group details", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
 
   beforeEach(() => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
   });
 
   describe("Success scenarios", () => {
@@ -25,8 +36,7 @@ describe("Feature: Load group details", () => {
       await groupGateway.addMember(groupId, "user-123");
 
       // When on charge les détails du groupe
-      const action = loadGroupById(groupId);
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(loadGroupById(groupId));
 
       // Then les détails sont chargés
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
@@ -42,6 +52,11 @@ describe("Feature: Load group details", () => {
         expect(group.currency).toBe("EUR");
         expect(group.members).toBeDefined();
       }
+
+      // Verify group is stored in state
+      const state = store.getState();
+      expect(state.groups.entities[groupId]).toBeDefined();
+      expect(state.groups.entities[groupId]?.name).toBe("Ma Coloc");
     });
 
     it("should include members in group details", async () => {
@@ -52,8 +67,7 @@ describe("Feature: Load group details", () => {
       await groupGateway.addMember(groupId, "user-2");
 
       // When on charge le groupe
-      const action = loadGroupById(groupId);
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(loadGroupById(groupId));
 
       // Then les membres sont inclus
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
@@ -78,8 +92,7 @@ describe("Feature: Load group details", () => {
       });
 
       // When on charge le groupe
-      const action = loadGroupById(groupId);
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(loadGroupById(groupId));
 
       // Then les dépenses sont incluses
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
@@ -104,8 +117,7 @@ describe("Feature: Load group details", () => {
       });
 
       // When on charge le groupe
-      const action = loadGroupById(groupId);
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(loadGroupById(groupId));
 
       // Then les parts sont incluses
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
@@ -126,8 +138,7 @@ describe("Feature: Load group details", () => {
       const groupId = createResult.groupId;
 
       // When on charge le groupe
-      const action = loadGroupById(groupId);
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(loadGroupById(groupId));
 
       // Then les timestamps sont présents
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
@@ -148,8 +159,7 @@ describe("Feature: Load group details", () => {
       const nonExistentId = "non-existent-group-id";
 
       // When on essaie de charger ce groupe
-      const action = loadGroupById(nonExistentId);
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(loadGroupById(nonExistentId));
 
       // Then le chargement échoue
       expect(result.type).toBe("groups/loadGroupById/rejected");

@@ -7,16 +7,18 @@
 
 import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
-import type { AuthGateway } from "../../../auth/ports/AuthGateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
-import type { UserGateway } from "../../../user/ports/UserGateway";
 import { MIN_PSEUDO_LENGTH } from "../../domain/manage-members/member.constants";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
 import { acceptInvitation } from "./acceptInvitation.usecase";
 
 describe("Feature: Accept invitation", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
   let authGateway: InMemoryAuthGateway;
   let userGateway: InMemoryUserGateway;
@@ -26,6 +28,7 @@ describe("Feature: Accept invitation", () => {
     groupGateway = new InMemoryGroupGateway();
     authGateway = new InMemoryAuthGateway();
     userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
 
     // Setup authenticated user session
     const mockSession: Session = {
@@ -56,16 +59,13 @@ describe("Feature: Accept invitation", () => {
       const token = inviteResult.token;
 
       // When on accepte l'invitation
-      const action = acceptInvitation({
-        token,
-        pseudo: "NewUser",
-        monthlyIncome: 2000,
-      });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({
+          token,
+          pseudo: "NewUser",
+          monthlyIncome: 2000,
+        }),
+      );
 
       // Then l'acceptation réussit
       expect(result.type).toBe("groups/acceptInvitation/fulfilled");
@@ -98,16 +98,13 @@ describe("Feature: Accept invitation", () => {
       const token = inviteResult.token;
 
       // When on accepte l'invitation avec un nouveau pseudo
-      const action = acceptInvitation({
-        token,
-        pseudo: "UpdatedPseudo",
-        monthlyIncome: 2500,
-      });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({
+          token,
+          pseudo: "UpdatedPseudo",
+          monthlyIncome: 2500,
+        }),
+      );
 
       // Then l'acceptation réussit
       expect(result.type).toBe("groups/acceptInvitation/fulfilled");
@@ -128,16 +125,13 @@ describe("Feature: Accept invitation", () => {
       const token = inviteResult.token;
 
       // When on accepte avec un pseudo contenant des espaces
-      const action = acceptInvitation({
-        token,
-        pseudo: "  SpacedUser  ",
-        monthlyIncome: 2000,
-      });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({
+          token,
+          pseudo: "  SpacedUser  ",
+          monthlyIncome: 2000,
+        }),
+      );
 
       // Then le profil est créé avec le pseudo trimmed
       expect(result.type).toBe("groups/acceptInvitation/fulfilled");
@@ -147,7 +141,7 @@ describe("Feature: Accept invitation", () => {
 
     it("should reject when user is not authenticated", async () => {
       // Given un utilisateur non authentifié
-      await authGateway.signOut(); // Clear session
+      await authGateway.signOut();
 
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
@@ -155,16 +149,13 @@ describe("Feature: Accept invitation", () => {
       const token = inviteResult.token;
 
       // When on essaie d'accepter l'invitation
-      const action = acceptInvitation({
-        token,
-        pseudo: "TestUser",
-        monthlyIncome: 2000,
-      });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({
+          token,
+          pseudo: "TestUser",
+          monthlyIncome: 2000,
+        }),
+      );
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
@@ -182,12 +173,9 @@ describe("Feature: Accept invitation", () => {
       const monthlyIncome = 2000;
 
       // When on accepte l'invitation
-      const action = acceptInvitation({ token, pseudo, monthlyIncome });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({ token, pseudo, monthlyIncome }),
+      );
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
@@ -203,12 +191,9 @@ describe("Feature: Accept invitation", () => {
       const monthlyIncome = 2000;
 
       // When on accepte l'invitation
-      const action = acceptInvitation({ token, pseudo, monthlyIncome });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({ token, pseudo, monthlyIncome }),
+      );
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
@@ -224,12 +209,9 @@ describe("Feature: Accept invitation", () => {
       const monthlyIncome = 2000;
 
       // When on accepte l'invitation
-      const action = acceptInvitation({ token, pseudo, monthlyIncome });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({ token, pseudo, monthlyIncome }),
+      );
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
@@ -245,12 +227,9 @@ describe("Feature: Accept invitation", () => {
       const monthlyIncome = 2000;
 
       // When on accepte l'invitation
-      const action = acceptInvitation({ token, pseudo, monthlyIncome });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({ token, pseudo, monthlyIncome }),
+      );
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
@@ -266,12 +245,9 @@ describe("Feature: Accept invitation", () => {
       const monthlyIncome = 2000;
 
       // When on accepte l'invitation
-      const action = acceptInvitation({ token, pseudo, monthlyIncome });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({ token, pseudo, monthlyIncome }),
+      );
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
@@ -289,12 +265,9 @@ describe("Feature: Accept invitation", () => {
       const monthlyIncome = 0;
 
       // When on accepte l'invitation
-      const action = acceptInvitation({ token, pseudo, monthlyIncome });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({ token, pseudo, monthlyIncome }),
+      );
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
@@ -310,12 +283,9 @@ describe("Feature: Accept invitation", () => {
       const monthlyIncome = -1000;
 
       // When on accepte l'invitation
-      const action = acceptInvitation({ token, pseudo, monthlyIncome });
-      const result = await action(vi.fn(), vi.fn(), {
-        groupGateway,
-        authGateway,
-        userGateway,
-      } as any);
+      const result = await store.dispatch(
+        acceptInvitation({ token, pseudo, monthlyIncome }),
+      );
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");

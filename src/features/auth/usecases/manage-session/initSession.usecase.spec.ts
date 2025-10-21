@@ -7,15 +7,20 @@
 
 import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
 import { InMemoryAuthGateway } from "../../infra/InMemoryAuthGateway";
-import type { AuthGateway } from "../../ports/AuthGateway";
 import { initSession } from "./initSession.usecase";
 
 describe("Feature: Initialize session", () => {
+  let store: ReduxStore;
   let authGateway: InMemoryAuthGateway;
 
   beforeEach(() => {
     authGateway = new InMemoryAuthGateway();
+    store = initReduxStore({ authGateway });
   });
 
   describe("Success scenarios", () => {
@@ -24,12 +29,17 @@ describe("Feature: Initialize session", () => {
       // (authGateway est vide)
 
       // When on initialise la session
-      const action = initSession();
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(initSession());
 
       // Then null est retourné
-      expect(result.type).toBe("auth/initSession/fulfilled");
-      expect(result.payload).toBeNull();
+      const state = store.getState();
+      expect(state.auth.session).toBeNull();
+      expect(state.auth.user).toBeNull();
+      expect(state.auth.userId).toBeNull();
+      expect(state.auth.isAuthenticated).toBe(false);
+      expect(state.auth.hydrated).toBe(true);
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.error).toBeNull();
     });
 
     it("should restore existing session", async () => {
@@ -54,17 +64,17 @@ describe("Feature: Initialize session", () => {
       authGateway.setCurrentSession(mockSession);
 
       // When on initialise la session
-      const action = initSession();
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(initSession());
 
       // Then la session est restaurée
-      expect(result.type).toBe("auth/initSession/fulfilled");
-      if ("payload" in result) {
-        const session = result.payload as Session;
-        expect(session).toEqual(mockSession);
-        expect(session.user.id).toBe("user-123");
-        expect(session.user.email).toBe("user@example.com");
-      }
+      const state = store.getState();
+      expect(state.auth.session).toEqual(mockSession);
+      expect(state.auth.user).toEqual(mockSession.user);
+      expect(state.auth.userId).toBe("user-123");
+      expect(state.auth.isAuthenticated).toBe(true);
+      expect(state.auth.hydrated).toBe(true);
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.error).toBeNull();
     });
   });
 });

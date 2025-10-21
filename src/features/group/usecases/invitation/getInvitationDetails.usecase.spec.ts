@@ -6,15 +6,26 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
+import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
+import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
-import type { GroupGateway } from "../../ports/GroupGateway";
 import { getInvitationDetails } from "./getInvitationDetails.usecase";
 
 describe("Feature: Get invitation details", () => {
+  let store: ReduxStore;
   let groupGateway: InMemoryGroupGateway;
+  let authGateway: InMemoryAuthGateway;
+  let userGateway: InMemoryUserGateway;
 
   beforeEach(() => {
     groupGateway = new InMemoryGroupGateway();
+    authGateway = new InMemoryAuthGateway();
+    userGateway = new InMemoryUserGateway();
+    store = initReduxStore({ groupGateway, authGateway, userGateway });
   });
 
   describe("Success scenarios", () => {
@@ -28,8 +39,7 @@ describe("Feature: Get invitation details", () => {
       const token = inviteResult.token;
 
       // When on récupère les détails de l'invitation
-      const action = getInvitationDetails({ token });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(getInvitationDetails({ token }));
 
       // Then les détails sont retournés
       expect(result.type).toBe("groups/getInvitationDetails/fulfilled");
@@ -45,6 +55,10 @@ describe("Feature: Get invitation details", () => {
         expect(details.expiresAt).toBeNull();
         expect(details.isConsumed).toBe(false);
       }
+
+      // Verify details are stored in state
+      const state = store.getState();
+      expect(state.groups.invitation.details.data).toBeDefined();
     });
 
     it("should return null for non-existent token", async () => {
@@ -52,8 +66,7 @@ describe("Feature: Get invitation details", () => {
       const token = "non-existent-token";
 
       // When on récupère les détails
-      const action = getInvitationDetails({ token });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(getInvitationDetails({ token }));
 
       // Then null est retourné
       expect(result.type).toBe("groups/getInvitationDetails/fulfilled");
@@ -69,8 +82,7 @@ describe("Feature: Get invitation details", () => {
       const token = "";
 
       // When on récupère les détails
-      const action = getInvitationDetails({ token });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(getInvitationDetails({ token }));
 
       // Then la récupération échoue
       expect(result.type).toBe("groups/getInvitationDetails/rejected");
@@ -84,8 +96,7 @@ describe("Feature: Get invitation details", () => {
       const token = "   ";
 
       // When on récupère les détails
-      const action = getInvitationDetails({ token });
-      const result = await action(vi.fn(), vi.fn(), { groupGateway } as any);
+      const result = await store.dispatch(getInvitationDetails({ token }));
 
       // Then la récupération échoue
       expect(result.type).toBe("groups/getInvitationDetails/rejected");

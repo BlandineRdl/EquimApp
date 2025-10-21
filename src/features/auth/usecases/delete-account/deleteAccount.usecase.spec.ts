@@ -7,15 +7,20 @@
 
 import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  initReduxStore,
+  type ReduxStore,
+} from "../../../../store/buildReduxStore";
 import { InMemoryAuthGateway } from "../../infra/InMemoryAuthGateway";
-import type { AuthGateway } from "../../ports/AuthGateway";
 import { deleteAccount } from "./deleteAccount.usecase";
 
 describe("Feature: Delete account", () => {
+  let store: ReduxStore;
   let authGateway: InMemoryAuthGateway;
 
   beforeEach(() => {
     authGateway = new InMemoryAuthGateway();
+    store = initReduxStore({ authGateway });
   });
 
   describe("Success scenarios", () => {
@@ -41,11 +46,17 @@ describe("Feature: Delete account", () => {
       authGateway.setCurrentSession(mockSession);
 
       // When on supprime le compte
-      const action = deleteAccount();
-      const result = await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(deleteAccount());
 
       // Then la suppression réussit
-      expect(result.type).toBe("auth/deleteAccount/fulfilled");
+      const state = store.getState();
+      expect(state.auth.isLoading).toBe(false);
+      expect(state.auth.user).toBeNull();
+      expect(state.auth.userId).toBeNull();
+      expect(state.auth.session).toBeNull();
+      expect(state.auth.isAuthenticated).toBe(false);
+      expect(state.auth.profileDeleted).toBe(true);
+      expect(state.auth.error).toBeNull();
 
       // And la session est supprimée
       const currentSession = await authGateway.getSession();
@@ -74,10 +85,16 @@ describe("Feature: Delete account", () => {
       authGateway.setCurrentSession(mockSession);
 
       // When on supprime le compte
-      const action = deleteAccount();
-      await action(vi.fn(), vi.fn(), { authGateway } as any);
+      await store.dispatch(deleteAccount());
 
       // Then toutes les données de session sont effacées
+      const state = store.getState();
+      expect(state.auth.user).toBeNull();
+      expect(state.auth.userId).toBeNull();
+      expect(state.auth.session).toBeNull();
+      expect(state.auth.isAuthenticated).toBe(false);
+      expect(state.auth.profileDeleted).toBe(true);
+
       const session = await authGateway.getSession();
       expect(session).toBeNull();
     });
