@@ -194,9 +194,9 @@ export const GroupDetailsScreen = () => {
     dispatch(closeAddExpenseForm());
   };
 
-  const handleAddExpense = () => {
-    if (addExpenseUI.form && addExpenseUI.canSubmit) {
-      dispatch(
+  const handleAddExpense = async () => {
+    if (addExpenseUI.form && addExpenseUI.canSubmit && !loading) {
+      await dispatch(
         addExpenseToGroup({
           groupId: addExpenseUI.form.groupId,
           name: addExpenseUI.form.name.trim(),
@@ -482,10 +482,16 @@ export const GroupDetailsScreen = () => {
               onChangeText={onExpenseAmountChange}
             />
             <TouchableOpacity
-              style={styles.modalButton}
+              style={[
+                styles.modalButton,
+                loading && styles.modalButtonDisabled,
+              ]}
               onPress={handleAddExpense}
+              disabled={loading}
             >
-              <Text style={styles.modalButtonText}>Ajouter</Text>
+              <Text style={styles.modalButtonText}>
+                {loading ? "Ajout..." : "Ajouter"}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalButtonCancel}
@@ -923,6 +929,10 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     marginBottom: 10,
+  },
+  modalButtonDisabled: {
+    backgroundColor: "#9ca3af",
+    opacity: 0.6,
   },
   modalButtonText: {
     color: "#fff",
