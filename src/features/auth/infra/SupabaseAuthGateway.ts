@@ -138,24 +138,74 @@ export class SupabaseAuthGateway implements AuthGateway {
         userId: user.id,
       });
 
-      // Hard delete profile (will cascade to groups, expenses, etc via DB constraints)
-      const { error: deleteError } = await supabase
+      // 1. Delete all groups where user is creator
+      // (This will cascade delete group_members, expenses, invitations via DB constraints)
+      const { error: groupsError } = await supabase
+        .from("groups")
+        .delete()
+        .eq("creator_id", user.id);
+
+      if (groupsError) {
+        logger.error("[RESET] Failed to delete groups", groupsError);
+        throw createUserFriendlyError(groupsError);
+      }
+
+      // 2. Remove user from all groups they're a member of (but not creator)
+      const { error: membershipsError } = await supabase
+        .from("group_members")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (membershipsError) {
+        logger.error(
+          "[RESET] Failed to delete group memberships",
+          membershipsError,
+        );
+        throw createUserFriendlyError(membershipsError);
+      }
+
+      // 3. Delete user's personal expenses
+      // (This will cascade via ON DELETE CASCADE constraint)
+      const { error: expensesError } = await supabase
+        .from("user_personal_expenses")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (expensesError) {
+        logger.error(
+          "[RESET] Failed to delete personal expenses",
+          expensesError,
+        );
+        throw createUserFriendlyError(expensesError);
+      }
+
+      // 4. Delete invitations created by user
+      const { error: invitationsError } = await supabase
+        .from("invitations")
+        .delete()
+        .eq("created_by", user.id);
+
+      if (invitationsError) {
+        logger.error("[RESET] Failed to delete invitations", invitationsError);
+        throw createUserFriendlyError(invitationsError);
+      }
+
+      // 5. Finally, hard delete the profile
+      // (This will cascade delete auth.users via ON DELETE CASCADE)
+      const { error: profileError } = await supabase
         .from("profiles")
         .delete()
         .eq("id", user.id);
 
-      if (deleteError) {
-        throw createUserFriendlyError(deleteError);
+      if (profileError) {
+        logger.error("[RESET] Failed to delete profile", profileError);
+        throw createUserFriendlyError(profileError);
       }
-
-      // Note: The database trigger or RLS policy should handle deleting the auth user
-      // from auth.users table when the profile is deleted. If not, you need to create
-      // a Supabase Edge Function with admin privileges to delete the auth user.
 
       // Sign out
       await this.signOut();
 
-      logger.info("[RESET] Account reset complete");
+      logger.info("[RESET] Account reset complete - all data deleted");
     } catch (error) {
       logger.error("[RESET] Reset account failed", error);
       throw createUserFriendlyError(error);
