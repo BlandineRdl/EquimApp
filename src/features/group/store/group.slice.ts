@@ -8,6 +8,7 @@ import { createGroup } from "../usecases/create-group/createGroup.usecase";
 import { deleteGroup } from "../usecases/delete-group/deleteGroup.usecase";
 import { addExpenseToGroup } from "../usecases/expense/addExpense.usecase";
 import { deleteExpense } from "../usecases/expense/deleteExpense.usecase";
+import { updateExpense } from "../usecases/expense/updateExpense.usecase";
 import { acceptInvitation } from "../usecases/invitation/acceptInvitation.usecase";
 import { generateInviteLink } from "../usecases/invitation/generateInviteLink.usecase";
 import { getInvitationDetails } from "../usecases/invitation/getInvitationDetails.usecase";
@@ -269,8 +270,7 @@ export const groupSlice = createSlice({
           group.totalMonthlyBudget = shares.totalExpenses;
         }
 
-        // Fermer le formulaire
-        state.addExpenseForm = null;
+        // Ne pas fermer le formulaire pour permettre l'ajout de plusieurs dépenses
       })
       .addCase(addExpenseToGroup.rejected, (state, action) => {
         state.loading = false;
@@ -299,6 +299,34 @@ export const groupSlice = createSlice({
         state.loading = false;
         state.error =
           action.error.message || "Erreur lors de la suppression de la dépense";
+      })
+      // Update expense in group
+      .addCase(updateExpense.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateExpense.fulfilled, (state, action) => {
+        state.loading = false;
+        const { groupId, expenseId, name, amount, shares } = action.payload;
+
+        const group = state.entities[groupId];
+        if (group) {
+          // Find and update the expense
+          const expense = group.expenses.find((e) => e.id === expenseId);
+          if (expense) {
+            expense.name = name;
+            expense.amount = amount;
+          }
+          // Update shares
+          group.shares = shares;
+          group.totalMonthlyBudget = shares.totalExpenses;
+        }
+      })
+      .addCase(updateExpense.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message ||
+          "Erreur lors de la modification de la dépense";
       })
       // Load single group by ID (for refresh)
       .addCase(loadGroupById.pending, (state) => {

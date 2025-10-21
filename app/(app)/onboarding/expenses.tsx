@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { Plus, Trash2 } from "lucide-react-native";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -82,18 +83,18 @@ export default function ExpensesScreen() {
           </View>
 
           {/* Dépenses courantes */}
-          <View style={styles.section}>
+          <View style={styles.predefinedSection}>
             <Text style={styles.sectionTitle}>Dépenses courantes</Text>
 
             {expenses
               .filter((expense) => !expense.isCustom)
               .map((expense) => (
-                <View key={expense.id} style={styles.expenseRow}>
-                  <Text style={styles.expenseLabel}>{expense.label}</Text>
-                  <View style={styles.expenseInputContainer}>
+                <View key={expense.id} style={styles.predefinedRow}>
+                  <Text style={styles.predefinedLabel}>{expense.label}</Text>
+                  <View style={styles.predefinedInputContainer}>
                     <TextInput
-                      style={styles.expenseInput}
-                      placeholder="Ex: 800"
+                      style={styles.predefinedInput}
+                      placeholder="0"
                       value={expense.amount}
                       onChangeText={(text) =>
                         handleExpenseAmountChange(expense.id, text)
@@ -101,70 +102,83 @@ export default function ExpensesScreen() {
                       keyboardType="decimal-pad"
                       maxLength={8}
                     />
-                    <Text style={styles.currencySymbol}>€</Text>
+                    <Text style={styles.currencyText}>€</Text>
                   </View>
                 </View>
               ))}
           </View>
 
           {/* Dépenses personnalisées */}
-          <View style={styles.section}>
-            {/* Afficher les dépenses personnalisées ajoutées */}
-            {expenses
-              .filter((expense) => expense.isCustom)
-              .map((expense) => (
-                <View key={expense.id} style={styles.customExpenseRow}>
-                  <Text style={styles.expenseLabel}>{expense.label}</Text>
-                  <View style={styles.expenseInputContainer}>
-                    <Text style={styles.expenseAmount}>{expense.amount}€</Text>
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => handleRemoveExpense(expense.id)}
-                    >
-                      <Text style={styles.removeButtonText}>×</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
+          <View style={styles.customSection}>
+            <Text style={styles.sectionTitle}>Ajouter une dépense</Text>
 
             {/* Formulaire pour ajouter une nouvelle dépense */}
-            <View style={styles.addExpenseForm}>
-              <View style={styles.addExpenseRow}>
+            <View style={styles.formRow}>
+              <View style={styles.labelInput}>
+                <Text style={styles.inputLabel}>Libellé</Text>
                 <TextInput
-                  style={[styles.expenseInput, styles.newExpenseInput]}
-                  placeholder="Nom de la dépense"
+                  style={styles.input}
+                  placeholder="Ex: Loyer"
                   value={newExpenseLabel}
                   onChangeText={setNewExpenseLabel}
                   maxLength={20}
                 />
-                <View style={styles.expenseInputContainer}>
-                  <TextInput
-                    style={styles.expenseInput}
-                    placeholder="Montant"
-                    value={newExpenseAmount}
-                    onChangeText={(text) =>
-                      setNewExpenseAmount(text.replace(/[^0-9.]/g, ""))
-                    }
-                    keyboardType="decimal-pad"
-                    maxLength={8}
-                  />
-                  <Text style={styles.currencySymbol}>€</Text>
-                </View>
               </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.addButton,
-                  (!newExpenseLabel.trim() || !newExpenseAmount.trim()) &&
-                    styles.addButtonDisabled,
-                ]}
-                onPress={handleAddCustomExpense}
-                disabled={!newExpenseLabel.trim() || !newExpenseAmount.trim()}
-              >
-                <Text style={styles.addButtonText}>+ Ajouter une dépense</Text>
-              </TouchableOpacity>
+              <View style={styles.amountInput}>
+                <Text style={styles.inputLabel}>Montant (€)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="0"
+                  value={newExpenseAmount}
+                  onChangeText={(text) =>
+                    setNewExpenseAmount(text.replace(/[^0-9.]/g, ""))
+                  }
+                  keyboardType="decimal-pad"
+                  maxLength={8}
+                />
+              </View>
             </View>
+
+            <TouchableOpacity
+              style={[
+                styles.addButton,
+                (!newExpenseLabel.trim() || !newExpenseAmount.trim()) &&
+                  styles.addButtonDisabled,
+              ]}
+              onPress={handleAddCustomExpense}
+              disabled={!newExpenseLabel.trim() || !newExpenseAmount.trim()}
+            >
+              <Plus size={20} color="#fff" />
+              <Text style={styles.addButtonText}>Ajouter</Text>
+            </TouchableOpacity>
           </View>
+
+          {/* Liste des dépenses personnalisées ajoutées */}
+          {expenses.filter((expense) => expense.isCustom).length > 0 && (
+            <View style={styles.customListSection}>
+              <Text style={styles.sectionTitle}>
+                Mes dépenses ({expenses.filter((e) => e.isCustom).length})
+              </Text>
+              {expenses
+                .filter((expense) => expense.isCustom)
+                .map((expense) => (
+                  <View key={expense.id} style={styles.customExpenseRow}>
+                    <View style={styles.expenseInfo}>
+                      <Text style={styles.expenseLabel}>{expense.label}</Text>
+                      <Text style={styles.expenseAmount}>
+                        {expense.amount} €
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleRemoveExpense(expense.id)}
+                    >
+                      <Trash2 size={18} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+            </View>
+          )}
 
           {/* Total */}
           {totalAmount > 0 && (
@@ -218,7 +232,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 48,
+    marginBottom: 32,
   },
   title: {
     fontSize: 24,
@@ -233,7 +247,51 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 24,
   },
-  section: {
+  // Dépenses prédéfinies
+  predefinedSection: {
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  predefinedRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  predefinedLabel: {
+    fontSize: 14,
+    color: "#000",
+    fontWeight: "500",
+    flex: 1,
+  },
+  predefinedInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  predefinedInput: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: "#000",
+    minWidth: 80,
+    textAlign: "right",
+  },
+  currencyText: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginLeft: 8,
+    fontWeight: "500",
+  },
+  // Section ajout dépense personnalisée
+  customSection: {
     backgroundColor: "#f9fafb",
     borderRadius: 12,
     padding: 16,
@@ -242,97 +300,93 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#374151",
-    marginBottom: 16,
-  },
-  expenseRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  customExpenseRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  expenseLabel: {
-    fontSize: 16,
-    color: "#374151",
-    flex: 1,
-  },
-  expenseInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  expenseInput: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 16,
-    backgroundColor: "#fff",
-    minWidth: 80,
-    textAlign: "right",
-  },
-  newExpenseInput: {
-    flex: 1,
-    marginRight: 12,
-    textAlign: "left",
-  },
-  currencySymbol: {
-    fontSize: 16,
-    color: "#6b7280",
-    marginLeft: 8,
-  },
-  expenseAmount: {
-    fontSize: 16,
-    color: "#374151",
-    fontWeight: "500",
-  },
-  removeButton: {
-    marginLeft: 12,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#fee2e2",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  removeButtonText: {
-    fontSize: 16,
-    color: "#dc2626",
-    fontWeight: "bold",
-  },
-  addExpenseForm: {
-    marginTop: 16,
-  },
-  addExpenseRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    color: "#000",
     marginBottom: 12,
   },
+  formRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 12,
+  },
+  labelInput: {
+    flex: 2,
+  },
+  amountInput: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#6b7280",
+    marginBottom: 4,
+  },
+  input: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: "#000",
+  },
   addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#10b981",
     borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: "center",
+    gap: 8,
   },
   addButtonDisabled: {
-    backgroundColor: "#d1d5db",
+    backgroundColor: "#9ca3af",
+    opacity: 0.6,
   },
   addButtonText: {
-    color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+    color: "#fff",
   },
+  // Liste des dépenses personnalisées
+  customListSection: {
+    marginBottom: 16,
+  },
+  customExpenseRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  expenseInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  expenseLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#000",
+    marginBottom: 4,
+  },
+  expenseAmount: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#10b981",
+  },
+  deleteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#fee2e2",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  // Total
   totalContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -352,6 +406,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#10b981",
   },
+  // Actions
   actions: {
     paddingBottom: 32,
     paddingTop: 24,

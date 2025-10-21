@@ -8,9 +8,11 @@ import {
   Plus,
   Trash2,
   Users,
+  X,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -22,6 +24,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
+import { ExpenseManager } from "../../../../components/ExpenseManager.component";
 import { logger } from "../../../../lib/logger";
 import type { AppState } from "../../../../store/appState";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
@@ -31,13 +34,13 @@ import {
   closeAddMemberForm,
   openAddExpenseForm,
   openAddMemberForm,
-  updateAddExpenseForm,
   updateAddMemberForm,
 } from "../../store/group.slice";
 import { addMemberToGroup } from "../../usecases/add-member/addMember.usecase";
 import { deleteGroup } from "../../usecases/delete-group/deleteGroup.usecase";
 import { addExpenseToGroup } from "../../usecases/expense/addExpense.usecase";
 import { deleteExpense } from "../../usecases/expense/deleteExpense.usecase";
+import { updateExpense } from "../../usecases/expense/updateExpense.usecase";
 import { leaveGroup } from "../../usecases/leave-group/leaveGroup.usecase";
 import { loadGroupById } from "../../usecases/load-group/loadGroup.usecase";
 import { removeMemberFromGroup } from "../../usecases/remove-member/removeMember.usecase";
@@ -246,23 +249,34 @@ export const GroupDetailsScreen = () => {
     dispatch(closeAddExpenseForm());
   };
 
-  const handleAddExpense = async () => {
-    if (addExpenseUI.form && addExpenseUI.canSubmit && !addExpenseUI.loading) {
-      await dispatch(
-        addExpenseToGroup({
-          groupId: addExpenseUI.form.groupId,
-          name: addExpenseUI.form.name.trim(),
-          amount: parseFloat(addExpenseUI.form.amount),
-        }),
-      );
-    }
+  const handleAddExpense = async (name: string, amount: number) => {
+    if (!groupId) return;
+
+    await dispatch(
+      addExpenseToGroup({
+        groupId,
+        name,
+        amount,
+      }),
+    ).unwrap();
   };
 
-  const onExpenseNameChange = (text: string) =>
-    dispatch(updateAddExpenseForm({ name: text }));
+  const handleEditExpense = async (
+    expenseId: string,
+    name: string,
+    amount: number,
+  ) => {
+    if (!groupId) return;
 
-  const onExpenseAmountChange = (text: string) =>
-    dispatch(updateAddExpenseForm({ amount: text }));
+    await dispatch(
+      updateExpense({
+        groupId,
+        expenseId,
+        name,
+        amount,
+      }),
+    ).unwrap();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -532,74 +546,84 @@ export const GroupDetailsScreen = () => {
       )}
 
       {/* Modal d'ajout de dépense */}
-      {addExpenseUI.isOpen && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Ajouter une dépense</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Nom de la dépense"
-              value={addExpenseUI.form?.name}
-              onChangeText={onExpenseNameChange}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Montant (€)"
-              keyboardType="numeric"
-              value={addExpenseUI.form?.amount}
-              onChangeText={onExpenseAmountChange}
-            />
-            <TouchableOpacity
-              style={[
-                styles.modalButton,
-                addExpenseUI.loading && styles.modalButtonDisabled,
-              ]}
-              onPress={handleAddExpense}
-              disabled={addExpenseUI.loading}
-            >
-              <Text style={styles.modalButtonText}>
-                {addExpenseUI.loading ? "Ajout..." : "Ajouter"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButtonCancel}
-              onPress={closeAddExpenseModal}
-            >
-              <Text style={styles.modalButtonTextCancel}>Annuler</Text>
+      <Modal
+        visible={addExpenseUI.isOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={closeAddExpenseModal}
+      >
+        <View style={styles.bottomSheetContainer}>
+          {/* Header */}
+          <View style={styles.bottomSheetHeader}>
+            <Text style={styles.bottomSheetTitle}>Dépenses du groupe</Text>
+            <TouchableOpacity onPress={closeAddExpenseModal}>
+              <X size={24} color="#000" />
             </TouchableOpacity>
           </View>
+
+          {/* Content */}
+          <View style={styles.bottomSheetContent}>
+            <ExpenseManager
+              expenses={expenses.map((exp) => ({
+                id: exp.id,
+                label: exp.name,
+                amount: exp.amount,
+              }))}
+              onAdd={handleAddExpense}
+              onEdit={handleEditExpense}
+              onDelete={handleDeleteExpense}
+              minExpenses={0}
+              title="Dépenses du groupe"
+              addSectionTitle="Ajouter une dépense"
+            />
+          </View>
         </View>
-      )}
+      </Modal>
 
       {/* Modal de confirmation de suppression du groupe */}
-      {showDeleteConfirm && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.deleteModalIcon}>
-              <AlertTriangle size={48} color="#ef4444" />
+      <Modal
+        visible={showDeleteConfirm}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={closeDeleteConfirmModal}
+      >
+        <View style={styles.bottomSheetContainer}>
+          {/* Header */}
+          <View style={styles.bottomSheetHeader}>
+            <Text style={styles.bottomSheetTitle}>Supprimer le groupe ?</Text>
+            <TouchableOpacity onPress={closeDeleteConfirmModal}>
+              <X size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Content */}
+          <View style={styles.deleteContent}>
+            <View style={styles.deleteIconContainer}>
+              <AlertTriangle size={64} color="#ef4444" />
             </View>
-            <Text style={styles.modalTitle}>Supprimer le groupe ?</Text>
             <Text style={styles.deleteWarningText}>
               Cette action est irréversible. Tous les membres, dépenses et
               données du groupe seront définitivement supprimés.
             </Text>
+
             <TouchableOpacity
-              style={styles.modalButtonDanger}
+              style={styles.deleteDangerButton}
               onPress={confirmDeleteGroup}
             >
-              <Text style={styles.modalButtonText}>
+              <Text style={styles.deleteDangerButtonText}>
                 Supprimer définitivement
               </Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={styles.modalButtonCancel}
+              style={styles.cancelButton}
               onPress={closeDeleteConfirmModal}
             >
-              <Text style={styles.modalButtonTextCancel}>Annuler</Text>
+              <Text style={styles.cancelButtonText}>Annuler</Text>
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* Modal de choix du type de membre */}
       <MemberTypeChoiceModal
@@ -975,22 +999,46 @@ const styles = StyleSheet.create({
     height: 40,
   },
   modalOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10,
+  },
+  bottomSheetContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  bottomSheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  bottomSheetTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#000",
+  },
+  bottomSheetContent: {
+    flex: 1,
+    padding: 16,
+  },
+  modalContainer: {
+    width: "85%",
+    maxWidth: 400,
   },
   modalContent: {
     backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 20,
-    width: "80%",
-    alignItems: "center",
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 20,
@@ -1033,17 +1081,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  modalButtonDanger: {
-    backgroundColor: "#ef4444",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 10,
-  },
   modalButtonCancel: {
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#f3f4f6",
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 8,
@@ -1051,19 +1090,49 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalButtonTextCancel: {
-    color: "#000",
+    color: "#374151",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
-  deleteModalIcon: {
-    marginBottom: 16,
+  deleteContent: {
+    flex: 1,
+    padding: 24,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteIconContainer: {
+    marginBottom: 24,
   },
   deleteWarningText: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: 16,
+    color: "#6b7280",
     textAlign: "center",
-    marginBottom: 20,
-    lineHeight: 20,
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  deleteDangerButton: {
+    backgroundColor: "#ef4444",
+    borderRadius: 8,
+    paddingVertical: 16,
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  deleteDangerButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  cancelButton: {
+    backgroundColor: "#f3f4f6",
+    borderRadius: 8,
+    paddingVertical: 16,
+    width: "100%",
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    color: "#374151",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
