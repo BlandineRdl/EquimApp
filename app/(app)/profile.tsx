@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { signOut } from "../../src/features/auth/usecases/manage-session/signOut.usecase";
 import { ManagePersonalExpensesModal } from "../../src/features/user/presentation/ManagePersonalExpensesModal.component";
+import { PersonalExpensesList } from "../../src/features/user/presentation/PersonalExpensesList.component";
 import { selectPersonalExpenses } from "../../src/features/user/presentation/selectors/selectPersonalExpenses.selector";
 import { selectUserProfile } from "../../src/features/user/presentation/selectors/selectUser.selector";
 import { selectUserCapacity } from "../../src/features/user/presentation/selectors/selectUserCapacity.selector";
@@ -97,7 +98,10 @@ export default function ProfileScreen() {
         </View>
 
         {/* Personal Expenses Card */}
-        {/* TODO: PersonalExpensesList component is missing */}
+        <PersonalExpensesList
+          expenses={personalExpenses}
+          onManagePress={() => setIsExpensesModalVisible(true)}
+        />
 
         {/* Capacity Card */}
         {capacity !== undefined && (
