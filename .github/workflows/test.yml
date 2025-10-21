@@ -39,36 +39,8 @@ jobs:
           files: ./coverage/coverage-final.json
           flags: unittests
 
-  database-tests:
-    name: Database Tests (SQL)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Start Supabase (local)
-        run: supabase start
-
-      - name: Install pg_tap extension
-        run: |
-          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "CREATE EXTENSION IF NOT EXISTS pgtap;"
-
-      - name: Run database tests (pg_tap)
-        run: |
-          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/tests/compute_shares.pgtap.sql
-
-      - name: Stop Supabase
-        if: always()
-        run: supabase stop --no-backup
-
-  integration-tests:
-    name: Integration Tests (Supabase Local)
+  database-integration-tests:
+    name: Database & Integration Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -91,8 +63,16 @@ jobs:
         with:
           version: latest
 
-      - name: Start Supabase
+      - name: Start Supabase (local)
         run: supabase start
+
+      - name: Install pg_tap extension
+        run: |
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "CREATE EXTENSION IF NOT EXISTS pgtap;"
+
+      - name: Run database tests (pg_tap)
+        run: |
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/tests/compute_shares.pgtap.sql
 
       - name: Install dependencies
         run: pnpm install
@@ -172,7 +152,7 @@ jobs:
   notify:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [unit-tests, database-tests, integration-tests, lint, build]
+    needs: [unit-tests, database-integration-tests, lint, build]
     if: always()
 
     steps:
@@ -180,15 +160,13 @@ jobs:
         run: |
           echo "📊 Test Results Summary:"
           echo "  Unit Tests: ${{ needs.unit-tests.result }}"
-          echo "  Database Tests (SQL): ${{ needs.database-tests.result }}"
-          echo "  Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "  Database & Integration Tests: ${{ needs.database-integration-tests.result }}"
           echo "  Lint: ${{ needs.lint.result }}"
           echo "  Build: ${{ needs.build.result }}"
           echo ""
 
           if [ "${{ needs.unit-tests.result }}" == "failure" ] ||
-             [ "${{ needs.database-tests.result }}" == "failure" ] ||
-             [ "${{ needs.integration-tests.result }}" == "failure" ] ||
+             [ "${{ needs.database-integration-tests.result }}" == "failure" ] ||
              [ "${{ needs.lint.result }}" == "failure" ] ||
              [ "${{ needs.build.result }}" == "failure" ]; then
             echo "❌ Some tests failed"
