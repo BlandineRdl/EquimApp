@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
-import { Input, ScrollView, Spinner, Text, YStack } from "tamagui";
+import { ScrollView, Spinner, Text, YStack } from "tamagui";
 import { Button } from "../../src/components/Button";
 import { Card } from "../../src/components/Card";
+import { Input } from "../../src/components/Input";
 import { RESEND_OTP_COOLDOWN_SECONDS } from "../../src/features/auth/domain/authenticate-with-email/otp.constants";
 import { signInWithEmail } from "../../src/features/auth/usecases/authenticate-with-email/signInWithEmail.usecase";
 import { verifyOtp } from "../../src/features/auth/usecases/authenticate-with-email/verifyOtp.usecase";
@@ -142,14 +143,6 @@ export default function SignInScreen() {
                   keyboardType="number-pad"
                   maxLength={6}
                   autoFocus
-                  backgroundColor="$background"
-                  borderColor="$borderColor"
-                  borderWidth={1}
-                  borderRadius="$base"
-                  paddingHorizontal="$base"
-                  paddingVertical="$md"
-                  fontSize="$base"
-                  color="$color"
                 />
 
                 {error && (
@@ -269,15 +262,7 @@ export default function SignInScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!isLoading}
-                backgroundColor="$background"
-                borderColor={error ? "$error" : "$borderColor"}
-                borderWidth={1}
-                borderRadius="$base"
-                paddingHorizontal="$base"
-                paddingVertical="$md"
-                fontSize="$base"
-                color="$color"
-                placeholderTextColor="$colorTertiary"
+                error={!!error}
               />
 
               {error && (

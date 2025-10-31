@@ -9,24 +9,37 @@ export function Button({ variant = "primary", ...props }: AppButtonProps) {
     switch (variant) {
       case "primary":
         return {
-          backgroundColor: "$primary",
+          backgroundColor: "$gray900",
           color: "$white",
           hoverStyle: {
-            backgroundColor: "$primaryHover",
+            backgroundColor: "$gray800",
           },
           pressStyle: {
-            backgroundColor: "$primaryPress",
+            backgroundColor: "$gray800",
+            scale: 0.98,
+          },
+          disabledStyle: {
+            backgroundColor: "$gray400",
+            color: "$gray200",
           },
         };
       case "secondary":
         return {
-          backgroundColor: "$backgroundTertiary",
+          backgroundColor: "transparent",
+          borderWidth: 1,
+          borderColor: "$borderColor",
           color: "$color",
           hoverStyle: {
-            backgroundColor: "$borderColorHover",
+            backgroundColor: "$backgroundSecondary",
+            borderColor: "$borderColorHover",
           },
           pressStyle: {
-            opacity: 0.7,
+            backgroundColor: "$backgroundTertiary",
+            scale: 0.98,
+          },
+          disabledStyle: {
+            borderColor: "$borderColor",
+            color: "$colorTertiary",
           },
         };
       case "success":
@@ -37,7 +50,8 @@ export function Button({ variant = "primary", ...props }: AppButtonProps) {
             backgroundColor: "$successHover",
           },
           pressStyle: {
-            opacity: 0.8,
+            backgroundColor: "$successHover",
+            scale: 0.98,
           },
         };
       case "error":
@@ -48,7 +62,8 @@ export function Button({ variant = "primary", ...props }: AppButtonProps) {
             backgroundColor: "$errorHover",
           },
           pressStyle: {
-            opacity: 0.8,
+            backgroundColor: "$errorHover",
+            scale: 0.98,
           },
         };
     }
@@ -58,7 +73,8 @@ export function Button({ variant = "primary", ...props }: AppButtonProps) {
     <TamaguiButton
       size="$4"
       borderRadius="$base"
-      fontWeight="$medium"
+      fontWeight="$semibold"
+      fontSize="$base"
       {...getVariantProps()}
       {...props}
     />
