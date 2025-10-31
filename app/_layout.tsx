@@ -9,6 +9,7 @@ import { SupabaseAuthGateway } from "../src/features/auth/infra/SupabaseAuthGate
 import { SupabaseGroupGateway } from "../src/features/group/infra/SupabaseGroupGateway";
 import { SupabaseOnboardingGateway } from "../src/features/onboarding/infra/SupabaseOnboardingGateway";
 import { SupabaseUserGateway } from "../src/features/user/infra/SupabaseUserGateway";
+import { TamaguiProvider } from "../src/lib/tamagui/theme-provider";
 import { initReduxStore } from "../src/store/buildReduxStore";
 
 SplashScreen.preventAutoHideAsync();
@@ -39,11 +40,13 @@ function InitializeApp() {
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <SafeAreaProvider>
-        <Provider store={store}>
-          <InitializeApp />
-        </Provider>
-      </SafeAreaProvider>
+      <TamaguiProvider>
+        <SafeAreaProvider>
+          <Provider store={store}>
+            <InitializeApp />
+          </Provider>
+        </SafeAreaProvider>
+      </TamaguiProvider>
     </ErrorBoundary>
   );
 }

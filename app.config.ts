@@ -10,7 +10,7 @@ const config: ExpoConfig = {
 	version: "1.0.0",
 	orientation: "portrait",
 	icon: "./assets/icon.png",
-	userInterfaceStyle: "light",
+	userInterfaceStyle: "automatic",
 	scheme: "equimapp",
 	platforms: ["ios", "android"],
 	plugins: ["expo-router", "expo-secure-store"],
