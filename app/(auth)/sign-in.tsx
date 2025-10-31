@@ -216,9 +216,9 @@ export default function SignInScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView flex={1} backgroundColor="$background">
-          <YStack paddingHorizontal="$xl" paddingTop="$4xl" gap="$4xl">
+          <YStack paddingHorizontal="$xl" paddingTop="$4xl">
             {/* Header */}
-            <YStack alignItems="center" gap="$xl">
+            <YStack alignItems="center" gap="$md" marginBottom="$4xl">
               <YStack
                 width={64}
                 height={64}
@@ -250,8 +250,8 @@ export default function SignInScreen() {
             </YStack>
 
             {/* Form */}
-            <YStack gap="$md" flex={1}>
-              <Text fontSize="$base" fontWeight="$semibold" color="$color">
+            <YStack gap="$sm" flex={1}>
+              <Text fontSize="$base" fontWeight="$semibold" color="$gray700">
                 Adresse email
               </Text>
               <Input
@@ -277,9 +277,9 @@ export default function SignInScreen() {
               )}
 
               {/* Info box */}
-              <Card backgroundColor="$backgroundSecondary" marginTop="$lg">
+              <Card backgroundColor="$backgroundSecondary" marginTop="$xl">
                 <YStack gap="$xs">
-                  <Text fontSize="$sm" fontWeight="$semibold" color="$color">
+                  <Text fontSize="$sm" fontWeight="$semibold" color="$gray700">
                     🔒 Connexion sécurisée
                   </Text>
                   <Text fontSize="$sm" color="$colorSecondary" lineHeight={20}>
@@ -291,7 +291,7 @@ export default function SignInScreen() {
             </YStack>
 
             {/* Actions */}
-            <YStack gap="$base" paddingBottom="$2xl">
+            <YStack gap="$md" paddingBottom="$2xl" marginTop="$2xl">
               <Button
                 variant="primary"
                 onPress={handleSignIn}
@@ -302,10 +302,11 @@ export default function SignInScreen() {
               </Button>
 
               <Text
-                fontSize="$xs"
+                fontSize="$sm"
                 color="$colorTertiary"
                 textAlign="center"
                 lineHeight={18}
+                paddingHorizontal="$base"
               >
                 En continuant, vous acceptez nos conditions d'utilisation et
                 notre politique de confidentialité.
