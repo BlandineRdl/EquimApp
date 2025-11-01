@@ -1,4 +1,12 @@
-import { Edit, Plus, Trash2, Users } from "lucide-react-native";
+import {
+  ChevronDown,
+  ChevronUp,
+  Edit,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react-native";
+import { useState } from "react";
 import { Pressable } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
 import { SEMANTIC_COLORS } from "../../../../../constants/theme.constants";
@@ -31,6 +39,8 @@ export const GroupMembersSection = ({
   onEditMember,
   onRemoveMember,
 }: GroupMembersSectionProps) => {
+  const [showAllMembers, setShowAllMembers] = useState(false);
+
   // Get initials from pseudo
   const getInitials = (pseudo: string) => {
     return pseudo
@@ -40,6 +50,11 @@ export const GroupMembersSection = ({
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // Show only 2 members by default if there are 3 or more
+  const shouldShowToggle = members.length >= 3;
+  const displayedMembers =
+    shouldShowToggle && !showAllMembers ? members.slice(0, 2) : members;
 
   return (
     <YStack
@@ -79,7 +94,7 @@ export const GroupMembersSection = ({
 
       {/* Member Cards */}
       <YStack gap="$sm">
-        {members.map((member) => {
+        {displayedMembers.map((member) => {
           const isMaxShare = member.sharePercentage === maxSharePercentage;
           const isCreatorMember = member.userId === groupCreatorId;
 
@@ -214,6 +229,30 @@ export const GroupMembersSection = ({
           );
         })}
       </YStack>
+
+      {/* Toggle button for showing more/less members */}
+      {shouldShowToggle && (
+        <Pressable onPress={() => setShowAllMembers(!showAllMembers)}>
+          <XStack
+            alignItems="center"
+            justifyContent="center"
+            paddingVertical="$sm"
+            marginTop="$xs"
+            gap="$xs"
+          >
+            <Text fontSize={14} fontWeight="600" color="$primary">
+              {showAllMembers
+                ? "Voir moins"
+                : `Voir plus (${members.length - 2} autres)`}
+            </Text>
+            {showAllMembers ? (
+              <ChevronUp size={16} color={iconColor} />
+            ) : (
+              <ChevronDown size={16} color={iconColor} />
+            )}
+          </XStack>
+        </Pressable>
+      )}
 
       {/* Explication du calcul */}
       <XStack
