@@ -1,14 +1,14 @@
-import { useColorScheme } from "react-native";
 import { useTheme } from "tamagui";
+import { useThemeControl } from "../lib/tamagui/theme-provider";
 
 export function useAppTheme() {
-  const theme = useTheme();
-  const colorScheme = useColorScheme();
+  const tamaguiTheme = useTheme();
+  const { theme } = useThemeControl();
 
   return {
-    theme,
-    colorScheme: colorScheme || "light",
-    isDark: colorScheme === "dark",
-    isLight: colorScheme === "light",
+    theme: tamaguiTheme,
+    colorScheme: theme,
+    isDark: theme === "dark",
+    isLight: theme === "light",
   };
 }

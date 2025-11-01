@@ -1,52 +1,39 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, YStack } from "tamagui";
 
 /**
  * Splash screen shown during app initialization
  */
 export function SplashScreen() {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.logo}>🌱</Text>
-        </View>
-        <Text style={styles.title}>Equim</Text>
-        <ActivityIndicator size="large" color="#10b981" style={styles.loader} />
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <YStack flex={1} alignItems="center" justifyContent="center">
+        <YStack
+          width="$6xl"
+          height="$6xl"
+          backgroundColor="$success100"
+          borderRadius={40}
+          alignItems="center"
+          justifyContent="center"
+          marginBottom="$xl"
+        >
+          <Text fontSize={40}>🌱</Text>
+        </YStack>
+        <Text
+          fontSize={32}
+          fontWeight="700"
+          color="$gray900"
+          marginBottom="$2xl"
+        >
+          Equim
+        </Text>
+        <ActivityIndicator
+          size="large"
+          color="#16a34a"
+          style={{ marginTop: 16 }}
+        />
+      </YStack>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    backgroundColor: "#d1fae5",
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-  },
-  logo: {
-    fontSize: 40,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 32,
-  },
-  loader: {
-    marginTop: 16,
-  },
-});

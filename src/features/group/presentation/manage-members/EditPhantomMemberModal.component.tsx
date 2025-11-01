@@ -1,15 +1,12 @@
 import { X } from "lucide-react-native";
 import type React from "react";
 import { useState } from "react";
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Modal, Pressable } from "react-native";
 import Toast from "react-native-toast-message";
+import { Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../../components/Button";
+import { Input } from "../../../../components/Input";
+import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import type { GroupMember } from "../../ports/GroupGateway";
 import { updatePhantomMember } from "../../usecases/update-phantom-member/updatePhantomMember.usecase";
@@ -28,6 +25,8 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
   groupId,
 }) => {
   const dispatch = useAppDispatch();
+  const { theme } = useThemeControl();
+  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
 
   // Extract suffix after "Membre-"
   const initialSuffix = member.pseudo.startsWith("Membre-")
@@ -101,172 +100,109 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
+      <YStack
+        flex={1}
+        backgroundColor="rgba(0, 0, 0, 0.5)"
+        justifyContent="center"
+        alignItems="center"
+        padding="$lg"
+      >
+        <YStack
+          width="100%"
+          maxWidth={400}
+          backgroundColor="$background"
+          borderRadius="$xl"
+          padding="$lg"
+        >
           {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Modifier le membre</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
+          <XStack
+            justifyContent="space-between"
+            alignItems="center"
+            marginBottom="$lg"
+          >
+            <Text fontSize={18} fontWeight="600" color="$color">
+              Modifier le membre
+            </Text>
+            <Pressable onPress={onClose} style={{ padding: 4 }}>
+              <X size={20} color={iconSecondary} />
+            </Pressable>
+          </XStack>
 
           {/* Pseudo */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Pseudo</Text>
-            <View style={styles.pseudoContainer}>
-              <Text style={styles.prefix}>Membre-</Text>
-              <TextInput
-                style={styles.pseudoInput}
+          <YStack marginBottom="$lg">
+            <Text
+              fontSize={14}
+              fontWeight="500"
+              color="$gray700"
+              marginBottom="$md"
+            >
+              Pseudo
+            </Text>
+            <XStack
+              alignItems="center"
+              borderWidth={1}
+              borderColor="$borderColor"
+              borderRadius="$base"
+              paddingHorizontal="$md"
+            >
+              <Text fontSize={16} color="$colorSecondary" marginRight="$1">
+                Membre-
+              </Text>
+              <Input
+                flex={1}
                 value={suffix}
                 onChangeText={setSuffix}
                 placeholder="Bob"
                 maxLength={50}
+                borderWidth={0}
+                height="$4xl"
+                paddingHorizontal={0}
               />
-            </View>
-            <Text style={styles.hint}>
+            </XStack>
+            <Text fontSize={12} color="$colorSecondary" marginTop="$1">
               Lettres, chiffres, tirets et espaces uniquement (max 50 car.)
             </Text>
-          </View>
+          </YStack>
 
           {/* Revenu */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Revenu mensuel</Text>
-            <TextInput
-              style={styles.input}
+          <YStack marginBottom="$lg">
+            <Text
+              fontSize={14}
+              fontWeight="500"
+              color="$gray700"
+              marginBottom="$md"
+            >
+              Revenu mensuel
+            </Text>
+            <Input
               value={income}
               onChangeText={setIncome}
               keyboardType="numeric"
               placeholder="0"
             />
-          </View>
+          </YStack>
 
           {/* Actions */}
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onClose}
-            >
-              <Text style={styles.cancelText}>Annuler</Text>
-            </TouchableOpacity>
+          <XStack gap="$md">
+            <Button variant="secondary" flex={1} onPress={onClose}>
+              <Text fontSize={16} fontWeight="600" color="$colorSecondary">
+                Annuler
+              </Text>
+            </Button>
 
-            <TouchableOpacity
-              style={[
-                styles.button,
-                styles.saveButton,
-                loading && styles.buttonDisabled,
-              ]}
+            <Button
+              variant="primary"
+              flex={1}
               onPress={handleSave}
               disabled={loading}
             >
-              <Text style={styles.saveText}>
+              <Text fontSize={16} fontWeight="600" color="$white">
                 {loading ? "Enregistrement..." : "Sauvegarder"}
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+            </Button>
+          </XStack>
+        </YStack>
+      </YStack>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modal: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
-    width: "100%",
-    maxWidth: 400,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 8,
-    color: "#374151",
-  },
-  pseudoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  prefix: {
-    fontSize: 16,
-    color: "#9ca3af",
-    marginRight: 4,
-  },
-  pseudoInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  hint: {
-    fontSize: 12,
-    color: "#9ca3af",
-    marginTop: 4,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 8,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: "#f3f4f6",
-  },
-  saveButton: {
-    backgroundColor: "#000",
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  cancelText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666",
-  },
-  saveText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
-});

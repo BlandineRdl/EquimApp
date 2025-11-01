@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text } from "tamagui";
+import { Card } from "../../../../../components/Card";
 import type { InvitationPreview } from "../../../ports/GroupGateway";
 
 interface InvitationCardProps {
@@ -7,49 +8,33 @@ interface InvitationCardProps {
 
 export const InvitationCard = ({ invitationDetails }: InvitationCardProps) => {
   return (
-    <View style={styles.invitationCard}>
-      <Text style={styles.title}>Rejoindre le groupe</Text>
-      <Text style={styles.groupName}>"{invitationDetails.groupName}"</Text>
-      <Text style={styles.invitedBy}>
+    <Card
+      borderRadius="$md"
+      padding="$xl"
+      alignItems="center"
+      marginBottom="$xl"
+    >
+      <Text
+        fontSize={24}
+        fontWeight="600"
+        color="$color"
+        marginBottom="$base"
+        textAlign="center"
+      >
+        Rejoindre le groupe
+      </Text>
+      <Text
+        fontSize={20}
+        fontWeight="700"
+        color="$success"
+        marginBottom="$base"
+        textAlign="center"
+      >
+        "{invitationDetails.groupName}"
+      </Text>
+      <Text fontSize={16} color="$colorSecondary" textAlign="center">
         Invité par {invitationDetails.creatorPseudo}
       </Text>
-    </View>
+    </Card>
   );
 };
-
-const styles = StyleSheet.create({
-  invitationCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 32,
-    alignItems: "center",
-    marginBottom: 40,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#000",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  groupName: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#10b981",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  invitedBy: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-  },
-});

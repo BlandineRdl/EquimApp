@@ -1,8 +1,9 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { YStack } from "tamagui";
 import type { AppState } from "../../../../store/appState";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import { acceptInvitation } from "../../usecases/invitation/acceptInvitation.usecase";
@@ -92,7 +93,7 @@ export const AcceptInvitationScreen = () => {
 
   if (invitationState.details.loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
         <InvitationHeader onBack={() => router.back()} />
         <LoadingState />
       </SafeAreaView>
@@ -101,7 +102,7 @@ export const AcceptInvitationScreen = () => {
 
   if (invitationState.details.error || !invitationState.details.data) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
         <InvitationHeader onBack={() => router.back()} />
         <ErrorState
           message={invitationState.details.error || "Invitation introuvable"}
@@ -113,10 +114,10 @@ export const AcceptInvitationScreen = () => {
   const invitationDetails = invitationState.details.data;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <InvitationHeader onBack={() => router.back()} />
 
-      <View style={styles.content}>
+      <YStack flex={1} paddingHorizontal="$xl" paddingTop="$lg">
         <InvitationCard invitationDetails={invitationDetails} />
 
         <MemberForm
@@ -136,19 +137,7 @@ export const AcceptInvitationScreen = () => {
           isLoading={isLoading}
           canSubmit={canSubmit}
         />
-      </View>
+      </YStack>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-  },
-});

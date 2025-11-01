@@ -1,18 +1,13 @@
 import { DollarSign, X } from "lucide-react-native";
 import type React from "react";
 import { useEffect, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Modal, Platform } from "react-native";
 import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
+import { Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../components/Button";
+import { Input } from "../../../components/Input";
+import { useThemeControl } from "../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../store/buildReduxStore";
 import {
   MAX_INCOME,
@@ -37,6 +32,10 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
   const dispatch = useAppDispatch();
   const user = useSelector(selectUserProfile);
   const personalExpenses = useSelector(selectPersonalExpenses);
+  const { theme } = useThemeControl();
+  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
+  const iconSuccess = "#16a34a";
+
   const [income, setIncome] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -157,187 +156,117 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={styles.modalOverlay}
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.modalContainer}>
+        <YStack
+          width="90%"
+          maxWidth={400}
+          backgroundColor="$background"
+          borderRadius="$xl"
+        >
           {/* Header */}
-          <View style={styles.modalHeader}>
-            <View style={styles.modalIconContainer}>
-              <DollarSign size={24} color="#10b981" />
-            </View>
-            <Text style={styles.modalTitle}>Modifier mon revenu</Text>
-            <TouchableOpacity
-              style={styles.closeButton}
+          <XStack
+            alignItems="center"
+            padding="$lg"
+            borderBottomWidth={1}
+            borderBottomColor="$borderColor"
+          >
+            <YStack
+              width="$3xl"
+              height="$3xl"
+              borderRadius="$base"
+              backgroundColor="$success100"
+              justifyContent="center"
+              alignItems="center"
+              marginRight="$md"
+            >
+              <DollarSign size={24} color={iconSuccess} />
+            </YStack>
+            <Text flex={1} fontSize={18} fontWeight="600" color="$color">
+              Modifier mon revenu
+            </Text>
+            <Button
+              variant="secondary"
+              width="$2xl"
+              height="$2xl"
+              padding={0}
+              borderRadius="$base"
               onPress={onClose}
               disabled={isUpdating}
             >
-              <X size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
+              <X size={24} color={iconSecondary} />
+            </Button>
+          </XStack>
 
           {/* Body */}
-          <View style={styles.modalBody}>
-            <Text style={styles.label}>Revenu mensuel net (€)</Text>
-            <Text style={styles.hint}>
+          <YStack padding="$lg">
+            <Text
+              fontSize={14}
+              fontWeight="500"
+              color="$gray700"
+              marginBottom="$1"
+            >
+              Revenu mensuel net (€)
+            </Text>
+            <Text fontSize={12} color="$colorSecondary" marginBottom="$md">
               Entre {MIN_INCOME.toLocaleString("fr-FR")}€ et{" "}
               {MAX_INCOME.toLocaleString("fr-FR")}€
             </Text>
 
-            <TextInput
-              style={[styles.input, validationError && styles.inputError]}
+            <Input
               value={income}
               onChangeText={handleIncomeChange}
               placeholder="Ex: 2500"
               keyboardType="numeric"
               editable={!isUpdating}
+              error={!!validationError}
               autoFocus
             />
 
             {validationError && (
-              <Text style={styles.errorText}>{validationError}</Text>
+              <Text fontSize={12} color="$error" marginTop="$1">
+                {validationError}
+              </Text>
             )}
-          </View>
+          </YStack>
 
           {/* Footer */}
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={styles.cancelButton}
+          <XStack
+            padding="$lg"
+            borderTopWidth={1}
+            borderTopColor="$borderColor"
+            gap="$md"
+          >
+            <Button
+              variant="secondary"
+              flex={1}
               onPress={onClose}
               disabled={isUpdating}
             >
-              <Text style={styles.cancelButtonText}>Annuler</Text>
-            </TouchableOpacity>
+              <Text fontSize={16} fontWeight="500" color="$gray700">
+                Annuler
+              </Text>
+            </Button>
 
-            <TouchableOpacity
-              style={[
-                styles.saveButton,
-                (!isValid || isUpdating) && styles.saveButtonDisabled,
-              ]}
+            <Button
+              variant="success"
+              flex={1}
               onPress={handleSave}
               disabled={!isValid || isUpdating}
             >
-              <Text style={styles.saveButtonText}>
+              <Text fontSize={16} fontWeight="600" color="$white">
                 {isUpdating ? "Enregistrement..." : "Enregistrer"}
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+            </Button>
+          </XStack>
+        </YStack>
       </KeyboardAvoidingView>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    width: "90%",
-    maxWidth: 400,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  modalIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: "#d1fae5",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  modalTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  modalBody: {
-    padding: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#374151",
-    marginBottom: 4,
-  },
-  hint: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginBottom: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#fff",
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  errorText: {
-    color: "#ef4444",
-    fontSize: 12,
-    marginTop: 4,
-  },
-  modalFooter: {
-    flexDirection: "row",
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-    gap: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    alignItems: "center",
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#374151",
-  },
-  saveButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: "#10b981",
-    alignItems: "center",
-  },
-  saveButtonDisabled: {
-    backgroundColor: "#d1d5db",
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
-});

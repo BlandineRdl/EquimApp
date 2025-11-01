@@ -28422,24 +28422,6 @@
     "media": {},
     "themes": {
       "light": {
-        "background": "#ffffff",
-        "backgroundSecondary": "#f9fafb",
-        "backgroundTertiary": "#f3f4f6",
-        "color": "#111827",
-        "colorSecondary": "#6b7280",
-        "colorTertiary": "#9ca3af",
-        "borderColor": "#e5e7eb",
-        "borderColorHover": "#d1d5db",
-        "placeholderColor": "#9ca3af",
-        "primary": "#0ea5e9",
-        "primaryHover": "#0284c7",
-        "primaryPress": "#0369a1",
-        "success": "#22c55e",
-        "successHover": "#16a34a",
-        "warning": "#f59e0b",
-        "warningHover": "#d97706",
-        "error": "#ef4444",
-        "errorHover": "#dc2626",
         "white": "#ffffff",
         "black": "#000000",
         "transparent": "transparent",
@@ -28493,27 +28475,27 @@
         "gray700": "#374151",
         "gray800": "#1f2937",
         "gray900": "#111827",
+        "background": "#ffffff",
+        "backgroundSecondary": "#f9fafb",
+        "backgroundTertiary": "#f3f4f6",
+        "color": "#111827",
+        "colorSecondary": "#6b7280",
+        "colorTertiary": "#9ca3af",
+        "borderColor": "#e5e7eb",
+        "borderColorHover": "#d1d5db",
+        "placeholderColor": "#9ca3af",
+        "primary": "#0ea5e9",
+        "primaryHover": "#0284c7",
+        "primaryPress": "#0369a1",
+        "success": "#22c55e",
+        "successHover": "#16a34a",
+        "warning": "#f59e0b",
+        "warningHover": "#d97706",
+        "error": "#ef4444",
+        "errorHover": "#dc2626",
         "id": "light"
       },
       "dark": {
-        "background": "#ffffff",
-        "backgroundSecondary": "#f9fafb",
-        "backgroundTertiary": "#f3f4f6",
-        "color": "#111827",
-        "colorSecondary": "#6b7280",
-        "colorTertiary": "#9ca3af",
-        "borderColor": "#e5e7eb",
-        "borderColorHover": "#d1d5db",
-        "placeholderColor": "#9ca3af",
-        "primary": "#0ea5e9",
-        "primaryHover": "#0284c7",
-        "primaryPress": "#0369a1",
-        "success": "#22c55e",
-        "successHover": "#16a34a",
-        "warning": "#f59e0b",
-        "warningHover": "#d97706",
-        "error": "#ef4444",
-        "errorHover": "#dc2626",
         "white": "#ffffff",
         "black": "#000000",
         "transparent": "transparent",
@@ -28567,137 +28549,29 @@
         "gray700": "#374151",
         "gray800": "#1f2937",
         "gray900": "#111827",
+        "background": "#111827",
+        "backgroundSecondary": "#1f2937",
+        "backgroundTertiary": "#374151",
+        "color": "#ffffff",
+        "colorSecondary": "#9ca3af",
+        "colorTertiary": "#6b7280",
+        "borderColor": "#374151",
+        "borderColorHover": "#4b5563",
+        "placeholderColor": "#6b7280",
+        "primary": "#38bdf8",
+        "primaryHover": "#0ea5e9",
+        "primaryPress": "#0284c7",
+        "success": "#4ade80",
+        "successHover": "#22c55e",
+        "warning": "#fbbf24",
+        "warningHover": "#f59e0b",
+        "error": "#f87171",
+        "errorHover": "#ef4444",
         "id": "dark"
       }
     },
     "tokens": {
       "color": {
-        "background": {
-          "isVar": true,
-          "key": "$background",
-          "name": "c-color-background",
-          "val": "#ffffff",
-          "variable": ""
-        },
-        "backgroundSecondary": {
-          "isVar": true,
-          "key": "$backgroundSecondary",
-          "name": "c-color-backgroundSecondary",
-          "val": "#f9fafb",
-          "variable": ""
-        },
-        "backgroundTertiary": {
-          "isVar": true,
-          "key": "$backgroundTertiary",
-          "name": "c-color-backgroundTertiary",
-          "val": "#f3f4f6",
-          "variable": ""
-        },
-        "color": {
-          "isVar": true,
-          "key": "$color",
-          "name": "c-color-color",
-          "val": "#111827",
-          "variable": ""
-        },
-        "colorSecondary": {
-          "isVar": true,
-          "key": "$colorSecondary",
-          "name": "c-color-colorSecondary",
-          "val": "#6b7280",
-          "variable": ""
-        },
-        "colorTertiary": {
-          "isVar": true,
-          "key": "$colorTertiary",
-          "name": "c-color-colorTertiary",
-          "val": "#9ca3af",
-          "variable": ""
-        },
-        "borderColor": {
-          "isVar": true,
-          "key": "$borderColor",
-          "name": "c-color-borderColor",
-          "val": "#e5e7eb",
-          "variable": ""
-        },
-        "borderColorHover": {
-          "isVar": true,
-          "key": "$borderColorHover",
-          "name": "c-color-borderColorHover",
-          "val": "#d1d5db",
-          "variable": ""
-        },
-        "placeholderColor": {
-          "isVar": true,
-          "key": "$placeholderColor",
-          "name": "c-color-placeholderColor",
-          "val": "#9ca3af",
-          "variable": ""
-        },
-        "primary": {
-          "isVar": true,
-          "key": "$primary",
-          "name": "c-color-primary",
-          "val": "#0ea5e9",
-          "variable": ""
-        },
-        "primaryHover": {
-          "isVar": true,
-          "key": "$primaryHover",
-          "name": "c-color-primaryHover",
-          "val": "#0284c7",
-          "variable": ""
-        },
-        "primaryPress": {
-          "isVar": true,
-          "key": "$primaryPress",
-          "name": "c-color-primaryPress",
-          "val": "#0369a1",
-          "variable": ""
-        },
-        "success": {
-          "isVar": true,
-          "key": "$success",
-          "name": "c-color-success",
-          "val": "#22c55e",
-          "variable": ""
-        },
-        "successHover": {
-          "isVar": true,
-          "key": "$successHover",
-          "name": "c-color-successHover",
-          "val": "#16a34a",
-          "variable": ""
-        },
-        "warning": {
-          "isVar": true,
-          "key": "$warning",
-          "name": "c-color-warning",
-          "val": "#f59e0b",
-          "variable": ""
-        },
-        "warningHover": {
-          "isVar": true,
-          "key": "$warningHover",
-          "name": "c-color-warningHover",
-          "val": "#d97706",
-          "variable": ""
-        },
-        "error": {
-          "isVar": true,
-          "key": "$error",
-          "name": "c-color-error",
-          "val": "#ef4444",
-          "variable": ""
-        },
-        "errorHover": {
-          "isVar": true,
-          "key": "$errorHover",
-          "name": "c-color-errorHover",
-          "val": "#dc2626",
-          "variable": ""
-        },
         "white": {
           "isVar": true,
           "key": "$white",
@@ -29635,132 +29509,6 @@
     "getNewCSS": "Function",
     "fontSizeTokens": {},
     "specificTokens": {
-      "$color.background": {
-        "isVar": true,
-        "key": "$background",
-        "name": "c-color-background",
-        "val": "#ffffff",
-        "variable": ""
-      },
-      "$color.backgroundSecondary": {
-        "isVar": true,
-        "key": "$backgroundSecondary",
-        "name": "c-color-backgroundSecondary",
-        "val": "#f9fafb",
-        "variable": ""
-      },
-      "$color.backgroundTertiary": {
-        "isVar": true,
-        "key": "$backgroundTertiary",
-        "name": "c-color-backgroundTertiary",
-        "val": "#f3f4f6",
-        "variable": ""
-      },
-      "$color.color": {
-        "isVar": true,
-        "key": "$color",
-        "name": "c-color-color",
-        "val": "#111827",
-        "variable": ""
-      },
-      "$color.colorSecondary": {
-        "isVar": true,
-        "key": "$colorSecondary",
-        "name": "c-color-colorSecondary",
-        "val": "#6b7280",
-        "variable": ""
-      },
-      "$color.colorTertiary": {
-        "isVar": true,
-        "key": "$colorTertiary",
-        "name": "c-color-colorTertiary",
-        "val": "#9ca3af",
-        "variable": ""
-      },
-      "$color.borderColor": {
-        "isVar": true,
-        "key": "$borderColor",
-        "name": "c-color-borderColor",
-        "val": "#e5e7eb",
-        "variable": ""
-      },
-      "$color.borderColorHover": {
-        "isVar": true,
-        "key": "$borderColorHover",
-        "name": "c-color-borderColorHover",
-        "val": "#d1d5db",
-        "variable": ""
-      },
-      "$color.placeholderColor": {
-        "isVar": true,
-        "key": "$placeholderColor",
-        "name": "c-color-placeholderColor",
-        "val": "#9ca3af",
-        "variable": ""
-      },
-      "$color.primary": {
-        "isVar": true,
-        "key": "$primary",
-        "name": "c-color-primary",
-        "val": "#0ea5e9",
-        "variable": ""
-      },
-      "$color.primaryHover": {
-        "isVar": true,
-        "key": "$primaryHover",
-        "name": "c-color-primaryHover",
-        "val": "#0284c7",
-        "variable": ""
-      },
-      "$color.primaryPress": {
-        "isVar": true,
-        "key": "$primaryPress",
-        "name": "c-color-primaryPress",
-        "val": "#0369a1",
-        "variable": ""
-      },
-      "$color.success": {
-        "isVar": true,
-        "key": "$success",
-        "name": "c-color-success",
-        "val": "#22c55e",
-        "variable": ""
-      },
-      "$color.successHover": {
-        "isVar": true,
-        "key": "$successHover",
-        "name": "c-color-successHover",
-        "val": "#16a34a",
-        "variable": ""
-      },
-      "$color.warning": {
-        "isVar": true,
-        "key": "$warning",
-        "name": "c-color-warning",
-        "val": "#f59e0b",
-        "variable": ""
-      },
-      "$color.warningHover": {
-        "isVar": true,
-        "key": "$warningHover",
-        "name": "c-color-warningHover",
-        "val": "#d97706",
-        "variable": ""
-      },
-      "$color.error": {
-        "isVar": true,
-        "key": "$error",
-        "name": "c-color-error",
-        "val": "#ef4444",
-        "variable": ""
-      },
-      "$color.errorHover": {
-        "isVar": true,
-        "key": "$errorHover",
-        "name": "c-color-errorHover",
-        "val": "#dc2626",
-        "variable": ""
-      },
       "$color.white": {
         "isVar": true,
         "key": "$white",

@@ -11,21 +11,16 @@ import {
   X,
 } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import {
-  Modal,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Modal, Pressable, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../../components/Button";
 import { ExpenseManager } from "../../../../components/ExpenseManager.component";
+import { Input } from "../../../../components/Input";
 import { logger } from "../../../../lib/logger";
+import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
 import type { AppState } from "../../../../store/appState";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import type { GroupMember } from "../../ports/GroupGateway";
@@ -64,6 +59,13 @@ export const GroupDetailsScreen = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { theme } = useThemeControl();
+
+  // Theme-aware colors for icons
+  const iconColor = theme === "light" ? "#111827" : "#ffffff";
+  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
+  const iconSuccess = "#16a34a"; // success600 - always green
+  const _iconError = "#ef4444"; // error - always red
 
   const addMemberUI = useSelector(selectAddMemberUI);
   const addExpenseUI = useSelector(selectAddExpenseUI);
@@ -90,10 +92,15 @@ export const GroupDetailsScreen = () => {
   // Loading state
   if (!groupDetails || !groupStats) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loading}>
-          <Text>Chargement...</Text>
-        </View>
+      <SafeAreaView style={{ flex: 1 }}>
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          backgroundColor="$background"
+        >
+          <Text color="$color">Chargement...</Text>
+        </YStack>
       </SafeAreaView>
     );
   }
@@ -279,860 +286,574 @@ export const GroupDetailsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
+    <SafeAreaView style={{ flex: 1 }}>
+      <YStack flex={1} backgroundColor="$background">
+        {/* Header */}
+        <XStack
+          paddingHorizontal="$base"
+          paddingVertical="$sm"
+          borderBottomWidth={1}
+          borderBottomColor="$borderColor"
+          alignItems="center"
+          backgroundColor="$background"
         >
-          <ArrowLeft size={20} color="#000" />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerLabel}>Groupe</Text>
-          <Text style={styles.headerTitle}>{group.name}</Text>
-        </View>
-        {isCreator ? (
-          <TouchableOpacity
-            style={styles.deleteGroupButton}
-            onPress={openDeleteConfirmModal}
+          <Pressable
+            style={{ padding: 8, marginRight: 8 }}
+            onPress={() => router.back()}
           >
-            <Trash2 size={20} color="#ef4444" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={styles.leaveGroupButton}
-            onPress={handleLeaveGroup}
-          >
-            <LogOut size={20} color="#ef4444" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Total mensuel */}
-        <View style={styles.totalCard}>
-          <View style={styles.totalCardContent}>
-            <View style={styles.totalHeader}>
-              <Calendar size={16} color="#666" />
-              <Text style={styles.totalLabel}>Total mensuel</Text>
-            </View>
-            <View style={styles.totalRight}>
-              <Text style={styles.totalAmount}>
-                {groupStats.totalBudget.toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}{" "}
-                €
-              </Text>
-              <Text style={styles.totalSubtext}>
-                {groupStats.expensesCount} dépenses
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Dépenses configurées */}
-        <View style={styles.expensesCard}>
-          <View style={styles.expensesHeader}>
-            <Text style={styles.expensesCardTitle}>
-              Dépenses configurées ({groupStats.expensesCount})
+            <ArrowLeft size={20} color={iconColor} />
+          </Pressable>
+          <YStack flex={1}>
+            <Text fontSize={14} color="$colorSecondary" fontWeight="400">
+              Groupe
             </Text>
-            <TouchableOpacity
-              style={styles.addExpenseButton}
-              onPress={openExpenseModal}
+            <Text fontSize={20} color="$color" fontWeight="600">
+              {group.name}
+            </Text>
+          </YStack>
+          {isCreator ? (
+            <Pressable
+              style={{ padding: 8, marginLeft: 8 }}
+              onPress={openDeleteConfirmModal}
             >
-              <Plus size={16} color="#666" />
-            </TouchableOpacity>
-          </View>
-
-          {(showAllExpenses ? expenses : expenses.slice(0, 1)).map(
-            (expense, index, displayedExpenses) => (
-              <View
-                key={expense.id}
-                style={[
-                  styles.expenseItem,
-                  index < displayedExpenses.length - 1 &&
-                    styles.expenseItemWithBorder,
-                ]}
-              >
-                <View style={styles.expenseInfo}>
-                  <Text style={styles.expenseLabel}>{expense.name}</Text>
-                </View>
-                <View style={styles.expenseActions}>
-                  <Text style={styles.expenseAmount}>
-                    {expense.amount.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteExpense(expense.id)}
-                    style={styles.deleteExpenseButton}
-                  >
-                    <Trash2 size={16} color="#ef4444" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ),
+              <Trash2 size={20} color="#ef4444" />
+            </Pressable>
+          ) : (
+            <Pressable
+              style={{ padding: 8, marginLeft: 8 }}
+              onPress={handleLeaveGroup}
+            >
+              <LogOut size={20} color="#ef4444" />
+            </Pressable>
           )}
+        </XStack>
 
-          {expenses.length > 1 && !showAllExpenses && (
-            <TouchableOpacity
-              style={styles.showMoreButton}
-              onPress={() => setShowAllExpenses(true)}
-            >
-              <Text style={styles.showMoreText}>
-                Voir plus ({expenses.length - 1} autres)
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {expenses.length > 1 && showAllExpenses && (
-            <TouchableOpacity
-              style={styles.showMoreButton}
-              onPress={() => setShowAllExpenses(false)}
-            >
-              <Text style={styles.showMoreText}>Voir moins</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Membres et quotes-parts */}
-        <View style={styles.membersCard}>
-          <View style={styles.membersHeader}>
-            <View style={styles.membersTitle}>
-              <Users size={16} color="#000" />
-              <Text style={styles.membersCardTitle}>
-                Membres et quotes-parts
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.addMemberButton}
-              onPress={openMemberTypeChoice}
-            >
-              <Plus size={16} color="#666" />
-              <Users size={16} color="#666" style={{ marginLeft: 4 }} />
-            </TouchableOpacity>
-          </View>
-
-          {members.map((member, index) => (
-            <View
-              key={member.id}
-              style={[
-                styles.memberItem,
-                index < members.length - 1 && styles.memberItemWithBorder,
-              ]}
-            >
-              {/* Ligne 1: Nom + Badge + Actions */}
-              <View style={styles.memberHeaderRow}>
-                <View style={styles.memberNameRow}>
-                  <Text style={styles.memberName} numberOfLines={1}>
-                    {member.pseudo}
-                  </Text>
-                  {member.userId === group.creatorId && (
-                    <View style={styles.creatorBadge}>
-                      <Text style={styles.creatorBadgeText}>Créateur</Text>
-                    </View>
-                  )}
-                </View>
-                {isCreator &&
-                  (member.isPhantom || member.userId !== group.creatorId) && (
-                    <View style={styles.memberActions}>
-                      {member.isPhantom && (
-                        <TouchableOpacity
-                          onPress={() => setEditingMember(member)}
-                          style={styles.editMemberButton}
-                        >
-                          <Edit size={16} color="#0284c7" />
-                        </TouchableOpacity>
-                      )}
-                      {member.userId !== group.creatorId && (
-                        <TouchableOpacity
-                          onPress={() => handleRemoveMember(member.id)}
-                          style={styles.removeMemberButton}
-                        >
-                          <Trash2 size={16} color="#ef4444" />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  )}
-              </View>
-
-              {/* Ligne 2: Valeurs uniquement */}
-              <View style={styles.memberDetailsRow}>
-                <Text style={styles.memberCapacity}>
-                  {(member.monthlyCapacity || 0).toLocaleString("fr-FR", {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })}
-                  €/mois
+        <ScrollView
+          flex={1}
+          paddingHorizontal="$base"
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {/* Total mensuel */}
+          <YStack
+            backgroundColor="$backgroundSecondary"
+            borderRadius="$md"
+            padding="$lg"
+            marginTop="$base"
+            marginBottom="$lg"
+            borderWidth={1}
+            borderColor="$borderColor"
+          >
+            <XStack justifyContent="space-between" alignItems="center">
+              <XStack alignItems="center">
+                <Calendar size={16} color={iconSecondary} />
+                <Text
+                  fontSize={16}
+                  fontWeight="500"
+                  color="$color"
+                  marginLeft="$xs"
+                >
+                  Total mensuel
                 </Text>
-                <Text style={styles.memberDetailsSeparator}>•</Text>
-                <Text style={styles.sharePercentageBold}>
-                  {member.sharePercentage}%
-                </Text>
-                <Text style={styles.shareAmountGreen}>
-                  (
-                  {member.shareAmount.toLocaleString("fr-FR", {
+              </XStack>
+              <YStack alignItems="flex-end">
+                <Text
+                  fontSize={24}
+                  fontWeight="700"
+                  color="$color"
+                  marginBottom={2}
+                >
+                  {groupStats.totalBudget.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
-                  })}
-                  €)
+                  })}{" "}
+                  €
                 </Text>
-              </View>
-            </View>
-          ))}
+                <Text fontSize={14} color="$colorSecondary">
+                  {groupStats.expensesCount} dépenses
+                </Text>
+              </YStack>
+            </XStack>
+          </YStack>
 
-          {/* Explication du calcul */}
-          <View style={styles.calculationNote}>
-            <Text style={styles.calculationBullet}>•</Text>
-            <Text style={styles.calculationText}>
-              <Text style={styles.calculationBold}>Calcul équitable</Text>
-              {"\n"}Les quotes-parts sont calculées proportionnellement aux
-              revenus de chaque membre. Total des revenus du groupe :{" "}
-              {groupDetails.totalIncome.toLocaleString("fr-FR")} €/mois.
-            </Text>
-          </View>
-        </View>
-
-        {/* Bottom spacing */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
-
-      {/* Modal d'ajout de membre */}
-      {addMemberUI.isOpen && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Ajouter un membre fantôme</Text>
-            <Text style={styles.infoText}>
-              💡 Le préfixe "Membre-" sera ajouté automatiquement
-            </Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Nom (ex: Bob)"
-              value={addMemberUI.form?.pseudo}
-              onChangeText={onPseudoChange}
-              maxLength={50}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Revenu mensuel (€) - optionnel"
-              keyboardType="numeric"
-              value={addMemberUI.form?.monthlyIncome}
-              onChangeText={onIncomeChange}
-            />
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={handleAddMember}
+          {/* Dépenses configurées */}
+          <YStack
+            backgroundColor="$backgroundSecondary"
+            borderRadius="$md"
+            padding="$lg"
+            marginBottom="$lg"
+            borderWidth={1}
+            borderColor="$borderColor"
+          >
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+              marginBottom="$base"
             >
-              <Text style={styles.modalButtonText}>Ajouter</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButtonCancel}
-              onPress={closeAddMemberModal}
-            >
-              <Text style={styles.modalButtonTextCancel}>Annuler</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* Modal d'ajout de dépense */}
-      <Modal
-        visible={addExpenseUI.isOpen}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeAddExpenseModal}
-      >
-        <View style={styles.bottomSheetContainer}>
-          {/* Header */}
-          <View style={styles.bottomSheetHeader}>
-            <Text style={styles.bottomSheetTitle}>Dépenses du groupe</Text>
-            <TouchableOpacity onPress={closeAddExpenseModal}>
-              <X size={24} color="#000" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Content */}
-          <View style={styles.bottomSheetContent}>
-            <ExpenseManager
-              expenses={expenses.map((exp) => ({
-                id: exp.id,
-                label: exp.name,
-                amount: exp.amount,
-              }))}
-              onAdd={handleAddExpense}
-              onEdit={handleEditExpense}
-              onDelete={handleDeleteExpense}
-              minExpenses={0}
-              title="Dépenses du groupe"
-              addSectionTitle="Ajouter une dépense"
-            />
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal de confirmation de suppression du groupe */}
-      <Modal
-        visible={showDeleteConfirm}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeDeleteConfirmModal}
-      >
-        <View style={styles.bottomSheetContainer}>
-          {/* Header */}
-          <View style={styles.bottomSheetHeader}>
-            <Text style={styles.bottomSheetTitle}>Supprimer le groupe ?</Text>
-            <TouchableOpacity onPress={closeDeleteConfirmModal}>
-              <X size={24} color="#000" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Content */}
-          <View style={styles.deleteContent}>
-            <View style={styles.deleteIconContainer}>
-              <AlertTriangle size={64} color="#ef4444" />
-            </View>
-            <Text style={styles.deleteWarningText}>
-              Cette action est irréversible. Tous les membres, dépenses et
-              données du groupe seront définitivement supprimés.
-            </Text>
-
-            <TouchableOpacity
-              style={styles.deleteDangerButton}
-              onPress={confirmDeleteGroup}
-            >
-              <Text style={styles.deleteDangerButtonText}>
-                Supprimer définitivement
+              <Text fontSize={16} fontWeight="600" color="$color">
+                Dépenses configurées ({groupStats.expensesCount})
               </Text>
-            </TouchableOpacity>
+              <Pressable onPress={openExpenseModal}>
+                <YStack
+                  backgroundColor="#f3f4f6"
+                  borderWidth={1}
+                  borderColor="#d1d5db"
+                  borderRadius={8}
+                  padding="$xs"
+                >
+                  <Plus size={16} color="#374151" />
+                </YStack>
+              </Pressable>
+            </XStack>
 
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={closeDeleteConfirmModal}
+            {(showAllExpenses ? expenses : expenses.slice(0, 1)).map(
+              (expense, index, displayedExpenses) => (
+                <YStack
+                  key={expense.id}
+                  paddingVertical="$sm"
+                  borderBottomWidth={
+                    index < displayedExpenses.length - 1 ? 1 : 0
+                  }
+                  borderBottomColor="$borderColor"
+                  marginBottom={
+                    index < displayedExpenses.length - 1 ? "$sm" : 0
+                  }
+                >
+                  <XStack justifyContent="space-between" alignItems="center">
+                    <YStack flex={1}>
+                      <Text fontSize={16} fontWeight="500" color="$color">
+                        {expense.name}
+                      </Text>
+                    </YStack>
+                    <XStack alignItems="center">
+                      <Text
+                        fontSize={16}
+                        fontWeight="600"
+                        color="$color"
+                        marginRight="$xs"
+                      >
+                        {expense.amount.toLocaleString("fr-FR", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{" "}
+                        €
+                      </Text>
+                      <Pressable
+                        onPress={() => handleDeleteExpense(expense.id)}
+                        style={{ padding: 4 }}
+                      >
+                        <Trash2 size={16} color="#ef4444" />
+                      </Pressable>
+                    </XStack>
+                  </XStack>
+                </YStack>
+              ),
+            )}
+
+            {expenses.length > 1 && !showAllExpenses && (
+              <Pressable onPress={() => setShowAllExpenses(true)}>
+                <YStack
+                  paddingVertical="$base"
+                  alignItems="center"
+                  borderTopWidth={1}
+                  borderTopColor="$borderColor"
+                  marginTop="$xs"
+                >
+                  <Text fontSize={14} color="$colorSecondary" fontWeight="500">
+                    Voir plus ({expenses.length - 1} autres)
+                  </Text>
+                </YStack>
+              </Pressable>
+            )}
+
+            {expenses.length > 1 && showAllExpenses && (
+              <Pressable onPress={() => setShowAllExpenses(false)}>
+                <YStack
+                  paddingVertical="$base"
+                  alignItems="center"
+                  borderTopWidth={1}
+                  borderTopColor="$borderColor"
+                  marginTop="$xs"
+                >
+                  <Text fontSize={14} color="$colorSecondary" fontWeight="500">
+                    Voir moins
+                  </Text>
+                </YStack>
+              </Pressable>
+            )}
+          </YStack>
+
+          {/* Membres et quotes-parts */}
+          <YStack
+            backgroundColor="$backgroundSecondary"
+            borderRadius="$md"
+            padding="$lg"
+            marginBottom="$lg"
+            borderWidth={1}
+            borderColor="$borderColor"
+          >
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+              marginBottom="$base"
             >
-              <Text style={styles.cancelButtonText}>Annuler</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+              <XStack alignItems="center">
+                <Users size={16} color={iconColor} />
+                <Text
+                  fontSize={16}
+                  fontWeight="600"
+                  color="$color"
+                  marginLeft="$xs"
+                >
+                  Membres et quotes-parts
+                </Text>
+              </XStack>
+              <Pressable onPress={openMemberTypeChoice}>
+                <XStack
+                  alignItems="center"
+                  backgroundColor="#f3f4f6"
+                  borderWidth={1}
+                  borderColor="#d1d5db"
+                  borderRadius={8}
+                  paddingHorizontal="$sm"
+                  paddingVertical="$xs"
+                >
+                  <Plus size={16} color="#374151" />
+                  <Users size={16} color="#374151" style={{ marginLeft: 4 }} />
+                </XStack>
+              </Pressable>
+            </XStack>
 
-      {/* Modal de choix du type de membre */}
-      <MemberTypeChoiceModal
-        visible={showMemberTypeChoice}
-        onClose={() => setShowMemberTypeChoice(false)}
-        onSelectInvite={handleSelectInvite}
-        onSelectPhantom={handleSelectPhantom}
-      />
+            {members.map((member, index) => (
+              <YStack
+                key={member.id}
+                paddingVertical={10}
+                paddingHorizontal="$sm"
+                borderBottomWidth={index < members.length - 1 ? 1 : 0}
+                borderBottomColor="$borderColor"
+              >
+                {/* Ligne 1: Nom + Badge + Actions */}
+                <XStack
+                  justifyContent="space-between"
+                  alignItems="center"
+                  marginBottom="$1"
+                >
+                  <XStack alignItems="center" gap="$xs" flex={1}>
+                    <Text
+                      fontSize={15}
+                      fontWeight="600"
+                      color="$color"
+                      flexShrink={1}
+                    >
+                      {member.pseudo}
+                    </Text>
+                    {member.userId === group.creatorId && (
+                      <YStack
+                        backgroundColor="$success600"
+                        paddingHorizontal={6}
+                        paddingVertical={2}
+                        borderRadius="$sm"
+                      >
+                        <Text color="$white" fontSize={10} fontWeight="600">
+                          Créateur
+                        </Text>
+                      </YStack>
+                    )}
+                  </XStack>
+                  {isCreator &&
+                    (member.isPhantom || member.userId !== group.creatorId) && (
+                      <XStack gap="$xs">
+                        {member.isPhantom && (
+                          <Pressable
+                            onPress={() => setEditingMember(member)}
+                            style={{ padding: 4 }}
+                          >
+                            <Edit size={16} color="#0284c7" />
+                          </Pressable>
+                        )}
+                        {member.userId !== group.creatorId && (
+                          <Pressable
+                            onPress={() => handleRemoveMember(member.id)}
+                            style={{ padding: 4 }}
+                          >
+                            <Trash2 size={16} color="#ef4444" />
+                          </Pressable>
+                        )}
+                      </XStack>
+                    )}
+                </XStack>
 
-      {/* Modal d'invitation */}
-      {groupId && (
-        <InviteModal
-          isVisible={showInviteModal}
-          onClose={() => setShowInviteModal(false)}
-          groupId={groupId}
+                {/* Ligne 2: Valeurs uniquement */}
+                <XStack alignItems="center" gap="$xs" flexWrap="wrap">
+                  <Text fontSize={14} color="$colorSecondary" fontWeight="500">
+                    {(member.monthlyCapacity || 0).toLocaleString("fr-FR", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}
+                    €/mois
+                  </Text>
+                  <Text fontSize={14} color="$gray300" marginHorizontal={2}>
+                    •
+                  </Text>
+                  <Text fontSize={14} fontWeight="700" color="$color">
+                    {member.sharePercentage}%
+                  </Text>
+                  <Text
+                    fontSize={14}
+                    fontWeight="600"
+                    color={iconSuccess}
+                    marginLeft="$1"
+                  >
+                    (
+                    {member.shareAmount.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                    €)
+                  </Text>
+                </XStack>
+              </YStack>
+            ))}
+
+            {/* Explication du calcul */}
+            <XStack
+              alignItems="flex-start"
+              marginTop="$base"
+              paddingTop="$base"
+              borderTopWidth={1}
+              borderTopColor="$borderColor"
+            >
+              <Text
+                fontSize={16}
+                color="$colorSecondary"
+                marginRight="$xs"
+                marginTop={1}
+              >
+                •
+              </Text>
+              <Text
+                fontSize={14}
+                color="$colorSecondary"
+                lineHeight={20}
+                flex={1}
+              >
+                <Text fontWeight="600" color="$color">
+                  Calcul équitable
+                </Text>
+                {"\n"}Les quotes-parts sont calculées proportionnellement aux
+                revenus de chaque membre. Total des revenus du groupe :{" "}
+                {groupDetails.totalIncome.toLocaleString("fr-FR")} €/mois.
+              </Text>
+            </XStack>
+          </YStack>
+
+          {/* Bottom spacing */}
+          <YStack height="$3xl" />
+        </ScrollView>
+
+        {/* Modal d'ajout de membre */}
+        {addMemberUI.isOpen && (
+          <YStack
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            backgroundColor="rgba(0, 0, 0, 0.5)"
+            justifyContent="center"
+            alignItems="center"
+            padding="$lg"
+          >
+            <YStack
+              backgroundColor="$background"
+              borderRadius="$lg"
+              padding="$xl"
+              width="85%"
+              maxWidth={400}
+            >
+              <Text
+                fontSize={20}
+                fontWeight="700"
+                marginBottom="$sm"
+                color="$color"
+              >
+                Ajouter un membre fantôme
+              </Text>
+              <Text
+                fontSize={14}
+                color="$colorSecondary"
+                marginBottom="$base"
+                lineHeight={20}
+              >
+                💡 Le préfixe "Membre-" sera ajouté automatiquement
+              </Text>
+              <Input
+                placeholder="Nom (ex: Bob)"
+                value={addMemberUI.form?.pseudo}
+                onChangeText={onPseudoChange}
+                maxLength={50}
+                marginBottom="$sm"
+              />
+              <Input
+                placeholder="Revenu mensuel (€) - optionnel"
+                keyboardType="numeric"
+                value={addMemberUI.form?.monthlyIncome}
+                onChangeText={onIncomeChange}
+                marginBottom="$sm"
+              />
+              <Button
+                variant="success"
+                onPress={handleAddMember}
+                marginBottom="$xs"
+              >
+                Ajouter
+              </Button>
+              <Button variant="secondary" onPress={closeAddMemberModal}>
+                Annuler
+              </Button>
+            </YStack>
+          </YStack>
+        )}
+
+        {/* Modal d'ajout de dépense */}
+        <Modal
+          visible={addExpenseUI.isOpen}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={closeAddExpenseModal}
+        >
+          <YStack flex={1} backgroundColor="$background">
+            {/* Header */}
+            <XStack
+              alignItems="center"
+              justifyContent="space-between"
+              paddingHorizontal="$base"
+              paddingVertical="$base"
+              borderBottomWidth={1}
+              borderBottomColor="$borderColor"
+            >
+              <Text fontSize={18} fontWeight="600" color="$color">
+                Dépenses du groupe
+              </Text>
+              <Pressable onPress={closeAddExpenseModal}>
+                <X size={24} color={iconColor} />
+              </Pressable>
+            </XStack>
+
+            {/* Content */}
+            <YStack flex={1} padding="$base">
+              <ExpenseManager
+                expenses={expenses.map((exp) => ({
+                  id: exp.id,
+                  label: exp.name,
+                  amount: exp.amount,
+                }))}
+                onAdd={handleAddExpense}
+                onEdit={handleEditExpense}
+                onDelete={handleDeleteExpense}
+                minExpenses={0}
+                title="Dépenses du groupe"
+                addSectionTitle="Ajouter une dépense"
+              />
+            </YStack>
+          </YStack>
+        </Modal>
+
+        {/* Modal de confirmation de suppression du groupe */}
+        <Modal
+          visible={showDeleteConfirm}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={closeDeleteConfirmModal}
+        >
+          <YStack flex={1} backgroundColor="$background">
+            {/* Header */}
+            <XStack
+              alignItems="center"
+              justifyContent="space-between"
+              paddingHorizontal="$base"
+              paddingVertical="$base"
+              borderBottomWidth={1}
+              borderBottomColor="$borderColor"
+            >
+              <Text fontSize={18} fontWeight="600" color="$color">
+                Supprimer le groupe ?
+              </Text>
+              <Pressable onPress={closeDeleteConfirmModal}>
+                <X size={24} color={iconColor} />
+              </Pressable>
+            </XStack>
+
+            {/* Content */}
+            <YStack
+              flex={1}
+              padding="$xl"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <YStack marginBottom="$xl">
+                <AlertTriangle size={64} color="#ef4444" />
+              </YStack>
+              <Text
+                fontSize={16}
+                color="$gray500"
+                textAlign="center"
+                marginBottom="$2xl"
+                lineHeight={24}
+              >
+                Cette action est irréversible. Tous les membres, dépenses et
+                données du groupe seront définitivement supprimés.
+              </Text>
+
+              <Button
+                variant="error"
+                onPress={confirmDeleteGroup}
+                marginBottom="$sm"
+                width="100%"
+              >
+                Supprimer définitivement
+              </Button>
+
+              <Button
+                variant="secondary"
+                onPress={closeDeleteConfirmModal}
+                width="100%"
+              >
+                Annuler
+              </Button>
+            </YStack>
+          </YStack>
+        </Modal>
+
+        {/* Modal de choix du type de membre */}
+        <MemberTypeChoiceModal
+          visible={showMemberTypeChoice}
+          onClose={() => setShowMemberTypeChoice(false)}
+          onSelectInvite={handleSelectInvite}
+          onSelectPhantom={handleSelectPhantom}
         />
-      )}
 
-      {/* Modal de modification de membre fantôme */}
-      {editingMember && groupId && (
-        <EditPhantomMemberModal
-          visible={editingMember !== null}
-          onClose={() => setEditingMember(null)}
-          member={editingMember}
-          groupId={groupId}
-        />
-      )}
+        {/* Modal d'invitation */}
+        {groupId && (
+          <InviteModal
+            isVisible={showInviteModal}
+            onClose={() => setShowInviteModal(false)}
+            groupId={groupId}
+          />
+        )}
+
+        {/* Modal de modification de membre fantôme */}
+        {editingMember && groupId && (
+          <EditPhantomMemberModal
+            visible={editingMember !== null}
+            onClose={() => setEditingMember(null)}
+            member={editingMember}
+            groupId={groupId}
+          />
+        )}
+      </YStack>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  leaveGroupButton: {
-    padding: 8,
-    marginLeft: 8,
-  },
-  deleteGroupButton: {
-    padding: 8,
-    marginLeft: 8,
-  },
-  headerLabel: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "400",
-  },
-  headerTitle: {
-    fontSize: 20,
-    color: "#000",
-    fontWeight: "600",
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  totalCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  totalCardContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  totalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#000",
-    marginLeft: 8,
-  },
-  totalRight: {
-    alignItems: "flex-end",
-  },
-  totalAmount: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 2,
-  },
-  totalSubtext: {
-    fontSize: 14,
-    color: "#666",
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-    marginBottom: 12,
-  },
-  expensesCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  expensesHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  expensesCardTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-  },
-  addExpenseButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 8,
-  },
-  expensesContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    overflow: "hidden",
-  },
-  expenseItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  expenseItemWithBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    paddingBottom: 12,
-    marginBottom: 12,
-  },
-  expenseInfo: {
-    flex: 1,
-  },
-  expenseLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#000",
-    marginBottom: 2,
-  },
-  expenseFrequency: {
-    fontSize: 14,
-    color: "#666",
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-    marginRight: 8,
-  },
-  expenseActions: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  deleteExpenseButton: {
-    padding: 4,
-  },
-  showMoreButton: {
-    paddingVertical: 16,
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    marginTop: 8,
-  },
-  showMoreText: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "500",
-  },
-  membersCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  membersHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  membersTitle: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  membersCardTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-    marginLeft: 8,
-  },
-  addMemberButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  membersContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    overflow: "hidden",
-    marginBottom: 16,
-  },
-  memberItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  memberItemWithBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  memberHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  memberNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    flex: 1,
-  },
-  memberName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#000",
-    flexShrink: 1,
-  },
-  creatorBadge: {
-    backgroundColor: "#10b981",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  creatorBadgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  memberActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  editMemberButton: {
-    padding: 4,
-  },
-  removeMemberButton: {
-    padding: 4,
-  },
-  memberDetailsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  memberCapacity: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "500",
-  },
-  memberDetailsSeparator: {
-    fontSize: 14,
-    color: "#d1d5db",
-    marginHorizontal: 2,
-  },
-  sharePercentageBold: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#000",
-  },
-  shareAmountGreen: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#10b981",
-    marginLeft: 4,
-  },
-  calculationNote: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  calculationBullet: {
-    fontSize: 16,
-    color: "#666",
-    marginRight: 8,
-    marginTop: 1,
-  },
-  calculationText: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-    flex: 1,
-  },
-  calculationBold: {
-    fontWeight: "600",
-    color: "#000",
-  },
-  bottomSpacing: {
-    height: 40,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  bottomSheetContainer: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  bottomSheetHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  bottomSheetTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-  },
-  bottomSheetContent: {
-    flex: 1,
-    padding: 16,
-  },
-  modalContainer: {
-    width: "85%",
-    maxWidth: 400,
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 12,
-    color: "#000",
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  modalInput: {
-    width: "100%",
-    height: 50,
-    borderColor: "#e0e0e0",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 15,
-    fontSize: 16,
-    color: "#000",
-  },
-  modalButton: {
-    backgroundColor: "#10b981",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  modalButtonDisabled: {
-    backgroundColor: "#9ca3af",
-    opacity: 0.6,
-  },
-  modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  modalButtonCancel: {
-    backgroundColor: "#f3f4f6",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-    width: "100%",
-    alignItems: "center",
-  },
-  modalButtonTextCancel: {
-    color: "#374151",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  deleteContent: {
-    flex: 1,
-    padding: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  deleteIconContainer: {
-    marginBottom: 24,
-  },
-  deleteWarningText: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  deleteDangerButton: {
-    backgroundColor: "#ef4444",
-    borderRadius: 8,
-    paddingVertical: 16,
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  deleteDangerButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  cancelButton: {
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    paddingVertical: 16,
-    width: "100%",
-    alignItems: "center",
-  },
-  cancelButtonText: {
-    color: "#374151",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

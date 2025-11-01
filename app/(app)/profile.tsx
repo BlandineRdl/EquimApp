@@ -7,16 +7,12 @@ import {
   User,
 } from "lucide-react-native";
 import { useState } from "react";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { Button } from "../../src/components/Button";
+import { Card } from "../../src/components/Card";
 import { signOut } from "../../src/features/auth/usecases/manage-session/signOut.usecase";
 import { resetAccount } from "../../src/features/auth/usecases/reset-account/resetAccount.usecase";
 import { ManagePersonalExpensesModal } from "../../src/features/user/presentation/ManagePersonalExpensesModal.component";
@@ -25,6 +21,7 @@ import { selectPersonalExpenses } from "../../src/features/user/presentation/sel
 import { selectUserProfile } from "../../src/features/user/presentation/selectors/selectUser.selector";
 import { selectUserCapacity } from "../../src/features/user/presentation/selectors/selectUserCapacity.selector";
 import { UpdateIncomeModal } from "../../src/features/user/presentation/UpdateIncomeModal.component";
+import { useThemeControl } from "../../src/lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function ProfileScreen() {
@@ -35,6 +32,13 @@ export default function ProfileScreen() {
   const personalExpenses = useSelector(selectPersonalExpenses);
   const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
   const [isExpensesModalVisible, setIsExpensesModalVisible] = useState(false);
+  const { theme } = useThemeControl();
+
+  // Theme-aware colors for icons
+  const iconColor = theme === "light" ? "#111827" : "#ffffff";
+  const iconSuccess = "#16a34a"; // success600
+  const iconError = "#ef4444"; // error
+  const iconErrorDark = "#dc2626"; // error600
 
   const handleSignOut = async () => {
     await dispatch(signOut());
@@ -69,335 +73,261 @@ export default function ProfileScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loading}>
-          <Text>Chargement...</Text>
-        </View>
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+        }}
+        edges={["top"]}
+      >
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          backgroundColor="$background"
+        >
+          <Text fontSize={16} color="$colorSecondary">
+            Chargement...
+          </Text>
+        </YStack>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
+      <YStack flex={1} backgroundColor="$background">
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
+          paddingHorizontal="$base"
+        >
+          {/* Header */}
+          <XStack
+            alignItems="center"
+            paddingVertical="$base"
+            backgroundColor="$backgroundSecondary"
+            borderBottomWidth={1}
+            borderBottomColor="$borderColor"
+            marginHorizontal="-$base"
+            paddingHorizontal="$base"
+            marginBottom="$base"
           >
-            <ArrowLeft size={24} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mon profil</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
-        {/* Profile Info Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.avatarContainer}>
-              <User size={32} color="#10b981" />
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileLabel}>Pseudo</Text>
-              <Text style={styles.profileValue}>{user.pseudo}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Income Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <View>
-              <Text style={styles.cardLabel}>Revenu mensuel</Text>
-              <Text style={styles.cardValue}>
-                {user.monthlyIncome.toLocaleString("fr-FR")} €
-              </Text>
-              <Text style={styles.cardHint}>
-                Utilisé pour le calcul équitable des parts
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => setIsIncomeModalVisible(true)}
+            <Button
+              variant="secondary"
+              width="$2xl"
+              height="$2xl"
+              padding={0}
+              borderRadius="$base"
+              onPress={() => router.back()}
+              backgroundColor="$background"
             >
-              <Edit2 size={20} color="#10b981" />
-            </TouchableOpacity>
-          </View>
-        </View>
+              <ArrowLeft size={24} color={iconColor} />
+            </Button>
+            <Text
+              flex={1}
+              fontSize={18}
+              fontWeight="600"
+              color="$color"
+              textAlign="center"
+              marginRight="$2xl"
+            >
+              Mon profil
+            </Text>
+            <YStack width="$2xl" />
+          </XStack>
 
-        {/* Personal Expenses Card */}
-        <PersonalExpensesList
-          expenses={personalExpenses}
-          onManagePress={() => setIsExpensesModalVisible(true)}
+          <YStack paddingTop="$base">
+            {/* Profile Info Card */}
+            <Card marginBottom="$base" backgroundColor="$backgroundSecondary">
+              <XStack alignItems="center">
+                <YStack
+                  width="$5xl"
+                  height="$5xl"
+                  borderRadius="$full"
+                  backgroundColor="$success100"
+                  justifyContent="center"
+                  alignItems="center"
+                  marginRight="$base"
+                >
+                  <User size={32} color={iconSuccess} />
+                </YStack>
+                <YStack flex={1}>
+                  <Text fontSize={12} color="$colorSecondary" marginBottom="$1">
+                    Pseudo
+                  </Text>
+                  <Text fontSize={20} fontWeight="600" color="$color">
+                    {user.pseudo}
+                  </Text>
+                </YStack>
+              </XStack>
+            </Card>
+
+            {/* Income Card */}
+            <Card marginBottom="$base" backgroundColor="$backgroundSecondary">
+              <XStack justifyContent="space-between" alignItems="flex-start">
+                <YStack flex={1}>
+                  <Text fontSize={12} color="$colorSecondary" marginBottom="$1">
+                    Revenu mensuel
+                  </Text>
+                  <Text
+                    fontSize={28}
+                    fontWeight="700"
+                    color="$color"
+                    marginBottom="$1"
+                  >
+                    {user.monthlyIncome.toLocaleString("fr-FR")} €
+                  </Text>
+                  <Text fontSize={12} color="$colorTertiary" fontStyle="italic">
+                    Utilisé pour le calcul équitable des parts
+                  </Text>
+                </YStack>
+                <Button
+                  variant="secondary"
+                  width="$3xl"
+                  height="$3xl"
+                  borderRadius="$full"
+                  backgroundColor="$success100"
+                  padding={0}
+                  onPress={() => setIsIncomeModalVisible(true)}
+                >
+                  <Edit2 size={20} color={iconSuccess} />
+                </Button>
+              </XStack>
+            </Card>
+
+            {/* Personal Expenses Card */}
+            <PersonalExpensesList
+              expenses={personalExpenses}
+              onManagePress={() => setIsExpensesModalVisible(true)}
+            />
+
+            {/* Capacity Card */}
+            {capacity !== undefined && (
+              <Card marginBottom="$base" backgroundColor="$backgroundSecondary">
+                <YStack alignItems="center" paddingVertical="$sm">
+                  <Text
+                    fontSize={14}
+                    fontWeight="600"
+                    color="$color"
+                    marginBottom="$sm"
+                  >
+                    💰 Capacité de dépense
+                  </Text>
+                  <Text
+                    fontSize={32}
+                    fontWeight="700"
+                    color={capacity < 0 ? "$error" : "$success"}
+                    marginBottom="$1"
+                  >
+                    {capacity.toLocaleString("fr-FR")} €
+                  </Text>
+                  <Text
+                    fontSize={12}
+                    color="$colorSecondary"
+                    textAlign="center"
+                  >
+                    Revenu ({user.monthlyIncome.toLocaleString("fr-FR")} €) -
+                    Charges ({totalExpenses.toLocaleString("fr-FR")} €)
+                  </Text>
+                </YStack>
+              </Card>
+            )}
+
+            {/* Info Section */}
+            <YStack marginTop="$lg" marginBottom="$xl">
+              <Text
+                fontSize={16}
+                fontWeight="600"
+                color="$color"
+                marginBottom="$md"
+              >
+                À propos du revenu
+              </Text>
+              <Text
+                fontSize={14}
+                color="$colorSecondary"
+                lineHeight={20}
+                marginBottom="$md"
+              >
+                Votre revenu mensuel est utilisé pour calculer votre part
+                équitable dans chaque groupe. Plus votre revenu est élevé, plus
+                votre contribution est importante.
+              </Text>
+              <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
+                Vous pouvez modifier votre revenu à tout moment. Les parts de
+                tous vos groupes seront automatiquement recalculées.
+              </Text>
+            </YStack>
+
+            {/* Reset Account Button */}
+            <YStack marginTop="$base">
+              <Button
+                variant="secondary"
+                backgroundColor="$error100"
+                borderWidth={2}
+                borderColor="$error600"
+                onPress={handleReset}
+              >
+                <XStack alignItems="center" gap="$sm">
+                  <AlertTriangle size={20} color={iconErrorDark} />
+                  <Text fontSize={16} fontWeight="700" color="#dc2626">
+                    Réinitialiser le compte
+                  </Text>
+                </XStack>
+              </Button>
+              <Text
+                fontSize={12}
+                color="#dc2626"
+                textAlign="center"
+                marginTop="$sm"
+                fontStyle="italic"
+              >
+                ⚠️ Supprime définitivement toutes vos données
+              </Text>
+            </YStack>
+
+            {/* Logout Button */}
+            <YStack marginTop="$base" marginBottom="$xl">
+              <Button
+                variant="secondary"
+                backgroundColor="$backgroundSecondary"
+                borderWidth={1}
+                borderColor="$error200"
+                onPress={handleSignOut}
+              >
+                <XStack alignItems="center" gap="$sm">
+                  <LogOut size={20} color={iconError} />
+                  <Text fontSize={16} fontWeight="600" color="$error">
+                    Se déconnecter
+                  </Text>
+                </XStack>
+              </Button>
+            </YStack>
+          </YStack>
+        </ScrollView>
+
+        {/* Update Income Modal */}
+        <UpdateIncomeModal
+          isVisible={isIncomeModalVisible}
+          onClose={() => setIsIncomeModalVisible(false)}
+          onSuccess={() => {
+            // Modal will close automatically, shares will update via listeners
+          }}
         />
 
-        {/* Capacity Card */}
-        {capacity !== undefined && (
-          <View style={styles.card}>
-            <View style={styles.capacityBox}>
-              <Text style={styles.capacityLabel}>💰 Capacité de dépense</Text>
-              <Text
-                style={[
-                  styles.capacityValue,
-                  capacity < 0 && styles.negativeCapacity,
-                ]}
-              >
-                {capacity.toLocaleString("fr-FR")} €
-              </Text>
-              <Text style={styles.capacityHint}>
-                Revenu ({user.monthlyIncome.toLocaleString("fr-FR")} €) -
-                Charges ({totalExpenses.toLocaleString("fr-FR")} €)
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>À propos du revenu</Text>
-          <Text style={styles.infoText}>
-            Votre revenu mensuel est utilisé pour calculer votre part équitable
-            dans chaque groupe. Plus votre revenu est élevé, plus votre
-            contribution est importante.
-          </Text>
-          <Text style={styles.infoText}>
-            Vous pouvez modifier votre revenu à tout moment. Les parts de tous
-            vos groupes seront automatiquement recalculées.
-          </Text>
-        </View>
-
-        {/* Reset Account Button */}
-        <View style={styles.dangerSection}>
-          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <AlertTriangle size={20} color="#dc2626" />
-            <Text style={styles.resetText}>Réinitialiser le compte</Text>
-          </TouchableOpacity>
-          <Text style={styles.resetWarning}>
-            ⚠️ Supprime définitivement toutes vos données
-          </Text>
-        </View>
-
-        {/* Logout Button */}
-        <View style={styles.logoutSection}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
-            <LogOut size={20} color="#ef4444" />
-            <Text style={styles.logoutText}>Se déconnecter</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      {/* Update Income Modal */}
-      <UpdateIncomeModal
-        isVisible={isIncomeModalVisible}
-        onClose={() => setIsIncomeModalVisible(false)}
-        onSuccess={() => {
-          // Modal will close automatically, shares will update via listeners
-        }}
-      />
-
-      {/* Manage Personal Expenses Modal */}
-      <ManagePersonalExpensesModal
-        isVisible={isExpensesModalVisible}
-        onClose={() => setIsExpensesModalVisible(false)}
-      />
+        {/* Manage Personal Expenses Modal */}
+        <ManagePersonalExpensesModal
+          isVisible={isExpensesModalVisible}
+          onClose={() => setIsExpensesModalVisible(false)}
+        />
+      </YStack>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-    textAlign: "center",
-    marginRight: 32, // Balance the back button
-  },
-  headerSpacer: {
-    width: 32,
-  },
-  card: {
-    backgroundColor: "#fff",
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  avatarContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#d1fae5",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginBottom: 4,
-  },
-  profileValue: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#000",
-  },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  cardLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginBottom: 4,
-  },
-  cardValue: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 4,
-  },
-  cardHint: {
-    fontSize: 12,
-    color: "#9ca3af",
-    fontStyle: "italic",
-  },
-  editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#d1fae5",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  infoSection: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 32,
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-    marginBottom: 12,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#6b7280",
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  dangerSection: {
-    marginHorizontal: 16,
-    marginTop: 16,
-  },
-  resetButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fef2f2",
-    borderWidth: 2,
-    borderColor: "#dc2626",
-    borderRadius: 12,
-    paddingVertical: 16,
-    gap: 8,
-  },
-  resetText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#dc2626",
-  },
-  resetWarning: {
-    fontSize: 12,
-    color: "#dc2626",
-    textAlign: "center",
-    marginTop: 8,
-    fontStyle: "italic",
-  },
-  logoutSection: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 32,
-  },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#fecaca",
-    borderRadius: 12,
-    paddingVertical: 16,
-    gap: 8,
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#ef4444",
-  },
-  capacityBox: {
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  capacityLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 8,
-  },
-  capacityValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#10b981",
-    marginBottom: 4,
-  },
-  negativeCapacity: {
-    color: "#ef4444",
-  },
-  capacityHint: {
-    fontSize: 12,
-    color: "#6b7280",
-    textAlign: "center",
-  },
-});

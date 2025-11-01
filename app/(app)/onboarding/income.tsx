@@ -1,26 +1,23 @@
 import { router } from "expo-router";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { ScrollView, Text, YStack } from "tamagui";
+import { Button } from "../../../src/components/Button";
+import { Card } from "../../../src/components/Card";
+import { Input } from "../../../src/components/Input";
 import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import { selectIncomeUI } from "../../../src/features/onboarding/presentation/onboarding.selectors";
 import {
   blurIncome,
   setMonthlyIncome,
 } from "../../../src/features/onboarding/store/onboarding.slice";
+import { useThemeControl } from "../../../src/lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
 export default function IncomeScreen() {
   const dispatch = useAppDispatch();
+  const { theme } = useThemeControl();
 
   const { monthlyIncome, error, canContinue, hasError } =
     useSelector(selectIncomeUI);
@@ -37,197 +34,122 @@ export default function IncomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
       <KeyboardAvoidingView
-        style={styles.content}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <OnboardingProgressBar />
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Votre revenu mensuel</Text>
-            <Text style={styles.subtitle}>
-              Montant net après impôts et cotisations
-            </Text>
-          </View>
+        <YStack flex={1} backgroundColor="$background">
+          <ScrollView
+            flex={1}
+            showsVerticalScrollIndicator={false}
+            paddingHorizontal="$xl"
+          >
+            <OnboardingProgressBar />
 
-          {/* Form */}
-          <View style={styles.form}>
-            <Text style={styles.label}>Montant en euros (€)</Text>
-            <TextInput
-              style={[styles.input, hasError && styles.inputError]}
-              placeholder="Ex: 2400"
-              value={monthlyIncome}
-              onChangeText={handleIncomeChange}
-              onBlur={() => dispatch(blurIncome())}
-              keyboardType="decimal-pad"
-              maxLength={10}
-            />
-
-            {error && <Text style={styles.errorText}>{error}</Text>}
-
-            {/* Info boxes */}
-            <View style={styles.infoBox}>
-              <Text style={styles.infoTitle}>
-                💡 Pourquoi cette information ?
+            {/* Header */}
+            <YStack alignItems="center" marginBottom="$4xl">
+              <Text
+                fontSize={24}
+                fontWeight="700"
+                color="$color"
+                textAlign="center"
+                marginBottom="$md"
+              >
+                Votre revenu mensuel
               </Text>
-              <Text style={styles.infoText}>
-                Equim calcule des parts équitables basées sur les revenus. Cette
-                donnée reste confidentielle et vous contrôlez qui peut la voir.
+              <Text
+                fontSize={16}
+                color="$colorSecondary"
+                textAlign="center"
+                lineHeight={24}
+              >
+                Montant net après impôts et cotisations
               </Text>
-            </View>
+            </YStack>
 
-            <View style={[styles.infoBox, styles.equityBox]}>
-              <Text style={styles.infoTitle}>⚖️ L'équité avant tout :</Text>
-              <Text style={styles.infoText}>
-                Les écarts de revenus reflètent souvent des inégalités
-                systémiques. Partager selon ses moyens, c'est plus juste.
+            {/* Form */}
+            <YStack flex={1} gap="$sm">
+              <Text
+                fontSize={16}
+                fontWeight="600"
+                color="$gray700"
+                marginBottom="$sm"
+              >
+                Montant en euros (€)
               </Text>
-            </View>
-          </View>
+              <Input
+                placeholder="Ex: 2400"
+                value={monthlyIncome}
+                onChangeText={handleIncomeChange}
+                onBlur={() => dispatch(blurIncome())}
+                keyboardType="decimal-pad"
+                maxLength={10}
+                error={hasError}
+                textAlign="center"
+              />
 
-          {/* Actions */}
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.button, !canContinue && styles.buttonDisabled]}
+              {error && (
+                <Text
+                  fontSize={14}
+                  color="#ef4444"
+                  textAlign="center"
+                  marginTop="$sm"
+                >
+                  {error}
+                </Text>
+              )}
+
+              {/* Info boxes */}
+              <Card backgroundColor="$backgroundSecondary" marginTop="$xl">
+                <YStack gap="$xs">
+                  <Text fontSize={14} fontWeight="600" color="$gray700">
+                    💡 Pourquoi cette information ?
+                  </Text>
+                  <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
+                    Equim calcule des parts équitables basées sur les revenus.
+                    Cette donnée reste confidentielle et vous contrôlez qui peut
+                    la voir.
+                  </Text>
+                </YStack>
+              </Card>
+
+              <Card backgroundColor="$warning100" marginTop="$base">
+                <YStack gap="$xs">
+                  <Text fontSize={14} fontWeight="600" color="$gray700">
+                    ⚖️ L'équité avant tout :
+                  </Text>
+                  <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
+                    Les écarts de revenus reflètent souvent des inégalités
+                    systémiques. Partager selon ses moyens, c'est plus juste.
+                  </Text>
+                </YStack>
+              </Card>
+            </YStack>
+          </ScrollView>
+
+          {/* Actions - Sticky at bottom */}
+          <YStack
+            paddingHorizontal="$xl"
+            paddingTop="$lg"
+            paddingBottom="$base"
+          >
+            <Button
+              variant="primary"
               onPress={handleContinue}
               disabled={!canContinue}
             >
-              <Text
-                style={[
-                  styles.buttonText,
-                  !canContinue && styles.buttonTextDisabled,
-                ]}
-              >
-                Continuer →
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+              Continuer →
+            </Button>
+          </YStack>
+        </YStack>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
-  progressContainer: {
-    paddingTop: 16,
-    paddingBottom: 32,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 2,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#10b981",
-    borderRadius: 2,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 48,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  form: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: "#fff",
-    textAlign: "center", // Centrer le montant
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  errorText: {
-    color: "#ef4444",
-    fontSize: 14,
-    marginTop: 8,
-    textAlign: "center",
-  },
-  infoBox: {
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
-    padding: 16,
-    marginTop: 24,
-  },
-  equityBox: {
-    backgroundColor: "#fef3c7", // Couleur différente pour highlight
-    marginTop: 16,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#6b7280",
-    lineHeight: 20,
-  },
-  actions: {
-    paddingBottom: 32,
-    paddingTop: 24,
-  },
-  button: {
-    backgroundColor: "#111827",
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  buttonDisabled: {
-    backgroundColor: "#9ca3af",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  buttonTextDisabled: {
-    color: "#d1d5db",
-  },
-});

@@ -1,15 +1,20 @@
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, YStack } from "tamagui";
 import { logger } from "../../src/lib/logger";
 import { supabase } from "../../src/lib/supabase/client";
+import { useThemeControl } from "../../src/lib/tamagui/theme-provider";
 
 /**
  * Auth callback screen
  * Handles deep link authentication from magic link
  */
 export default function AuthCallbackScreen() {
+  const { theme } = useThemeControl();
+  const iconSuccess = "#16a34a";
+
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading",
   );
@@ -44,15 +49,40 @@ export default function AuthCallbackScreen() {
   }, [handleAuthCallback]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.logo}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
+      <YStack
+        flex={1}
+        alignItems="center"
+        justifyContent="center"
+        paddingHorizontal="$xl"
+      >
+        <YStack
+          width="$6xl"
+          height="$6xl"
+          backgroundColor="$backgroundSecondary"
+          borderRadius="$full"
+          alignItems="center"
+          justifyContent="center"
+          marginBottom="$xl"
+        >
+          <Text fontSize={40}>
             {status === "loading" ? "⏳" : status === "success" ? "✅" : "❌"}
           </Text>
-        </View>
+        </YStack>
 
-        <Text style={styles.title}>
+        <Text
+          fontSize={24}
+          fontWeight="700"
+          color="$color"
+          textAlign="center"
+          marginBottom="$md"
+        >
           {status === "loading"
             ? "Connexion en cours..."
             : status === "success"
@@ -60,50 +90,19 @@ export default function AuthCallbackScreen() {
               : "Erreur"}
         </Text>
 
-        <Text style={styles.message}>{message}</Text>
+        <Text
+          fontSize={16}
+          color="$colorSecondary"
+          textAlign="center"
+          marginBottom="$xl"
+        >
+          {message}
+        </Text>
 
         {status === "loading" && (
-          <ActivityIndicator size="large" color="#667eea" />
+          <ActivityIndicator size="large" color={iconSuccess} />
         )}
-      </View>
+      </YStack>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-  },
-  logo: {
-    fontSize: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  message: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-});

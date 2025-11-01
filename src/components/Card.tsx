@@ -1,10 +1,8 @@
 import { YStack, type YStackProps } from "tamagui";
 
-interface CardProps extends YStackProps {
-  elevated?: boolean;
-}
+interface CardProps extends YStackProps {}
 
-export function Card({ elevated = false, children, ...props }: CardProps) {
+export function Card({ children, ...props }: CardProps) {
   return (
     <YStack
       backgroundColor="$background"
@@ -12,13 +10,6 @@ export function Card({ elevated = false, children, ...props }: CardProps) {
       padding="$base"
       borderWidth={1}
       borderColor="$borderColor"
-      {...(elevated && {
-        shadowColor: "$black",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-      })}
       {...props}
     >
       {children}

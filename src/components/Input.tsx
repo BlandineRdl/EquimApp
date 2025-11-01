@@ -7,17 +7,18 @@ interface AppInputProps extends InputProps {
 export function Input({ error = false, ...props }: AppInputProps) {
   return (
     <TamaguiInput
-      backgroundColor="$background"
+      backgroundColor="$backgroundSecondary"
       borderColor={error ? "$error" : "$borderColor"}
-      borderWidth={1}
+      borderWidth={1.5}
       borderRadius="$base"
       paddingHorizontal="$base"
       paddingVertical="$md"
       fontSize="$base"
       color="$color"
-      placeholderTextColor="$colorTertiary"
+      placeholderTextColor="$colorSecondary"
+      height="$4xl"
       focusStyle={{
-        borderColor: error ? "$error" : "$gray900",
+        borderColor: error ? "$error" : "$color",
         borderWidth: 2,
       }}
       {...props}

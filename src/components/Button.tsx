@@ -1,21 +1,23 @@
-import { type ButtonProps, Button as TamaguiButton } from "tamagui";
+import { type ButtonProps, Button as TamaguiButton, useTheme } from "tamagui";
 
 interface AppButtonProps extends Omit<ButtonProps, "variant"> {
   variant?: "primary" | "secondary" | "success" | "error";
 }
 
 export function Button({ variant = "primary", ...props }: AppButtonProps) {
+  const _theme = useTheme();
+
   const getVariantProps = () => {
     switch (variant) {
       case "primary":
         return {
-          backgroundColor: "$gray900",
+          backgroundColor: "$success",
           color: "$white",
           hoverStyle: {
-            backgroundColor: "$gray800",
+            backgroundColor: "$successHover",
           },
           pressStyle: {
-            backgroundColor: "$gray800",
+            backgroundColor: "$successHover",
             scale: 0.98,
           },
           disabledStyle: {
@@ -71,10 +73,11 @@ export function Button({ variant = "primary", ...props }: AppButtonProps) {
 
   return (
     <TamaguiButton
-      size="$4"
+      height="$14"
       borderRadius="$base"
       fontWeight="$semibold"
       fontSize="$base"
+      paddingHorizontal="$lg"
       {...getVariantProps()}
       {...props}
     />

@@ -1,7 +1,7 @@
 import { usePathname } from "expo-router";
 import type React from "react";
-import { StyleSheet, View } from "react-native";
 import { useSelector } from "react-redux";
+import { YStack } from "tamagui";
 import { selectOnboardingProgressByRoute } from "./onboarding.selectors";
 
 export const OnboardingProgressBar: React.FC = () => {
@@ -11,30 +11,20 @@ export const OnboardingProgressBar: React.FC = () => {
   );
 
   return (
-    <View style={styles.progressContainer}>
-      <View style={styles.progressBar}>
-        <View
-          style={[styles.progressFill, { width: `${progressPercentage}%` }]}
+    <YStack paddingTop="$base" paddingBottom="$xl">
+      <YStack
+        height="$1"
+        backgroundColor="$gray700"
+        borderRadius={2}
+        overflow="hidden"
+      >
+        <YStack
+          height="100%"
+          width={`${progressPercentage}%`}
+          backgroundColor="$success"
+          borderRadius={2}
         />
-      </View>
-    </View>
+      </YStack>
+    </YStack>
   );
 };
-
-const styles = StyleSheet.create({
-  progressContainer: {
-    paddingTop: 16,
-    paddingBottom: 32,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 2,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#10b981",
-    borderRadius: 2,
-  },
-});

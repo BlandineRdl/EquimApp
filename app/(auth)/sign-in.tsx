@@ -10,6 +10,7 @@ import { RESEND_OTP_COOLDOWN_SECONDS } from "../../src/features/auth/domain/auth
 import { signInWithEmail } from "../../src/features/auth/usecases/authenticate-with-email/signInWithEmail.usecase";
 import { verifyOtp } from "../../src/features/auth/usecases/authenticate-with-email/verifyOtp.usecase";
 import { RateLimiter } from "../../src/lib/rateLimiter";
+import { useThemeControl } from "../../src/lib/tamagui/theme-provider";
 import type { AppState } from "../../src/store/appState";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 
@@ -18,6 +19,7 @@ const rateLimiter = new RateLimiter("auth-signin", 5, 1000);
 export default function SignInScreen() {
   const dispatch = useAppDispatch();
   const { isLoading, error } = useSelector((state: AppState) => state.auth);
+  const { theme } = useThemeControl();
 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -91,18 +93,33 @@ export default function SignInScreen() {
   // Success state: email sent - show OTP input
   if (emailSent) {
     return (
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+        }}
+        edges={["top"]}
+      >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <ScrollView flex={1} backgroundColor="$background">
-            <YStack paddingHorizontal="$xl" paddingTop="$4xl" gap="$4xl">
+          <YStack flex={1} backgroundColor="$background">
+            <ScrollView
+              flex={1}
+              showsVerticalScrollIndicator={false}
+              paddingHorizontal="$xl"
+            >
               {/* Header */}
-              <YStack alignItems="center" gap="$xl">
+              <YStack
+                alignItems="center"
+                gap="$md"
+                marginTop="$4xl"
+                marginBottom="$3xl"
+              >
                 <YStack
-                  width={64}
-                  height={64}
+                  width="$5xl"
+                  height="$5xl"
                   backgroundColor="$success100"
                   borderRadius="$full"
                   alignItems="center"
@@ -112,28 +129,24 @@ export default function SignInScreen() {
                 </YStack>
 
                 <Text
-                  fontSize="$2xl"
-                  fontWeight="$bold"
+                  fontSize={24}
+                  fontWeight="700"
                   color="$color"
                   textAlign="center"
                 >
                   Entrez le code
                 </Text>
-                <Text
-                  fontSize="$base"
-                  color="$colorSecondary"
-                  textAlign="center"
-                >
+                <Text fontSize={16} color="$colorSecondary" textAlign="center">
                   Nous avons envoyé un code à 6 chiffres à{" "}
-                  <Text fontWeight="$semibold" color="$color">
+                  <Text fontWeight="600" color="$color">
                     {email}
                   </Text>
                 </Text>
               </YStack>
 
               {/* Form */}
-              <YStack gap="$md">
-                <Text fontSize="$base" fontWeight="$semibold" color="$color">
+              <YStack gap="$sm">
+                <Text fontSize={16} fontWeight="600" color="$gray700">
                   Code de vérification
                 </Text>
                 <Input
@@ -146,21 +159,17 @@ export default function SignInScreen() {
                 />
 
                 {error && (
-                  <Text fontSize="$sm" color="$error">
+                  <Text fontSize={14} color="#ef4444">
                     {error}
                   </Text>
                 )}
 
-                <Card backgroundColor="$backgroundSecondary">
+                <Card backgroundColor="$backgroundSecondary" marginTop="$lg">
                   <YStack gap="$sm">
-                    <Text fontSize="$sm" fontWeight="$semibold" color="$color">
+                    <Text fontSize={14} fontWeight="600" color="$gray700">
                       💡 Code non reçu ?
                     </Text>
-                    <Text
-                      fontSize="$sm"
-                      color="$colorSecondary"
-                      lineHeight={20}
-                    >
+                    <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
                       Vérifiez vos spams ou attendez quelques secondes. Le code
                       expire après 5 minutes.
                     </Text>
@@ -177,32 +186,35 @@ export default function SignInScreen() {
                   </YStack>
                 </Card>
               </YStack>
+            </ScrollView>
 
-              {/* Actions */}
-              <YStack gap="$base" paddingBottom="$2xl">
-                <Button
-                  variant="primary"
-                  onPress={handleVerifyOtp}
-                  disabled={isOtpButtonDisabled}
-                  size="$5"
-                >
-                  {isLoading ? <Spinner color="$white" /> : "Vérifier"}
-                </Button>
+            {/* Actions - Sticky at bottom */}
+            <YStack
+              gap="$md"
+              paddingHorizontal="$xl"
+              paddingTop="$lg"
+              paddingBottom="$base"
+            >
+              <Button
+                variant="primary"
+                onPress={handleVerifyOtp}
+                disabled={isOtpButtonDisabled}
+              >
+                {isLoading ? <Spinner color="#ffffff" /> : "Vérifier"}
+              </Button>
 
-                <Button
-                  variant="secondary"
-                  onPress={() => {
-                    setEmailSent(false);
-                    setOtp("");
-                    setResendTimer(0);
-                  }}
-                  size="$5"
-                >
-                  ← Modifier l'email
-                </Button>
-              </YStack>
+              <Button
+                variant="secondary"
+                onPress={() => {
+                  setEmailSent(false);
+                  setOtp("");
+                  setResendTimer(0);
+                }}
+              >
+                ← Modifier l'email
+              </Button>
             </YStack>
-          </ScrollView>
+          </YStack>
         </KeyboardAvoidingView>
       </SafeAreaView>
     );
@@ -210,18 +222,33 @@ export default function SignInScreen() {
 
   // Sign in form
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView flex={1} backgroundColor="$background">
-          <YStack paddingHorizontal="$xl" paddingTop="$4xl">
+        <YStack flex={1} backgroundColor="$background">
+          <ScrollView
+            flex={1}
+            showsVerticalScrollIndicator={false}
+            paddingHorizontal="$xl"
+          >
             {/* Header */}
-            <YStack alignItems="center" gap="$md" marginBottom="$4xl">
+            <YStack
+              alignItems="center"
+              gap="$md"
+              marginTop="$4xl"
+              marginBottom="$3xl"
+            >
               <YStack
-                width={64}
-                height={64}
+                width="$5xl"
+                height="$5xl"
                 backgroundColor="$success100"
                 borderRadius="$full"
                 alignItems="center"
@@ -231,15 +258,15 @@ export default function SignInScreen() {
               </YStack>
 
               <Text
-                fontSize="$2xl"
-                fontWeight="$bold"
+                fontSize={24}
+                fontWeight="700"
                 color="$color"
                 textAlign="center"
               >
                 Bienvenue sur Equim
               </Text>
               <Text
-                fontSize="$base"
+                fontSize={16}
                 color="$colorSecondary"
                 textAlign="center"
                 lineHeight={24}
@@ -250,8 +277,8 @@ export default function SignInScreen() {
             </YStack>
 
             {/* Form */}
-            <YStack gap="$sm" flex={1}>
-              <Text fontSize="$base" fontWeight="$semibold" color="$gray700">
+            <YStack gap="$sm">
+              <Text fontSize={16} fontWeight="600" color="$gray700">
                 Adresse email
               </Text>
               <Input
@@ -266,54 +293,57 @@ export default function SignInScreen() {
               />
 
               {error && (
-                <Text fontSize="$sm" color="$error">
+                <Text fontSize={14} color="#ef4444">
                   {error}
                 </Text>
               )}
               {rateLimitError && (
-                <Text fontSize="$sm" color="$error">
+                <Text fontSize={14} color="#ef4444">
                   {rateLimitError}
                 </Text>
               )}
 
               {/* Info box */}
-              <Card backgroundColor="$backgroundSecondary" marginTop="$xl">
+              <Card backgroundColor="$backgroundSecondary" marginTop="$lg">
                 <YStack gap="$xs">
-                  <Text fontSize="$sm" fontWeight="$semibold" color="$gray700">
+                  <Text fontSize={14} fontWeight="600" color="$gray700">
                     🔒 Connexion sécurisée
                   </Text>
-                  <Text fontSize="$sm" color="$colorSecondary" lineHeight={20}>
+                  <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
                     Pas de mot de passe à retenir ! Nous vous enverrons un code
                     à 6 chiffres pour vous connecter en toute sécurité.
                   </Text>
                 </YStack>
               </Card>
             </YStack>
+          </ScrollView>
 
-            {/* Actions */}
-            <YStack gap="$md" paddingBottom="$2xl" marginTop="$2xl">
-              <Button
-                variant="primary"
-                onPress={handleSignIn}
-                disabled={isButtonDisabled}
-                size="$5"
-              >
-                {isLoading ? <Spinner color="$white" /> : "Continuer →"}
-              </Button>
+          {/* Actions - Sticky at bottom */}
+          <YStack
+            gap="$md"
+            paddingHorizontal="$xl"
+            paddingTop="$lg"
+            paddingBottom="$base"
+          >
+            <Button
+              variant="primary"
+              onPress={handleSignIn}
+              disabled={isButtonDisabled}
+            >
+              {isLoading ? <Spinner color="#ffffff" /> : "Continuer →"}
+            </Button>
 
-              <Text
-                fontSize="$sm"
-                color="$colorTertiary"
-                textAlign="center"
-                lineHeight={18}
-                paddingHorizontal="$base"
-              >
-                En continuant, vous acceptez nos conditions d'utilisation et
-                notre politique de confidentialité.
-              </Text>
-            </YStack>
+            <Text
+              fontSize={14}
+              color="$colorTertiary"
+              textAlign="center"
+              lineHeight={18}
+            >
+              En continuant, vous acceptez nos conditions d'utilisation et notre
+              politique de confidentialité.
+            </Text>
           </YStack>
-        </ScrollView>
+        </YStack>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

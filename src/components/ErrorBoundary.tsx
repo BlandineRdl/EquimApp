@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, ScrollView } from "react-native";
+import { Text, YStack } from "tamagui";
 import { logger } from "../lib/logger";
 
 interface Props {
@@ -57,113 +58,103 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default fallback UI
       return (
-        <View
-          style={styles.container}
+        <YStack
+          flex={1}
+          backgroundColor="$backgroundSecondary"
+          justifyContent="center"
+          alignItems="center"
+          padding="$lg"
           accessibilityLiveRegion="assertive"
           accessible={true}
           accessibilityLabel="Erreur survenue"
         >
-          <View style={styles.content}>
-            <Text style={styles.emoji}>⚠️</Text>
-            <Text style={styles.title} accessibilityRole="header">
+          <YStack
+            maxWidth={400}
+            width="100%"
+            backgroundColor="$background"
+            borderRadius="$md"
+            padding="$lg"
+            alignItems="center"
+            shadowColor="$black"
+            shadowOffset={{ width: 0, height: 2 }}
+            shadowOpacity={0.1}
+            shadowRadius={8}
+            elevation={3}
+          >
+            <Text fontSize={64} marginBottom="$base">
+              ⚠️
+            </Text>
+            <Text
+              fontSize={20}
+              fontWeight="600"
+              color="$gray900"
+              marginBottom="$xs"
+              textAlign="center"
+              accessibilityRole="header"
+            >
               Oups, une erreur est survenue
             </Text>
-            <Text style={styles.message} accessibilityLiveRegion="polite">
+            <Text
+              fontSize={16}
+              color="$colorSecondary"
+              marginBottom="$lg"
+              textAlign="center"
+              lineHeight={24}
+              accessibilityLiveRegion="polite"
+            >
               {this.state.error.message ||
                 "Une erreur inattendue s'est produite"}
             </Text>
             {__DEV__ && (
-              <View style={styles.debugContainer}>
-                <Text style={styles.debugTitle}>Détails (dev):</Text>
-                <Text style={styles.debugText}>{this.state.error.stack}</Text>
-              </View>
+              <YStack
+                width="100%"
+                backgroundColor="$backgroundSecondary"
+                borderRadius="$sm"
+                padding="$sm"
+                marginBottom="$lg"
+                maxHeight={200}
+              >
+                <Text
+                  fontSize={14}
+                  fontWeight="600"
+                  color="$gray900"
+                  marginBottom="$sm"
+                >
+                  Détails (dev):
+                </Text>
+                <ScrollView style={{ maxHeight: 150 }}>
+                  <Text fontSize={12} color="$colorSecondary">
+                    {this.state.error.stack}
+                  </Text>
+                </ScrollView>
+              </YStack>
             )}
-            <TouchableOpacity
-              style={styles.button}
+            <Pressable
               onPress={this.resetError}
               accessibilityLabel="Réessayer"
               accessibilityRole="button"
+              style={{
+                backgroundColor: "#3b82f6",
+                paddingHorizontal: 32,
+                paddingVertical: 12,
+                borderRadius: 8,
+                minWidth: 120,
+              }}
             >
-              <Text style={styles.buttonText}>Réessayer</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+              <Text
+                color="$white"
+                fontSize={16}
+                fontWeight="600"
+                textAlign="center"
+              >
+                Réessayer
+              </Text>
+            </Pressable>
+          </YStack>
+        </YStack>
       );
     }
 
     return this.props.children;
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  content: {
-    maxWidth: 400,
-    width: "100%",
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 24,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  emoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  message: {
-    fontSize: 16,
-    color: "#6b7280",
-    marginBottom: 24,
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  debugContainer: {
-    width: "100%",
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 24,
-    maxHeight: 200,
-  },
-  debugTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  debugText: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontFamily: "monospace",
-  },
-  button: {
-    backgroundColor: "#3b82f6",
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 120,
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-});

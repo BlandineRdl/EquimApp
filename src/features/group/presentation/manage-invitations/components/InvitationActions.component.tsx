@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { YStack } from "tamagui";
+import { Button } from "../../../../../components/Button";
 
 interface InvitationActionsProps {
   onAccept: () => void;
@@ -14,53 +15,24 @@ export const InvitationActions = ({
   canSubmit,
 }: InvitationActionsProps) => {
   return (
-    <View style={styles.buttonsContainer}>
-      <TouchableOpacity
-        style={[styles.button, styles.acceptButton]}
+    <YStack gap="$base">
+      <Button
+        variant="success"
         onPress={onAccept}
         disabled={isLoading || !canSubmit}
+        height="$14"
       >
-        <Text style={styles.acceptButtonText}>Accepter l'invitation</Text>
-      </TouchableOpacity>
+        Accepter l'invitation
+      </Button>
 
-      <TouchableOpacity
-        style={[styles.button, styles.refuseButton]}
+      <Button
+        variant="secondary"
         onPress={onRefuse}
         disabled={isLoading}
+        height="$14"
       >
-        <Text style={styles.refuseButtonText}>Refuser</Text>
-      </TouchableOpacity>
-    </View>
+        Refuser
+      </Button>
+    </YStack>
   );
 };
-
-const styles = StyleSheet.create({
-  buttonsContainer: {
-    gap: 16,
-  },
-  button: {
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 56,
-  },
-  acceptButton: {
-    backgroundColor: "#10b981",
-  },
-  acceptButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  refuseButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  refuseButtonText: {
-    color: "#374151",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
