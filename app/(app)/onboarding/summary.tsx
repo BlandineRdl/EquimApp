@@ -1,22 +1,20 @@
 import { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../src/components/Button";
+import { Card } from "../../../src/components/Card";
 import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import { selectOnboardingSummary } from "../../../src/features/onboarding/presentation/onboarding.selectors";
 import { completeOnboarding } from "../../../src/features/onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
 import { loadUserProfile } from "../../../src/features/user/usecases/loadUserProfile.usecase";
 import { logger } from "../../../src/lib/logger";
+import { useThemeControl } from "../../../src/lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
 export default function SummaryScreen() {
   const dispatch = useAppDispatch();
+  const { theme } = useThemeControl();
   const [isCreating, setIsCreating] = useState(false);
 
   const {
@@ -54,189 +52,169 @@ export default function SummaryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <OnboardingProgressBar />
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
+      <YStack flex={1} backgroundColor="$background">
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
+          paddingHorizontal="$xl"
+        >
+          <OnboardingProgressBar />
 
-        {/* Success Icon */}
-        <View style={styles.header}>
-          <View style={styles.successIcon}>
-            <View style={styles.checkIcon}>
-              <Text style={styles.checkMark}>✓</Text>
-            </View>
-          </View>
+          {/* Success Icon */}
+          <YStack alignItems="center" marginBottom="$4xl">
+            <YStack marginBottom="$xl">
+              <YStack
+                width="$5xl"
+                height="$5xl"
+                backgroundColor="$success100"
+                borderRadius="$full"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Text fontSize={32} color="$success" fontWeight="700">
+                  ✓
+                </Text>
+              </YStack>
+            </YStack>
 
-          <Text style={styles.title}>Tout est prêt !</Text>
-          <Text style={styles.subtitle}>
-            {skipGroupCreation
-              ? "Votre profil est configuré."
-              : `Votre profil et votre groupe "${groupName}" sont configurés.`}
-          </Text>
-        </View>
-
-        {/* Summary Card */}
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Pseudo</Text>
-            <Text style={styles.summaryValue}>{pseudo}</Text>
-          </View>
-
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Revenu</Text>
-            <Text style={styles.summaryValue}>
-              {monthlyIncome.toLocaleString()}€/mois
+            <Text
+              fontSize={24}
+              fontWeight="700"
+              color="$color"
+              textAlign="center"
+              marginBottom="$md"
+            >
+              Tout est prêt !
             </Text>
-          </View>
+            <Text
+              fontSize={16}
+              color="$colorSecondary"
+              textAlign="center"
+              lineHeight={24}
+            >
+              {skipGroupCreation
+                ? "Votre profil est configuré."
+                : `Votre profil et votre groupe "${groupName}" sont configurés.`}
+            </Text>
+          </YStack>
 
-          {!skipGroupCreation && (
-            <>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Groupe créé</Text>
-                <Text style={styles.summaryValue}>{groupName}</Text>
-              </View>
+          {/* Summary Card */}
+          <Card
+            backgroundColor="$backgroundSecondary"
+            borderWidth={1}
+            borderColor="$borderColor"
+            padding="$lg"
+            marginBottom="$xl"
+          >
+            <YStack gap="$sm">
+              <XStack
+                justifyContent="space-between"
+                alignItems="center"
+                paddingVertical="$sm"
+              >
+                <Text fontSize={16} color="$colorSecondary" fontWeight="500">
+                  Pseudo
+                </Text>
+                <Text fontSize={16} color="$color" fontWeight="600">
+                  {pseudo}
+                </Text>
+              </XStack>
 
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Dépenses ajoutées</Text>
-                <Text style={styles.summaryValue}>{expensesCount}</Text>
-              </View>
+              <XStack
+                justifyContent="space-between"
+                alignItems="center"
+                paddingVertical="$sm"
+              >
+                <Text fontSize={16} color="$colorSecondary" fontWeight="500">
+                  Revenu
+                </Text>
+                <Text fontSize={16} color="$color" fontWeight="600">
+                  {monthlyIncome.toLocaleString()}€/mois
+                </Text>
+              </XStack>
 
-              {totalExpenses > 0 && (
-                <View style={[styles.summaryRow, styles.totalRow]}>
-                  <Text style={styles.summaryLabel}>Total mensuel</Text>
-                  <Text style={styles.totalValue}>
-                    {totalExpenses.toLocaleString()}€
-                  </Text>
-                </View>
+              {!skipGroupCreation && (
+                <>
+                  <XStack
+                    justifyContent="space-between"
+                    alignItems="center"
+                    paddingVertical="$sm"
+                  >
+                    <Text
+                      fontSize={16}
+                      color="$colorSecondary"
+                      fontWeight="500"
+                    >
+                      Groupe créé
+                    </Text>
+                    <Text fontSize={16} color="$color" fontWeight="600">
+                      {groupName}
+                    </Text>
+                  </XStack>
+
+                  <XStack
+                    justifyContent="space-between"
+                    alignItems="center"
+                    paddingVertical="$sm"
+                  >
+                    <Text
+                      fontSize={16}
+                      color="$colorSecondary"
+                      fontWeight="500"
+                    >
+                      Dépenses ajoutées
+                    </Text>
+                    <Text fontSize={16} color="$color" fontWeight="600">
+                      {expensesCount}
+                    </Text>
+                  </XStack>
+
+                  {totalExpenses > 0 && (
+                    <XStack
+                      justifyContent="space-between"
+                      alignItems="center"
+                      paddingVertical="$sm"
+                      borderTopWidth={1}
+                      borderTopColor="$borderColor"
+                      marginTop="$sm"
+                      paddingTop="$base"
+                    >
+                      <Text
+                        fontSize={16}
+                        color="$colorSecondary"
+                        fontWeight="500"
+                      >
+                        Total mensuel
+                      </Text>
+                      <Text fontSize={18} color="$success" fontWeight="700">
+                        {totalExpenses.toLocaleString()}€
+                      </Text>
+                    </XStack>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </View>
+            </YStack>
+          </Card>
+        </ScrollView>
 
-        {/* Action */}
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={[styles.button, !isComplete && styles.buttonDisabled]}
+        {/* Action - Sticky at bottom */}
+        <YStack paddingHorizontal="$xl" paddingTop="$lg" paddingBottom="$base">
+          <Button
+            variant="primary"
             onPress={handleCreateAccount}
             disabled={!isComplete}
           >
-            <Text
-              style={[
-                styles.buttonText,
-                !isComplete && styles.buttonTextDisabled,
-              ]}
-            >
-              Finaliser mon profil →
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            Finaliser mon profil →
+          </Button>
+        </YStack>
+      </YStack>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 48,
-  },
-  successIcon: {
-    marginBottom: 24,
-  },
-  checkIcon: {
-    width: 64,
-    height: 64,
-    backgroundColor: "#d1fae5",
-    borderRadius: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkMark: {
-    fontSize: 32,
-    color: "#10b981",
-    fontWeight: "bold",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  summaryCard: {
-    backgroundColor: "#f9fafb",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  totalRow: {
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-    marginTop: 8,
-    paddingTop: 16,
-  },
-  summaryLabel: {
-    fontSize: 16,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  summaryValue: {
-    fontSize: 16,
-    color: "#111827",
-    fontWeight: "600",
-  },
-  totalValue: {
-    fontSize: 18,
-    color: "#10b981",
-    fontWeight: "700",
-  },
-  actions: {
-    flex: 1,
-    justifyContent: "flex-end",
-    paddingBottom: 32,
-  },
-  button: {
-    backgroundColor: "#111827",
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  buttonDisabled: {
-    backgroundColor: "#9ca3af",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  buttonTextDisabled: {
-    color: "#d1d5db",
-  },
-});

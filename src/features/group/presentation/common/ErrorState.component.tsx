@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, YStack } from "tamagui";
 
 interface ErrorStateProps {
   message: string;
@@ -6,20 +6,10 @@ interface ErrorStateProps {
 
 export const ErrorState = ({ message }: ErrorStateProps) => {
   return (
-    <View style={styles.errorContainer}>
-      <Text style={styles.errorText}>{message}</Text>
-    </View>
+    <YStack flex={1} justifyContent="center" alignItems="center">
+      <Text fontSize={16} color="$error">
+        {message}
+      </Text>
+    </YStack>
   );
 };
-
-const styles = StyleSheet.create({
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#ef4444",
-  },
-});

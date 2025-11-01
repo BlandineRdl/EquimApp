@@ -1,19 +1,15 @@
 import { Check, Edit3, Plus, Trash2, X } from "lucide-react-native";
 import { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import Toast from "react-native-toast-message";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
 import {
   MAX_EXPENSE_AMOUNT,
   MAX_LABEL_LENGTH,
   MIN_EXPENSE_AMOUNT,
 } from "../features/user/domain/manage-personal-expenses/personal-expense.constants";
+import { Button } from "./Button";
+import { IconButton } from "./IconButton";
+import { Input } from "./Input";
 
 export interface Expense {
   id: string;
@@ -26,9 +22,9 @@ interface ExpenseManagerProps {
   onAdd: (label: string, amount: number) => Promise<void>;
   onEdit?: (id: string, label: string, amount: number) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
-  minExpenses?: number; // Minimum number of expenses (prevents deletion below this)
-  title?: string; // Title for the expenses list section
-  addSectionTitle?: string; // Title for the add form section
+  minExpenses?: number;
+  title?: string;
+  addSectionTitle?: string;
 }
 
 export function ExpenseManager({
@@ -101,7 +97,6 @@ export function ExpenseManager({
   const handleDeleteExpense = async (expenseId: string, label: string) => {
     if (!onDelete) return;
 
-    // Prevent deletion if below minimum
     if (expenses.length <= minExpenses) {
       Toast.show({
         type: "error",
@@ -201,26 +196,45 @@ export function ExpenseManager({
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView flex={1} showsVerticalScrollIndicator={false}>
       {/* Add New Expense Form */}
-      <View style={styles.addForm}>
-        <Text style={styles.sectionTitle}>{addSectionTitle}</Text>
-        <View style={styles.formRow}>
-          <View style={styles.labelInput}>
-            <Text style={styles.inputLabel}>Libellé</Text>
-            <TextInput
-              style={styles.input}
+      <YStack
+        backgroundColor="$backgroundSecondary"
+        borderRadius="$md"
+        padding="$base"
+        marginBottom="$lg"
+      >
+        <Text fontSize={16} fontWeight="600" color="$color" marginBottom="$sm">
+          {addSectionTitle}
+        </Text>
+        <XStack gap="$sm" marginBottom="$sm">
+          <YStack flex={2}>
+            <Text
+              fontSize={12}
+              fontWeight="500"
+              color="$colorSecondary"
+              marginBottom="$xs"
+            >
+              Libellé
+            </Text>
+            <Input
               placeholder="Ex: Loyer"
               value={newLabel}
               onChangeText={setNewLabel}
               maxLength={MAX_LABEL_LENGTH}
               editable={!isSubmitting}
             />
-          </View>
-          <View style={styles.amountInput}>
-            <Text style={styles.inputLabel}>Montant (€)</Text>
-            <TextInput
-              style={styles.input}
+          </YStack>
+          <YStack flex={1}>
+            <Text
+              fontSize={12}
+              fontWeight="500"
+              color="$colorSecondary"
+              marginBottom="$xs"
+            >
+              Montant (€)
+            </Text>
+            <Input
               placeholder="0"
               value={newAmount}
               onChangeText={(text) =>
@@ -229,25 +243,33 @@ export function ExpenseManager({
               keyboardType="decimal-pad"
               editable={!isSubmitting}
             />
-          </View>
-        </View>
-        <TouchableOpacity
-          style={[styles.addButton, isSubmitting && styles.buttonDisabled]}
+          </YStack>
+        </XStack>
+        <Button
+          variant="success"
           onPress={handleAddExpense}
           disabled={isSubmitting}
+          icon={<Plus size={20} color="#ffffff" />}
         >
-          <Plus size={20} color="#fff" />
-          <Text style={styles.addButtonText}>Ajouter</Text>
-        </TouchableOpacity>
-      </View>
+          Ajouter
+        </Button>
+      </YStack>
 
       {/* Existing Expenses List */}
-      <View style={styles.expensesList}>
-        <Text style={styles.sectionTitle}>
+      <YStack flex={1}>
+        <Text fontSize={16} fontWeight="600" color="$color" marginBottom="$sm">
           {title} ({expenses.length})
         </Text>
         {expenses.length === 0 ? (
-          <Text style={styles.emptyText}>Aucune dépense définie</Text>
+          <Text
+            fontSize={14}
+            color="$colorSecondary"
+            fontStyle="italic"
+            textAlign="center"
+            marginTop="$md"
+          >
+            Aucune dépense définie
+          </Text>
         ) : (
           expenses.map((expense) => {
             const isAtMinimum = expenses.length <= minExpenses;
@@ -256,19 +278,29 @@ export function ExpenseManager({
             if (isEditing) {
               // Edit mode - show inline form
               return (
-                <View key={expense.id} style={styles.expenseRow}>
-                  <View style={styles.editForm}>
-                    <View style={styles.editInputs}>
-                      <TextInput
-                        style={[styles.input, styles.editLabelInput]}
+                <XStack
+                  key={expense.id}
+                  alignItems="center"
+                  justifyContent="space-between"
+                  backgroundColor="$background"
+                  borderWidth={1}
+                  borderColor="$borderColor"
+                  borderRadius="$sm"
+                  padding="$sm"
+                  marginBottom="$sm"
+                >
+                  <XStack flex={1} gap="$xs" alignItems="center">
+                    <XStack flex={1} gap="$xs">
+                      <Input
+                        flex={2}
                         placeholder="Libellé"
                         value={editLabel}
                         onChangeText={setEditLabel}
                         maxLength={MAX_LABEL_LENGTH}
                         editable={!isSubmitting}
                       />
-                      <TextInput
-                        style={[styles.input, styles.editAmountInput]}
+                      <Input
+                        flex={1}
                         placeholder="0"
                         value={editAmount}
                         onChangeText={(text) =>
@@ -277,41 +309,59 @@ export function ExpenseManager({
                         keyboardType="decimal-pad"
                         editable={!isSubmitting}
                       />
-                    </View>
-                    <View style={styles.editActions}>
-                      <TouchableOpacity
-                        style={styles.editActionButton}
+                    </XStack>
+                    <XStack gap="$xs">
+                      <IconButton
+                        icon={Check}
+                        variant="check"
                         onPress={() => handleSaveEdit(expense.id)}
                         disabled={isSubmitting}
-                      >
-                        <Check size={20} color="#10b981" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.editActionButton}
+                        iconSize={20}
+                      />
+                      <IconButton
+                        icon={X}
+                        variant="cancel"
                         onPress={handleCancelEdit}
                         disabled={isSubmitting}
-                      >
-                        <X size={20} color="#6b7280" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
+                        iconSize={20}
+                      />
+                    </XStack>
+                  </XStack>
+                </XStack>
               );
             }
 
             // Read mode - show expense details
             return (
-              <View key={expense.id} style={styles.expenseRow}>
-                <View style={styles.expenseInfo}>
-                  <Text style={styles.expenseLabel}>{expense.label}</Text>
-                  <Text style={styles.expenseAmount}>
+              <XStack
+                key={expense.id}
+                alignItems="center"
+                justifyContent="space-between"
+                backgroundColor="$background"
+                borderWidth={1}
+                borderColor="$borderColor"
+                borderRadius="$sm"
+                padding="$sm"
+                marginBottom="$sm"
+              >
+                <YStack flex={1} marginRight="$sm">
+                  <Text
+                    fontSize={14}
+                    fontWeight="500"
+                    color="$color"
+                    marginBottom="$sm"
+                  >
+                    {expense.label}
+                  </Text>
+                  <Text fontSize={16} fontWeight="600" color="$success">
                     {expense.amount.toLocaleString("fr-FR")} €
                   </Text>
-                </View>
-                <View style={styles.expenseActions}>
+                </YStack>
+                <XStack gap="$xs">
                   {onEdit && (
-                    <TouchableOpacity
-                      style={styles.editButton}
+                    <IconButton
+                      icon={Edit3}
+                      variant="success"
                       onPress={() =>
                         handleEditExpense(
                           expense.id,
@@ -320,187 +370,24 @@ export function ExpenseManager({
                         )
                       }
                       disabled={isSubmitting}
-                    >
-                      <Edit3 size={18} color="#10b981" />
-                    </TouchableOpacity>
+                    />
                   )}
                   {onDelete && (
-                    <TouchableOpacity
-                      style={[
-                        styles.deleteButton,
-                        (isSubmitting || isAtMinimum) &&
-                          styles.deleteButtonDisabled,
-                      ]}
+                    <IconButton
+                      icon={Trash2}
+                      variant="error"
                       onPress={() =>
                         handleDeleteExpense(expense.id, expense.label)
                       }
                       disabled={isSubmitting || isAtMinimum}
-                    >
-                      <Trash2
-                        size={18}
-                        color={isAtMinimum ? "#d1d5db" : "#ef4444"}
-                      />
-                    </TouchableOpacity>
+                    />
                   )}
-                </View>
-              </View>
+                </XStack>
+              </XStack>
             );
           })
         )}
-      </View>
+      </YStack>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  addForm: {
-    backgroundColor: "#f9fafb",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-    marginBottom: 12,
-  },
-  formRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 12,
-  },
-  labelInput: {
-    flex: 2,
-  },
-  amountInput: {
-    flex: 1,
-  },
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#6b7280",
-    marginBottom: 4,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#000",
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#10b981",
-    borderRadius: 8,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  buttonDisabled: {
-    backgroundColor: "#9ca3af",
-    opacity: 0.6,
-  },
-  expensesList: {
-    flex: 1,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: "#9ca3af",
-    fontStyle: "italic",
-    textAlign: "center",
-    marginTop: 20,
-  },
-  expenseRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  expenseInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  expenseLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#000",
-    marginBottom: 4,
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#10b981",
-  },
-  expenseActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  editButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#d1fae5",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deleteButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#fee2e2",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deleteButtonDisabled: {
-    backgroundColor: "#f3f4f6",
-    opacity: 0.5,
-  },
-  // Edit mode styles
-  editForm: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 8,
-    alignItems: "center",
-  },
-  editInputs: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 8,
-  },
-  editLabelInput: {
-    flex: 2,
-  },
-  editAmountInput: {
-    flex: 1,
-  },
-  editActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  editActionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#f3f4f6",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

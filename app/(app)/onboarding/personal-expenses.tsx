@@ -1,25 +1,22 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../src/components/Button";
+import { Card } from "../../../src/components/Card";
 import type { Expense } from "../../../src/components/ExpenseManager.component";
 import { ExpenseManager } from "../../../src/components/ExpenseManager.component";
 import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import { selectIncomeUI } from "../../../src/features/onboarding/presentation/onboarding.selectors";
 import { setPersonalExpenses } from "../../../src/features/onboarding/store/onboarding.slice";
+import { useThemeControl } from "../../../src/lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
 export default function PersonalExpensesScreen() {
   const dispatch = useAppDispatch();
+  const { theme } = useThemeControl();
   const { numericValue: income } = useSelector(selectIncomeUI);
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -80,218 +77,136 @@ export default function PersonalExpensesScreen() {
   const capacity = calculateCapacity();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
       <KeyboardAvoidingView
-        style={styles.content}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <OnboardingProgressBar />
+        <YStack flex={1} backgroundColor="$background">
+          <ScrollView
+            flex={1}
+            showsVerticalScrollIndicator={false}
+            paddingHorizontal="$xl"
+          >
+            <OnboardingProgressBar />
 
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Vos charges personnelles</Text>
-            <Text style={styles.subtitle}>
-              Ajoutez au moins une dépense individuelle (non partagée) pour
-              calculer votre capacité réelle
-            </Text>
-          </View>
+            {/* Header */}
+            <YStack alignItems="center" marginBottom="$xl">
+              <Text
+                fontSize={24}
+                fontWeight="700"
+                color="$color"
+                textAlign="center"
+                marginBottom="$md"
+              >
+                Vos charges personnelles
+              </Text>
+              <Text
+                fontSize={16}
+                color="$colorSecondary"
+                textAlign="center"
+                lineHeight={24}
+              >
+                Ajoutez au moins une dépense individuelle (non partagée) pour
+                calculer votre capacité réelle
+              </Text>
+            </YStack>
 
-          {/* Expense Manager */}
-          <View style={styles.form}>
-            <ExpenseManager
-              expenses={expenses}
-              onAdd={handleAddExpense}
-              onEdit={handleEditExpense}
-              onDelete={handleDeleteExpense}
-              minExpenses={0}
-              title="Mes charges personnelles"
-              addSectionTitle="Ajouter une charge"
-            />
-          </View>
+            {/* Expense Manager */}
+            <YStack flex={1} marginBottom="$xl">
+              <ExpenseManager
+                expenses={expenses}
+                onAdd={handleAddExpense}
+                onEdit={handleEditExpense}
+                onDelete={handleDeleteExpense}
+                minExpenses={0}
+                title="Mes charges personnelles"
+                addSectionTitle="Ajouter une charge"
+              />
+            </YStack>
 
-          {/* Summary */}
-          {subtotal > 0 && (
-            <View style={styles.summaryBox}>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Revenu mensuel</Text>
-                <Text style={styles.summaryValue}>{income.toFixed(2)} €</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Total des charges</Text>
-                <Text style={styles.summaryValue}>
-                  - {subtotal.toFixed(2)} €
+            {/* Summary */}
+            {subtotal > 0 && (
+              <Card backgroundColor="$backgroundSecondary" marginBottom="$base">
+                <YStack gap="$sm">
+                  <XStack justifyContent="space-between" marginBottom="$sm">
+                    <Text fontSize={14} color="$colorSecondary">
+                      Revenu mensuel
+                    </Text>
+                    <Text fontSize={14} color="$gray700" fontWeight="500">
+                      {income.toFixed(2)} €
+                    </Text>
+                  </XStack>
+                  <XStack justifyContent="space-between" marginBottom="$sm">
+                    <Text fontSize={14} color="$colorSecondary">
+                      Total des charges
+                    </Text>
+                    <Text fontSize={14} color="$gray700" fontWeight="500">
+                      - {subtotal.toFixed(2)} €
+                    </Text>
+                  </XStack>
+                  <YStack
+                    borderTopWidth={1}
+                    borderTopColor="$borderColor"
+                    paddingTop="$md"
+                    marginTop="$xs"
+                  >
+                    <XStack justifyContent="space-between">
+                      <Text fontSize={16} color="$color" fontWeight="600">
+                        Capacité de dépense
+                      </Text>
+                      <Text
+                        fontSize={16}
+                        fontWeight="700"
+                        color={capacity < 0 ? "$error" : "$success"}
+                      >
+                        {capacity.toFixed(2)} €
+                      </Text>
+                    </XStack>
+                  </YStack>
+                </YStack>
+              </Card>
+            )}
+
+            {/* Info box */}
+            <Card backgroundColor="$backgroundSecondary" marginBottom="$base">
+              <YStack gap="$xs">
+                <Text fontSize={14} fontWeight="600" color="$gray700">
+                  💡 Pourquoi cette information ?
                 </Text>
-              </View>
-              <View style={[styles.summaryRow, styles.summaryTotal]}>
-                <Text style={styles.summaryTotalLabel}>
-                  Capacité de dépense
+                <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
+                  Equim calcule votre capacité réelle (revenu - charges
+                  personnelles) pour des parts de groupe plus justes. Exemples :
+                  crédit immobilier non partagé, crédit voiture, abonnement
+                  salle de sport... Vous pourrez modifier ces informations plus
+                  tard depuis votre profil.
                 </Text>
-                <Text
-                  style={[
-                    styles.summaryTotalValue,
-                    capacity < 0 && styles.negativeCapacity,
-                  ]}
-                >
-                  {capacity.toFixed(2)} €
-                </Text>
-              </View>
-            </View>
-          )}
+              </YStack>
+            </Card>
+          </ScrollView>
 
-          {/* Info box */}
-          <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>
-              💡 Pourquoi cette information ?
-            </Text>
-            <Text style={styles.infoText}>
-              Equim calcule votre capacité réelle (revenu - charges
-              personnelles) pour des parts de groupe plus justes. Exemples :
-              crédit immobilier non partagé, crédit voiture, abonnement salle de
-              sport... Vous pourrez modifier ces informations plus tard depuis
-              votre profil.
-            </Text>
-          </View>
-
-          {/* Actions */}
-          <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.button, !canContinue() && styles.buttonDisabled]}
+          {/* Actions - Sticky at bottom */}
+          <YStack
+            paddingHorizontal="$xl"
+            paddingTop="$lg"
+            paddingBottom="$base"
+          >
+            <Button
+              variant="primary"
               onPress={handleContinue}
               disabled={!canContinue()}
             >
-              <Text
-                style={[
-                  styles.buttonText,
-                  !canContinue() && styles.buttonTextDisabled,
-                ]}
-              >
-                {isSubmitting ? "Enregistrement..." : "Continuer →"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+              {isSubmitting ? "Enregistrement..." : "Continuer →"}
+            </Button>
+          </YStack>
+        </YStack>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  content: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  form: {
-    flex: 1,
-    marginBottom: 24,
-  },
-  summaryBox: {
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  summaryValue: {
-    fontSize: 14,
-    color: "#374151",
-    fontWeight: "500",
-  },
-  summaryTotal: {
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-    paddingTop: 12,
-    marginTop: 4,
-    marginBottom: 0,
-  },
-  summaryTotalLabel: {
-    fontSize: 16,
-    color: "#111827",
-    fontWeight: "600",
-  },
-  summaryTotalValue: {
-    fontSize: 16,
-    color: "#10b981",
-    fontWeight: "700",
-  },
-  negativeCapacity: {
-    color: "#ef4444",
-  },
-  infoBox: {
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#6b7280",
-    lineHeight: 20,
-  },
-  actions: {
-    paddingBottom: 32,
-    paddingTop: 16,
-  },
-  button: {
-    backgroundColor: "#111827",
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  buttonDisabled: {
-    backgroundColor: "#9ca3af",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  buttonTextDisabled: {
-    color: "#d1d5db",
-  },
-});

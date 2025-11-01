@@ -6,12 +6,12 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+  Pressable,
 } from "react-native";
+import { Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../../components/Button";
+import { Input } from "../../../../components/Input";
+import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import { SUGGESTED_GROUP_NAMES } from "../../domain/manage-group/group.constants";
 import { createGroup } from "../../usecases/create-group/createGroup.usecase";
@@ -29,6 +29,11 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   onSuccess,
 }) => {
   const dispatch = useAppDispatch();
+  const { theme } = useThemeControl();
+  const _iconColor = theme === "light" ? "#111827" : "#ffffff";
+  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
+  const iconPrimary = "#0284c7";
+
   const [groupName, setGroupName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
@@ -88,30 +93,58 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={styles.modalOverlay}
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 20,
+        }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.modalContainer}>
+        <YStack
+          width="100%"
+          maxWidth={400}
+          backgroundColor="$background"
+          borderRadius="$xl"
+          padding="$lg"
+        >
           {/* Header */}
-          <View style={styles.modalHeader}>
-            <View style={styles.modalIconContainer}>
-              <Users size={24} color="#0284c7" />
-            </View>
-            <Text style={styles.modalTitle}>Créer un groupe</Text>
-            <TouchableOpacity
-              style={styles.closeButton}
+          <XStack alignItems="center" marginBottom="$lg">
+            <YStack
+              width="$3xl"
+              height="$3xl"
+              borderRadius="$base"
+              backgroundColor="$primary100"
+              justifyContent="center"
+              alignItems="center"
+              marginRight="$md"
+            >
+              <Users size={24} color={iconPrimary} />
+            </YStack>
+            <Text flex={1} fontSize={18} fontWeight="600" color="$color">
+              Créer un groupe
+            </Text>
+            <Pressable
               onPress={onClose}
               disabled={isCreating}
+              style={{ padding: 4 }}
             >
-              <X size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
+              <X size={20} color={iconSecondary} />
+            </Pressable>
+          </XStack>
 
           {/* Form */}
-          <View style={styles.formContainer}>
-            <Text style={styles.label}>Nom du groupe</Text>
-            <TextInput
-              style={styles.input}
+          <YStack marginBottom="$lg">
+            <Text
+              fontSize={14}
+              fontWeight="500"
+              color="$gray700"
+              marginBottom="$md"
+            >
+              Nom du groupe
+            </Text>
+            <Input
               placeholder="Ex: Foyer, Coloc, Quotidien..."
               value={groupName}
               onChangeText={setGroupName}
@@ -123,181 +156,68 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             />
 
             {/* Suggestions */}
-            <View style={styles.suggestionsContainer}>
-              <Text style={styles.suggestionsTitle}>💡 Suggestions</Text>
-              <View style={styles.suggestionsGrid}>
+            <YStack marginTop="$base">
+              <Text
+                fontSize={12}
+                fontWeight="500"
+                color="$colorSecondary"
+                marginBottom="$md"
+              >
+                💡 Suggestions
+              </Text>
+              <XStack flexWrap="wrap" gap="$md">
                 {suggestedNames.map((suggestion) => {
                   const isSelected = groupName.trim() === suggestion;
                   return (
-                    <TouchableOpacity
+                    <Pressable
                       key={suggestion}
-                      style={[
-                        styles.suggestionChip,
-                        isSelected && styles.suggestionChipActive,
-                      ]}
                       onPress={() => setGroupName(suggestion)}
                       disabled={isCreating}
                     >
-                      <Text
-                        style={[
-                          styles.suggestionText,
-                          isSelected && styles.suggestionTextActive,
-                        ]}
+                      <YStack
+                        backgroundColor={
+                          isSelected ? "$color" : "$backgroundSecondary"
+                        }
+                        paddingHorizontal="$md"
+                        paddingVertical={6}
+                        borderRadius="$lg"
+                        borderWidth={1}
+                        borderColor={isSelected ? "$color" : "$borderColor"}
                       >
-                        {suggestion}
-                      </Text>
-                    </TouchableOpacity>
+                        <Text
+                          fontSize={13}
+                          color={isSelected ? "$background" : "$gray700"}
+                          fontWeight={isSelected ? "600" : "400"}
+                        >
+                          {suggestion}
+                        </Text>
+                      </YStack>
+                    </Pressable>
                   );
                 })}
-              </View>
-            </View>
-          </View>
+              </XStack>
+            </YStack>
+          </YStack>
 
           {/* Actions */}
-          <TouchableOpacity
-            style={[
-              styles.createButton,
-              (isCreating || !groupName.trim()) && styles.createButtonDisabled,
-            ]}
+          <Button
+            variant="primary"
             onPress={handleCreate}
             disabled={isCreating || !groupName.trim()}
+            marginBottom="$md"
           >
-            <Text style={styles.createButtonText}>
+            <Text fontSize={16} fontWeight="600" color="$white">
               {isCreating ? "Création..." : "Créer le groupe"}
             </Text>
-          </TouchableOpacity>
+          </Button>
 
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onClose}
-            disabled={isCreating}
-          >
-            <Text style={styles.cancelButtonText}>Annuler</Text>
-          </TouchableOpacity>
-        </View>
+          <Button variant="secondary" onPress={onClose} disabled={isCreating}>
+            <Text fontSize={16} fontWeight="500" color="$colorSecondary">
+              Annuler
+            </Text>
+          </Button>
+        </YStack>
       </KeyboardAvoidingView>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
-    width: "100%",
-    maxWidth: 400,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  modalIconContainer: {
-    backgroundColor: "#f0f9ff",
-    borderRadius: 8,
-    padding: 8,
-    marginRight: 12,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-    flex: 1,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  formContainer: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: "#000",
-    backgroundColor: "#fff",
-  },
-  suggestionsContainer: {
-    marginTop: 16,
-  },
-  suggestionsTitle: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#666",
-    marginBottom: 8,
-  },
-  suggestionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  suggestionChip: {
-    backgroundColor: "#f3f4f6",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  suggestionChipActive: {
-    backgroundColor: "#000",
-    borderColor: "#000",
-  },
-  suggestionText: {
-    fontSize: 13,
-    color: "#374151",
-  },
-  suggestionTextActive: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  createButton: {
-    backgroundColor: "#000",
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    alignItems: "center",
-  },
-  createButtonDisabled: {
-    backgroundColor: "#9ca3af",
-  },
-  createButtonText: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "600",
-  },
-  cancelButton: {
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: "#666",
-    fontWeight: "500",
-  },
-});

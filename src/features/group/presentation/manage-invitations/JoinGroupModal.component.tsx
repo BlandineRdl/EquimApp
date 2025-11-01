@@ -5,14 +5,13 @@ import {
   ActivityIndicator,
   Keyboard,
   Modal,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
 } from "react-native";
 import { useSelector } from "react-redux";
+import { Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../../components/Button";
+import { Input } from "../../../../components/Input";
+import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
 import type { AppState } from "../../../../store/appState";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import { acceptInvitation } from "../../usecases/invitation/acceptInvitation.usecase";
@@ -31,6 +30,8 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const profile = useSelector((state: AppState) => state.user.profile);
+  const { theme } = useThemeControl();
+  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
 
   const [inviteLink, setInviteLink] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -94,22 +95,49 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
       onRequestClose={handleClose}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.modalOverlay}>
+        <YStack
+          flex={1}
+          backgroundColor="rgba(0, 0, 0, 0.5)"
+          justifyContent="center"
+          alignItems="center"
+        >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Rejoindre un groupe</Text>
-                <TouchableOpacity
+            <YStack
+              width="90%"
+              maxWidth={400}
+              backgroundColor="$background"
+              borderRadius="$xl"
+              padding="$lg"
+            >
+              <XStack
+                justifyContent="space-between"
+                alignItems="center"
+                marginBottom="$lg"
+              >
+                <Text fontSize={18} fontWeight="600" color="$color">
+                  Rejoindre un groupe
+                </Text>
+                <Button
+                  variant="secondary"
+                  width="$2xl"
+                  height="$2xl"
+                  padding={0}
+                  borderRadius="$base"
                   onPress={handleClose}
-                  style={styles.closeButton}
                 >
-                  <X size={24} color="#666" />
-                </TouchableOpacity>
-              </View>
+                  <X size={24} color={iconSecondary} />
+                </Button>
+              </XStack>
 
-              <Text style={styles.label}>Lien d'invitation</Text>
-              <TextInput
-                style={[styles.input, error && styles.inputError]}
+              <Text
+                fontSize={14}
+                fontWeight="500"
+                color="$gray700"
+                marginBottom="$md"
+              >
+                Lien d'invitation
+              </Text>
+              <Input
                 placeholder="equimapp://invite/..."
                 value={inviteLink}
                 onChangeText={(text) => {
@@ -121,158 +149,65 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
                 returnKeyType="done"
                 onSubmitEditing={Keyboard.dismiss}
                 editable={!isLoading}
+                error={!!error}
+                marginBottom="$md"
               />
 
               {error && (
-                <View style={styles.errorBox}>
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
+                <YStack
+                  backgroundColor="$errorBackground"
+                  borderLeftWidth={3}
+                  borderLeftColor="$error"
+                  borderRadius="$base"
+                  padding="$md"
+                  marginBottom="$md"
+                >
+                  <Text fontSize={13} color="$error" lineHeight={18}>
+                    {error}
+                  </Text>
+                </YStack>
               )}
 
-              <View style={styles.infoBox}>
-                <Text style={styles.infoText}>
+              <YStack
+                backgroundColor="$backgroundSecondary"
+                borderRadius="$base"
+                padding="$md"
+                marginBottom="$lg"
+              >
+                <Text fontSize={13} color="$colorSecondary" lineHeight={18}>
                   💡 Collez le lien d'invitation que vous avez reçu pour
                   rejoindre un groupe existant.
                 </Text>
-              </View>
+              </YStack>
 
-              <TouchableOpacity
-                style={[
-                  styles.joinButton,
-                  (!inviteLink.trim() || isLoading) &&
-                    styles.joinButtonDisabled,
-                ]}
+              <Button
+                variant="primary"
                 onPress={handleJoin}
                 disabled={!inviteLink.trim() || isLoading}
+                marginBottom="$md"
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color="#ffffff" />
                 ) : (
-                  <Text
-                    style={[
-                      styles.joinButtonText,
-                      !inviteLink.trim() && styles.joinButtonTextDisabled,
-                    ]}
-                  >
+                  <Text fontSize={16} fontWeight="600" color="$white">
                     Rejoindre
                   </Text>
                 )}
-              </TouchableOpacity>
+              </Button>
 
-              <TouchableOpacity
-                style={styles.cancelButton}
+              <Button
+                variant="secondary"
                 onPress={handleClose}
                 disabled={isLoading}
               >
-                <Text style={styles.cancelButtonText}>Annuler</Text>
-              </TouchableOpacity>
-            </View>
+                <Text fontSize={16} fontWeight="600" color="$gray700">
+                  Annuler
+                </Text>
+              </Button>
+            </YStack>
           </TouchableWithoutFeedback>
-        </View>
+        </YStack>
       </TouchableWithoutFeedback>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
-    width: "90%",
-    maxWidth: 400,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
-    backgroundColor: "#fff",
-    marginBottom: 12,
-  },
-  inputError: {
-    borderColor: "#ef4444",
-  },
-  errorBox: {
-    backgroundColor: "#fef2f2",
-    borderLeftWidth: 3,
-    borderLeftColor: "#ef4444",
-    borderRadius: 4,
-    padding: 12,
-    marginBottom: 12,
-  },
-  errorText: {
-    color: "#991b1b",
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  infoBox: {
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 20,
-  },
-  infoText: {
-    fontSize: 13,
-    color: "#6b7280",
-    lineHeight: 18,
-  },
-  joinButton: {
-    backgroundColor: "#111827",
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  joinButtonDisabled: {
-    backgroundColor: "#d1d5db",
-  },
-  joinButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  joinButtonTextDisabled: {
-    color: "#9ca3af",
-  },
-  cancelButton: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  cancelButtonText: {
-    color: "#374151",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

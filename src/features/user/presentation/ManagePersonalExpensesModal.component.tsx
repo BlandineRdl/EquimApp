@@ -1,15 +1,10 @@
 import { X } from "lucide-react-native";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Modal, Platform } from "react-native";
 import { useSelector } from "react-redux";
+import { Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../components/Button";
 import { ExpenseManager } from "../../../components/ExpenseManager.component";
+import { useThemeControl } from "../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../store/buildReduxStore";
 import { addPersonalExpense } from "../usecases/addPersonalExpense.usecase";
 import { deletePersonalExpense } from "../usecases/deletePersonalExpense.usecase";
@@ -27,6 +22,8 @@ export function ManagePersonalExpensesModal({
 }: ManagePersonalExpensesModalProps) {
   const dispatch = useAppDispatch();
   const expenses = useSelector(selectPersonalExpenses);
+  const { theme } = useThemeControl();
+  const iconColor = theme === "light" ? "#111827" : "#ffffff";
 
   const handleAddExpense = async (label: string, amount: number) => {
     await dispatch(
@@ -64,61 +61,51 @@ export function ManagePersonalExpensesModal({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
+        style={{ flex: 1 }}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Gérer mes charges</Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <X size={24} color="#000" />
-          </TouchableOpacity>
-        </View>
+        <YStack flex={1} backgroundColor="$background">
+          {/* Header */}
+          <XStack
+            alignItems="center"
+            justifyContent="space-between"
+            paddingHorizontal="$base"
+            paddingVertical="$base"
+            borderBottomWidth={1}
+            borderBottomColor="$borderColor"
+          >
+            <Text fontSize={18} fontWeight="600" color="$color">
+              Gérer mes charges
+            </Text>
+            <Button
+              variant="secondary"
+              width="$2xl"
+              height="$2xl"
+              padding={0}
+              borderRadius="$base"
+              onPress={onClose}
+            >
+              <X size={24} color={iconColor} />
+            </Button>
+          </XStack>
 
-        {/* Content */}
-        <View style={styles.content}>
-          <ExpenseManager
-            expenses={expenses.map((exp) => ({
-              id: exp.id,
-              label: exp.label,
-              amount: exp.amount,
-            }))}
-            onAdd={handleAddExpense}
-            onEdit={handleEditExpense}
-            onDelete={handleDeleteExpense}
-            minExpenses={1}
-            title="Mes charges"
-            addSectionTitle="Ajouter une charge"
-          />
-        </View>
+          {/* Content */}
+          <YStack flex={1} padding="$base">
+            <ExpenseManager
+              expenses={expenses.map((exp) => ({
+                id: exp.id,
+                label: exp.label,
+                amount: exp.amount,
+              }))}
+              onAdd={handleAddExpense}
+              onEdit={handleEditExpense}
+              onDelete={handleDeleteExpense}
+              minExpenses={1}
+              title="Mes charges"
+              addSectionTitle="Ajouter une charge"
+            />
+          </YStack>
+        </YStack>
       </KeyboardAvoidingView>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-});

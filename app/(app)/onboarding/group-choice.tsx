@@ -1,19 +1,16 @@
 import { router } from "expo-router";
 import { Users } from "lucide-react-native";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { Card } from "../../../src/components/Card";
 import { OnboardingProgressBar } from "../../../src/features/onboarding/presentation/OnboardingProgressBar.component";
 import { setSkipGroupCreation } from "../../../src/features/onboarding/store/onboarding.slice";
+import { useThemeControl } from "../../../src/lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../src/store/buildReduxStore";
 
 export default function GroupChoiceScreen() {
   const dispatch = useAppDispatch();
+  const { theme } = useThemeControl();
 
   const handleCreateGroup = () => {
     dispatch(setSkipGroupCreation(false));
@@ -26,197 +23,148 @@ export default function GroupChoiceScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        flex={1}
+        showsVerticalScrollIndicator={false}
+        paddingHorizontal="$xl"
       >
         <OnboardingProgressBar />
 
         {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Users size={48} color="#10b981" />
-          </View>
-          <Text style={styles.title}>Créer un groupe ?</Text>
-          <Text style={styles.subtitle}>
+        <YStack alignItems="center" marginBottom="$xl">
+          <YStack
+            width="$6xl"
+            height="$6xl"
+            borderRadius="$full"
+            backgroundColor="$success100"
+            alignItems="center"
+            justifyContent="center"
+            marginBottom="$xl"
+          >
+            <Users size={48} color="#16a34a" />
+          </YStack>
+          <Text
+            fontSize={24}
+            fontWeight="700"
+            color="$color"
+            textAlign="center"
+            marginBottom="$md"
+          >
+            Créer un groupe ?
+          </Text>
+          <Text
+            fontSize={16}
+            color="$colorSecondary"
+            textAlign="center"
+            lineHeight={24}
+          >
             Les groupes vous permettent de partager des dépenses avec d'autres
             personnes (foyer, colocation, vacances...)
           </Text>
-        </View>
+        </YStack>
 
         {/* Options */}
-        <View style={styles.options}>
+        <YStack flex={1} gap="$base">
           {/* Create Group Option */}
-          <TouchableOpacity
-            style={styles.optionCard}
+          <Card
+            backgroundColor="$success100"
+            borderWidth={2}
+            borderColor="$success"
+            padding="$lg"
+            pressStyle={{ scale: 0.98 }}
+            cursor="pointer"
             onPress={handleCreateGroup}
           >
-            <View style={styles.optionHeader}>
-              <Text style={styles.optionTitle}>Créer un groupe</Text>
-              <Text style={styles.optionBadge}>Recommandé</Text>
-            </View>
-            <Text style={styles.optionDescription}>
+            <XStack
+              alignItems="center"
+              justifyContent="space-between"
+              marginBottom="$md"
+            >
+              <Text fontSize={18} fontWeight="700" color="#111827">
+                Créer un groupe
+              </Text>
+              <YStack
+                backgroundColor="$success"
+                paddingHorizontal="$sm"
+                paddingVertical="$1"
+                borderRadius="$sm"
+              >
+                <Text fontSize={12} fontWeight="600" color="$white">
+                  Recommandé
+                </Text>
+              </YStack>
+            </XStack>
+            <Text
+              fontSize={15}
+              color="#374151"
+              lineHeight={22}
+              marginBottom="$base"
+            >
               Partagez vos dépenses équitablement selon les revenus de chacun.
               Idéal pour les couples, colocations ou projets communs.
             </Text>
-            <View style={styles.optionFeatures}>
-              <Text style={styles.featureItem}>
+            <YStack gap="$sm">
+              <Text fontSize={14} color="#15803d" fontWeight="500">
                 ✓ Calcul automatique des parts
               </Text>
-              <Text style={styles.featureItem}>✓ Invitations par lien</Text>
-              <Text style={styles.featureItem}>
+              <Text fontSize={14} color="#15803d" fontWeight="500">
+                ✓ Invitations par lien
+              </Text>
+              <Text fontSize={14} color="#15803d" fontWeight="500">
                 ✓ Ajustement selon les revenus
               </Text>
-            </View>
-          </TouchableOpacity>
+            </YStack>
+          </Card>
 
           {/* Skip Option */}
-          <TouchableOpacity
-            style={styles.optionCardSecondary}
+          <Card
+            backgroundColor="$background"
+            borderWidth={1}
+            borderColor="$borderColor"
+            padding="$lg"
+            pressStyle={{ scale: 0.98 }}
+            cursor="pointer"
             onPress={handleSkipGroup}
           >
-            <View style={styles.optionHeader}>
-              <Text style={styles.optionTitleSecondary}>
-                Continuer sans groupe
-              </Text>
-            </View>
-            <Text style={styles.optionDescriptionSecondary}>
+            <Text
+              fontSize={18}
+              fontWeight="600"
+              color="$gray700"
+              marginBottom="$md"
+            >
+              Continuer sans groupe
+            </Text>
+            <Text fontSize={15} color="$colorSecondary" lineHeight={22}>
               Vous pourrez créer un groupe plus tard depuis l'application si
               vous en avez besoin.
             </Text>
-          </TouchableOpacity>
-        </View>
+          </Card>
+        </YStack>
 
         {/* Info box */}
-        <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>💡 Bon à savoir</Text>
-          <Text style={styles.infoText}>
-            Vous pouvez créer plusieurs groupes et gérer différentes catégories
-            de dépenses partagées (foyer, vacances, projets...).
-          </Text>
-        </View>
+        <Card
+          backgroundColor="$backgroundSecondary"
+          marginTop="$xl"
+          marginBottom="$xl"
+        >
+          <YStack gap="$xs">
+            <Text fontSize={14} fontWeight="600" color="$gray700">
+              💡 Bon à savoir
+            </Text>
+            <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
+              Vous pouvez créer plusieurs groupes et gérer différentes
+              catégories de dépenses partagées (foyer, vacances, projets...).
+            </Text>
+          </YStack>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#d1fae5",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  options: {
-    flex: 1,
-    gap: 16,
-  },
-  optionCard: {
-    backgroundColor: "#f0fdf4",
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: "#10b981",
-  },
-  optionCardSecondary: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-  },
-  optionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  optionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  optionTitleSecondary: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  optionBadge: {
-    backgroundColor: "#10b981",
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  optionDescription: {
-    fontSize: 15,
-    color: "#374151",
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  optionDescriptionSecondary: {
-    fontSize: 15,
-    color: "#6b7280",
-    lineHeight: 22,
-  },
-  optionFeatures: {
-    gap: 8,
-  },
-  featureItem: {
-    fontSize: 14,
-    color: "#059669",
-    fontWeight: "500",
-  },
-  infoBox: {
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
-    padding: 16,
-    marginTop: 24,
-    marginBottom: 32,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#6b7280",
-    lineHeight: 20,
-  },
-});

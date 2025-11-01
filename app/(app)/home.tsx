@@ -1,16 +1,20 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import { Home, Lightbulb, Link2, Plus, User } from "lucide-react-native";
-import { useCallback, useState } from "react";
 import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+  Home,
+  Lightbulb,
+  Link2,
+  Moon,
+  Plus,
+  Sun,
+  User,
+} from "lucide-react-native";
+import { useCallback, useState } from "react";
+import { RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { Button } from "../../src/components/Button";
+import { Card } from "../../src/components/Card";
 import { CreateGroupModal } from "../../src/features/group/presentation/manage-groups/CreateGroupModal.component";
 import { GroupsHome } from "../../src/features/group/presentation/manage-groups/groupsHome.component";
 import { selectAllGroups } from "../../src/features/group/presentation/manage-groups/selectGroup.selector";
@@ -19,6 +23,7 @@ import { JoinGroupModal } from "../../src/features/group/presentation/manage-inv
 import { loadUserGroups } from "../../src/features/group/usecases/load-groups/loadGroups.usecase";
 import { selectUserProfile } from "../../src/features/user/presentation/selectors/selectUser.selector";
 import { logger } from "../../src/lib/logger";
+import { useThemeControl } from "../../src/lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function HomeScreen() {
@@ -30,6 +35,7 @@ export default function HomeScreen() {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const { theme, toggleTheme } = useThemeControl();
 
   // Load user groups on mount and when screen comes into focus
   useFocusEffect(
@@ -64,7 +70,6 @@ export default function HomeScreen() {
   };
 
   const handleCreateSuccess = (groupId: string) => {
-    // Navigate to the newly created group
     router.push({
       pathname: "/group/[groupId]" as "/group/[groupId]",
       params: { groupId },
@@ -72,7 +77,6 @@ export default function HomeScreen() {
   };
 
   const handleJoinSuccess = (groupId: string) => {
-    // Navigate to the group details after successfully joining
     router.push({
       pathname: "/group/[groupId]" as "/group/[groupId]",
       params: { groupId },
@@ -100,90 +104,197 @@ export default function HomeScreen() {
   // Loading state
   if (!user) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loading}>
-          <Text>Chargement...</Text>
-        </View>
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+        }}
+        edges={["top"]}
+      >
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          backgroundColor="$background"
+        >
+          <Text fontSize="$base" color="$colorSecondary">
+            Chargement...
+          </Text>
+        </YStack>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#10b981"
-            colors={["#10b981"]}
-          />
-        }
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.userName}>Bonjour, {user.pseudo}</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => router.push("/(app)/profile")}
-          >
-            <User size={24} color="#10b981" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Mon groupe Section */}
-        <Text style={styles.sectionTitle}>Mon groupe</Text>
-
-        <GroupsHome
-          onNavigateToGroupDetails={navigateToGroupDetails}
-          onOpenInviteModal={openInviteModal}
-          onCreateGroup={openCreateModal}
-          onJoinGroup={openJoinModal}
-        />
-
-        {/* Info Card */}
-        {groups.length > 0 && (
-          <View style={styles.infoCard}>
-            <Lightbulb
-              size={16}
-              color="#92400e"
-              style={{ marginRight: 8, marginTop: 2 }}
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
+      <YStack flex={1} backgroundColor="$background">
+        <ScrollView
+          flex={1}
+          showsVerticalScrollIndicator={false}
+          paddingHorizontal="$base"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#10b981"
+              colors={["#10b981"]}
             />
-            <Text style={styles.infoText}>
-              Votre groupe "{groups[0]?.name}" est configuré avec des dépenses
-              totales de{" "}
-              {groups[0]?.shares?.totalExpenses?.toLocaleString("fr-FR") || 0}{" "}
-              €. Vous pouvez maintenant inviter d'autres membres et ajouter des
-              dépenses ponctuelles.
+          }
+        >
+          {/* Header */}
+          <XStack alignItems="center" paddingTop="$sm" paddingBottom="$lg">
+            <YStack flex={1}>
+              <Text fontSize={24} fontWeight="600" color="$color">
+                Bonjour, {user.pseudo}
+              </Text>
+            </YStack>
+            <Button
+              variant="secondary"
+              width="$3xl"
+              height="$3xl"
+              borderRadius="$full"
+              backgroundColor="$warning100"
+              padding={0}
+              onPress={toggleTheme}
+            >
+              {theme === "light" ? (
+                <Moon size={20} color="#92400e" />
+              ) : (
+                <Sun size={20} color="#92400e" />
+              )}
+            </Button>
+          </XStack>
+
+          {/* Mon groupe Section */}
+          <Text
+            fontSize={18}
+            fontWeight="600"
+            color="$color"
+            marginBottom="$md"
+            marginTop="$sm"
+          >
+            Mon groupe
+          </Text>
+
+          <GroupsHome
+            onNavigateToGroupDetails={navigateToGroupDetails}
+            onOpenInviteModal={openInviteModal}
+            onCreateGroup={openCreateModal}
+            onJoinGroup={openJoinModal}
+          />
+
+          {/* Info Card */}
+          {groups.length > 0 && (
+            <Card backgroundColor="$warning100" marginBottom="$xl">
+              <XStack gap="$sm" alignItems="flex-start">
+                <Lightbulb size={16} color="#92400e" style={{ marginTop: 2 }} />
+                <Text
+                  fontSize={14}
+                  color="$warning800"
+                  lineHeight={20}
+                  flex={1}
+                >
+                  Votre groupe "{groups[0]?.name}" est configuré avec des
+                  dépenses totales de{" "}
+                  {groups[0]?.shares?.totalExpenses?.toLocaleString("fr-FR") ||
+                    0}{" "}
+                  €. Vous pouvez maintenant inviter d'autres membres et ajouter
+                  des dépenses ponctuelles.
+                </Text>
+              </XStack>
+            </Card>
+          )}
+
+          {/* Bottom spacing for navigation */}
+          <YStack height={100} />
+        </ScrollView>
+
+        {/* Bottom Navigation */}
+        <XStack
+          backgroundColor="$backgroundSecondary"
+          borderTopWidth={1}
+          borderTopColor="$borderColor"
+          paddingVertical="$sm"
+          paddingHorizontal="$sm"
+          paddingBottom="$xl"
+        >
+          <YStack
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            paddingVertical="$sm"
+          >
+            <Home
+              size={20}
+              color={theme === "light" ? "#111827" : "#ffffff"}
+              style={{ marginBottom: 2 }}
+            />
+            <Text fontSize={12} color="$color" fontWeight="500">
+              Accueil
             </Text>
-          </View>
-        )}
+          </YStack>
 
-        {/* Bottom spacing for navigation */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+          <YStack
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            paddingVertical="$sm"
+            onPress={openCreateModal}
+            cursor="pointer"
+          >
+            <Plus
+              size={20}
+              color={theme === "light" ? "#374151" : "#9ca3af"}
+              style={{ marginBottom: 2 }}
+            />
+            <Text fontSize={12} color="$colorSecondary">
+              Créer
+            </Text>
+          </YStack>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNavigation}>
-        <TouchableOpacity style={styles.navItem}>
-          <Home size={20} color="#000" style={{ marginBottom: 2 }} />
-          <Text style={styles.navTextActive}>Accueil</Text>
-        </TouchableOpacity>
+          <YStack
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            paddingVertical="$sm"
+            onPress={openJoinModal}
+            cursor="pointer"
+          >
+            <Link2
+              size={20}
+              color={theme === "light" ? "#374151" : "#9ca3af"}
+              style={{ marginBottom: 2 }}
+            />
+            <Text fontSize={12} color="$colorSecondary">
+              Rejoindre
+            </Text>
+          </YStack>
 
-        <TouchableOpacity style={styles.navItem} onPress={openCreateModal}>
-          <Plus size={20} color="#666" style={{ marginBottom: 2 }} />
-          <Text style={styles.navText}>Créer</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={openJoinModal}>
-          <Link2 size={20} color="#666" style={{ marginBottom: 2 }} />
-          <Text style={styles.navText}>Rejoindre</Text>
-        </TouchableOpacity>
-      </View>
+          <YStack
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            paddingVertical="$sm"
+            onPress={() => router.push("/(app)/profile")}
+            cursor="pointer"
+          >
+            <User
+              size={20}
+              color={theme === "light" ? "#374151" : "#9ca3af"}
+              style={{ marginBottom: 2 }}
+            />
+            <Text fontSize={12} color="$colorSecondary">
+              Profil
+            </Text>
+          </YStack>
+        </XStack>
+      </YStack>
 
       {/* Modal d'invitation */}
       <InviteModal
@@ -209,282 +320,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: 8,
-    paddingBottom: 20,
-  },
-  profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#d1fae5",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  greeting: {
-    fontSize: 16,
-    color: "#000",
-    fontWeight: "400",
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#000",
-    marginTop: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  groupCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#10b981",
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  groupHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  groupIconContainer: {
-    backgroundColor: "#f0f9ff",
-    borderRadius: 6,
-    padding: 4,
-    marginRight: 8,
-  },
-
-  groupName: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-  },
-  membersContainer: {
-    marginBottom: 16,
-  },
-  membersText: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "600",
-  },
-  memberNames: {
-    fontSize: 11,
-    color: "#9ca3af",
-    fontStyle: "italic",
-    marginTop: 2,
-  },
-  budgetSection: {
-    marginBottom: 16,
-  },
-  budgetLabel: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 4,
-  },
-  budgetAmount: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 4,
-  },
-  expensesCount: {
-    fontSize: 14,
-    color: "#666",
-  },
-  viewButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-end",
-    backgroundColor: "#fff",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    marginBottom: 16,
-  },
-  viewButtonText: {
-    fontSize: 14,
-    color: "#374151",
-    fontWeight: "500",
-  },
-  inviteSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-  },
-  inviteText: {
-    fontSize: 14,
-    color: "#666",
-    flex: 1,
-  },
-  inviteButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#10b981",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  inviteButtonText: {
-    fontSize: 14,
-    color: "#fff",
-    fontWeight: "500",
-  },
-  quickActionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 20,
-  },
-  gridActionButton: {
-    width: "48%",
-    backgroundColor: "#000",
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    minHeight: 50,
-  },
-  gridActionButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-    flex: 1,
-  },
-  gridActionButtonSecondary: {
-    width: "48%",
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    minHeight: 50,
-  },
-  gridActionButtonSecondaryText: {
-    color: "#374151",
-    fontSize: 14,
-    fontWeight: "500",
-    flex: 1,
-  },
-  infoCard: {
-    flexDirection: "row",
-    backgroundColor: "#fef3c7",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 24,
-    alignItems: "flex-start",
-  },
-
-  infoText: {
-    fontSize: 14,
-    color: "#92400e",
-    lineHeight: 20,
-    flex: 1,
-  },
-  expensesContainer: {
-    marginBottom: 20,
-  },
-  expenseItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 8,
-  },
-  expenseLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#000",
-    marginBottom: 2,
-  },
-  expenseDetails: {
-    fontSize: 14,
-    color: "#666",
-  },
-  expenseAmountContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000",
-    marginRight: 8,
-  },
-
-  noExpensesText: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    fontStyle: "italic",
-    paddingVertical: 20,
-  },
-  bottomSpacing: {
-    height: 100,
-  },
-  bottomNavigation: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-  },
-  navText: {
-    fontSize: 12,
-    color: "#666",
-  },
-  navTextActive: {
-    fontSize: 12,
-    color: "#000",
-    fontWeight: "500",
-  },
-});

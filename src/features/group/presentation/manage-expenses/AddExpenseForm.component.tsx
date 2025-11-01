@@ -1,14 +1,10 @@
 import { Plus, X } from "lucide-react-native";
 import type React from "react";
 import { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Pressable } from "react-native";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { Button } from "../../../../components/Button";
+import { Input } from "../../../../components/Input";
 
 export interface AddExpenseFormProps {
   onSubmit: (expense: { name: string; amount: number }) => void;
@@ -41,152 +37,81 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
   const canSubmit = name.trim().length > 0 && parseFloat(amount) > 0;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Ajouter une dépense</Text>
-        <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
-          <X size={24} color="#666" />
-        </TouchableOpacity>
-      </View>
+    <YStack
+      backgroundColor="$background"
+      borderRadius="$md"
+      padding="$md"
+      maxHeight="80%"
+    >
+      <XStack
+        justifyContent="space-between"
+        alignItems="center"
+        marginBottom="$lg"
+      >
+        <Text fontSize={20} fontWeight="700" color="$color">
+          Ajouter une dépense
+        </Text>
+        <Pressable onPress={onCancel} style={{ padding: 4 }}>
+          <X size={24} color="#374151" />
+        </Pressable>
+      </XStack>
 
-      <ScrollView style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Nom de la dépense</Text>
-          <TextInput
-            style={styles.input}
+      <ScrollView marginBottom="$lg">
+        <YStack marginBottom="$md">
+          <Text
+            fontSize={14}
+            fontWeight="600"
+            color="$gray900"
+            marginBottom="$xs"
+          >
+            Nom de la dépense
+          </Text>
+          <Input
             placeholder="Ex: Loyer, Électricité..."
             value={name}
             onChangeText={setName}
             maxLength={50}
           />
-        </View>
+        </YStack>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Montant mensuel</Text>
-          <View style={styles.amountInputContainer}>
-            <TextInput
-              style={styles.amountInput}
+        <YStack marginBottom="$md">
+          <Text
+            fontSize={14}
+            fontWeight="600"
+            color="$gray900"
+            marginBottom="$xs"
+          >
+            Montant mensuel
+          </Text>
+          <XStack alignItems="center" gap="$xs">
+            <Input
+              flex={1}
               placeholder="0.00"
               value={amount}
               onChangeText={handleAmountChange}
               keyboardType="decimal-pad"
               maxLength={10}
             />
-            <Text style={styles.currencySymbol}>€</Text>
-          </View>
-        </View>
+            <Text fontSize={16} color="$colorSecondary">
+              €
+            </Text>
+          </XStack>
+        </YStack>
       </ScrollView>
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            !canSubmit && styles.submitButtonDisabled,
-          ]}
+      <YStack gap="$sm">
+        <Button
+          variant="success"
           onPress={handleSubmit}
           disabled={!canSubmit}
+          icon={<Plus size={20} color="#ffffff" />}
         >
-          <Plus size={20} color="#fff" />
-          <Text style={styles.submitButtonText}>Ajouter</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-          <Text style={styles.cancelButtonText}>Annuler</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          Ajouter
+        </Button>
+        <Button variant="secondary" onPress={onCancel}>
+          Annuler
+        </Button>
+      </YStack>
+    </YStack>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-    maxHeight: "80%",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#000",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  form: {
-    marginBottom: 24,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#000",
-  },
-  amountInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  amountInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#000",
-  },
-  currencySymbol: {
-    fontSize: 16,
-    color: "#6b7280",
-    marginLeft: 8,
-  },
-  actions: {
-    gap: 12,
-  },
-  submitButton: {
-    backgroundColor: "#10b981",
-    borderRadius: 8,
-    paddingVertical: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  submitButtonDisabled: {
-    backgroundColor: "#d1d5db",
-  },
-  submitButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  cancelButton: {
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  cancelButtonText: {
-    color: "#374151",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

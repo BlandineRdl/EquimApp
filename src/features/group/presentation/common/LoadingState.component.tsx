@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, YStack } from "tamagui";
 
 interface LoadingStateProps {
   message?: string;
@@ -8,20 +8,10 @@ export const LoadingState = ({
   message = "Chargement...",
 }: LoadingStateProps) => {
   return (
-    <View style={styles.loadingContainer}>
-      <Text style={styles.loadingText}>{message}</Text>
-    </View>
+    <YStack flex={1} justifyContent="center" alignItems="center">
+      <Text fontSize={16} color="$colorSecondary">
+        {message}
+      </Text>
+    </YStack>
   );
 };
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    fontSize: 16,
-    color: "#666",
-  },
-});

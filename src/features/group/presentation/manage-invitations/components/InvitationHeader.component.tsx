@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable } from "react-native";
+import { Text, XStack, YStack } from "tamagui";
 
 interface InvitationHeaderProps {
   onBack: () => void;
@@ -7,35 +8,21 @@ interface InvitationHeaderProps {
 
 export const InvitationHeader = ({ onBack }: InvitationHeaderProps) => {
   return (
-    <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <ArrowLeft size={20} color="#000" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>Invitation</Text>
-      <View style={styles.headerSpacer} />
-    </View>
+    <XStack
+      alignItems="center"
+      justifyContent="space-between"
+      paddingHorizontal="$base"
+      paddingVertical="$sm"
+      borderBottomWidth={1}
+      borderBottomColor="$borderColor"
+    >
+      <Pressable onPress={onBack} style={{ padding: 8 }}>
+        <ArrowLeft size={20} color="#111827" />
+      </Pressable>
+      <Text fontSize={18} fontWeight="600" color="$color">
+        Invitation
+      </Text>
+      <YStack width="$9" />
+    </XStack>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-  },
-  headerSpacer: {
-    width: 36,
-  },
-});

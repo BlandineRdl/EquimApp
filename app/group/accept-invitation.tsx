@@ -5,23 +5,26 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { Button } from "../../src/components/Button";
+import { Card } from "../../src/components/Card";
+import { Input } from "../../src/components/Input";
 import { acceptInvitation } from "../../src/features/group/usecases/invitation/acceptInvitation.usecase";
 import { loadUserGroups } from "../../src/features/group/usecases/load-groups/loadGroups.usecase";
 import { loadUserProfile } from "../../src/features/user/usecases/loadUserProfile.usecase";
 import { logger } from "../../src/lib/logger";
+import { useThemeControl } from "../../src/lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../src/store/buildReduxStore";
 
 export default function AcceptInvitationScreen() {
   const dispatch = useAppDispatch();
   const { token } = useLocalSearchParams<{ token: string }>();
+  const { theme } = useThemeControl();
+
+  // Theme-aware colors for icons
+  const iconSuccess = "#16a34a";
 
   const [pseudo, setPseudo] = useState("");
   const [monthlyIncome, setMonthlyIncome] = useState("");
@@ -130,273 +133,202 @@ export default function AcceptInvitationScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color="#10b981" />
-          <Text style={styles.loadingText}>Chargement de l'invitation...</Text>
-        </View>
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+        }}
+        edges={["top"]}
+      >
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          paddingHorizontal="$lg"
+        >
+          <ActivityIndicator size="large" color={iconSuccess} />
+          <Text fontSize={16} color="$colorSecondary" marginTop="$base">
+            Chargement de l'invitation...
+          </Text>
+        </YStack>
       </SafeAreaView>
     );
   }
 
   if (error && !invitationDetails) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContent}>
-          <Text style={styles.errorTitle}>Invitation invalide</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+        }}
+        edges={["top"]}
+      >
+        <YStack
+          flex={1}
+          justifyContent="center"
+          alignItems="center"
+          paddingHorizontal="$lg"
+        >
+          <Text
+            fontSize={24}
+            fontWeight="700"
+            color="#dc2626"
+            marginBottom="$sm"
+            textAlign="center"
           >
-            <Text style={styles.backButtonText}>Retour</Text>
-          </TouchableOpacity>
-        </View>
+            Invitation invalide
+          </Text>
+          <Text
+            fontSize={16}
+            color="$colorSecondary"
+            textAlign="center"
+            marginBottom="$xl"
+          >
+            {error}
+          </Text>
+          <Button variant="success" onPress={() => router.back()}>
+            Retour
+          </Button>
+        </YStack>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme === "light" ? "#ffffff" : "#111827",
+      }}
+      edges={["top"]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
+        style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          flex={1}
+          showsVerticalScrollIndicator={false}
+          paddingHorizontal="$lg"
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Rejoindre un groupe</Text>
-            <Text style={styles.subtitle}>
+          <YStack marginBottom="$xl">
+            <Text
+              fontSize={28}
+              fontWeight="700"
+              color="$color"
+              marginBottom="$sm"
+            >
+              Rejoindre un groupe
+            </Text>
+            <Text fontSize={16} color="$colorSecondary" marginBottom="$1">
               Vous avez été invité à rejoindre{" "}
-              <Text style={styles.groupName}>
+              <Text fontWeight="600" color="#16a34a">
                 {invitationDetails?.groupName}
               </Text>
             </Text>
-            <Text style={styles.inviterText}>
+            <Text fontSize={14} color="$colorTertiary">
               par {invitationDetails?.inviterName}
             </Text>
-          </View>
+          </YStack>
 
           {/* Form */}
-          <View style={styles.form}>
+          <YStack flex={1}>
             {hasProfile && (
-              <View style={styles.infoBox}>
-                <Text style={styles.infoBoxText}>
+              <Card
+                backgroundColor="$primary100"
+                padding="$md"
+                marginBottom="$base"
+              >
+                <Text color="$primary700" fontSize={14}>
                   ℹ️ Vos informations de profil seront utilisées pour rejoindre
                   ce groupe. Vous pouvez les modifier si nécessaire.
                 </Text>
-              </View>
+              </Card>
             )}
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Votre pseudo</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Comment voulez-vous être appelé ?"
-                value={pseudo}
-                onChangeText={setPseudo}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
+            <YStack gap="$xl">
+              <YStack>
+                <Text
+                  fontSize={14}
+                  fontWeight="600"
+                  color="$gray700"
+                  marginBottom="$sm"
+                >
+                  Votre pseudo
+                </Text>
+                <Input
+                  placeholder="Comment voulez-vous être appelé ?"
+                  value={pseudo}
+                  onChangeText={setPseudo}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </YStack>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Revenu mensuel (€)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="1500"
-                value={monthlyIncome}
-                onChangeText={setMonthlyIncome}
-                keyboardType="numeric"
-              />
-              <Text style={styles.hint}>
-                Cette information permet de calculer équitablement la
-                répartition des dépenses
-              </Text>
-            </View>
+              <YStack>
+                <Text
+                  fontSize={14}
+                  fontWeight="600"
+                  color="$gray700"
+                  marginBottom="$sm"
+                >
+                  Revenu mensuel (€)
+                </Text>
+                <Input
+                  placeholder="1500"
+                  value={monthlyIncome}
+                  onChangeText={setMonthlyIncome}
+                  keyboardType="numeric"
+                />
+                <Text fontSize={12} color="$colorTertiary" marginTop="$1">
+                  Cette information permet de calculer équitablement la
+                  répartition des dépenses
+                </Text>
+              </YStack>
 
-            {error && (
-              <View style={styles.errorBox}>
-                <Text style={styles.errorBoxText}>{error}</Text>
-              </View>
-            )}
-
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                (!pseudo.trim() || !monthlyIncome || isSubmitting) &&
-                  styles.submitButtonDisabled,
-              ]}
-              onPress={handleAccept}
-              disabled={!pseudo.trim() || !monthlyIncome || isSubmitting}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <>
-                  <Check size={20} color="#fff" style={{ marginRight: 8 }} />
-                  <Text style={styles.submitButtonText}>
-                    Rejoindre le groupe
+              {error && (
+                <Card backgroundColor="$error100" padding="$md">
+                  <Text color="#dc2626" fontSize={14}>
+                    {error}
                   </Text>
-                </>
+                </Card>
               )}
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => router.back()}
-              disabled={isSubmitting}
-            >
-              <Text style={styles.cancelButtonText}>Annuler</Text>
-            </TouchableOpacity>
-          </View>
+              <YStack gap="$md">
+                <Button
+                  variant="success"
+                  onPress={handleAccept}
+                  disabled={!pseudo.trim() || !monthlyIncome || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <XStack alignItems="center" gap="$sm">
+                      <Check size={20} color="#ffffff" />
+                      <Text fontSize={16} fontWeight="600" color="#ffffff">
+                        Rejoindre le groupe
+                      </Text>
+                    </XStack>
+                  )}
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  onPress={() => router.back()}
+                  disabled={isSubmitting}
+                >
+                  <Text fontSize={16} color="$colorSecondary">
+                    Annuler
+                  </Text>
+                </Button>
+              </YStack>
+            </YStack>
+          </YStack>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#6b7280",
-  },
-  header: {
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    marginBottom: 4,
-  },
-  groupName: {
-    fontWeight: "600",
-    color: "#10b981",
-  },
-  inviterText: {
-    fontSize: 14,
-    color: "#9ca3af",
-  },
-  form: {
-    flex: 1,
-  },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: "#111827",
-  },
-  hint: {
-    fontSize: 12,
-    color: "#9ca3af",
-    marginTop: 4,
-  },
-  infoBox: {
-    backgroundColor: "#dbeafe",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  infoBoxText: {
-    color: "#1e40af",
-    fontSize: 14,
-  },
-  errorBox: {
-    backgroundColor: "#fee2e2",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  errorBoxText: {
-    color: "#dc2626",
-    fontSize: 14,
-  },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#dc2626",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  backButton: {
-    backgroundColor: "#10b981",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  submitButton: {
-    backgroundColor: "#10b981",
-    paddingVertical: 16,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  submitButtonDisabled: {
-    backgroundColor: "#9ca3af",
-  },
-  submitButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  cancelButton: {
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  cancelButtonText: {
-    color: "#6b7280",
-    fontSize: 16,
-  },
-});

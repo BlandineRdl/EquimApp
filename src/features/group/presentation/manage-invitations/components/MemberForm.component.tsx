@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Text, YStack } from "tamagui";
+import { Input } from "../../../../../components/Input";
 
 interface MemberFormProps {
   pseudo: string;
@@ -14,44 +15,24 @@ export const MemberForm = ({
   onIncomeChange,
 }: MemberFormProps) => {
   return (
-    <View style={styles.formContainer}>
-      <Text style={styles.formTitle}>Vos informations</Text>
+    <YStack marginBottom="$xl">
+      <Text fontSize={18} fontWeight="600" color="$color" marginBottom="$base">
+        Vos informations
+      </Text>
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Votre pseudo"
         value={pseudo}
         onChangeText={onPseudoChange}
+        marginBottom="$base"
       />
 
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Revenu mensuel (€)"
         value={monthlyIncome}
         onChangeText={onIncomeChange}
         keyboardType="numeric"
       />
-    </View>
+    </YStack>
   );
 };
-
-const styles = StyleSheet.create({
-  formContainer: {
-    marginBottom: 32,
-  },
-  formTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000",
-    marginBottom: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    marginBottom: 16,
-    backgroundColor: "#fff",
-  },
-});
