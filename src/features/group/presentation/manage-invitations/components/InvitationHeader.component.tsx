@@ -1,12 +1,14 @@
 import { ArrowLeft } from "lucide-react-native";
 import { Pressable } from "react-native";
-import { Text, XStack, YStack } from "tamagui";
+import { Text, useTheme, XStack, YStack } from "tamagui";
 
 interface InvitationHeaderProps {
   onBack: () => void;
 }
 
 export const InvitationHeader = ({ onBack }: InvitationHeaderProps) => {
+  const theme = useTheme();
+
   return (
     <XStack
       alignItems="center"
@@ -17,7 +19,7 @@ export const InvitationHeader = ({ onBack }: InvitationHeaderProps) => {
       borderBottomColor="$borderColor"
     >
       <Pressable onPress={onBack} style={{ padding: 8 }}>
-        <ArrowLeft size={20} color="#111827" />
+        <ArrowLeft size={20} color={theme.gray900.val} />
       </Pressable>
       <Text fontSize={18} fontWeight="600" color="$color">
         Invitation

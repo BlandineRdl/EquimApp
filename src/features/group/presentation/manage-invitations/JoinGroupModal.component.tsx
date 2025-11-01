@@ -8,10 +8,9 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { Text, XStack, YStack } from "tamagui";
+import { Text, useTheme, XStack, YStack } from "tamagui";
 import { Button } from "../../../../components/Button";
 import { Input } from "../../../../components/Input";
-import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
 import type { AppState } from "../../../../store/appState";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import { acceptInvitation } from "../../usecases/invitation/acceptInvitation.usecase";
@@ -30,8 +29,7 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const profile = useSelector((state: AppState) => state.user.profile);
-  const { theme } = useThemeControl();
-  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
+  const theme = useTheme();
 
   const [inviteLink, setInviteLink] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -125,7 +123,7 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
                   borderRadius="$base"
                   onPress={handleClose}
                 >
-                  <X size={24} color={iconSecondary} />
+                  <X size={24} color={theme.colorSecondary.val} />
                 </Button>
               </XStack>
 
@@ -190,7 +188,7 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
                 marginBottom="$md"
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#ffffff" />
+                  <ActivityIndicator color={theme.white.val} />
                 ) : (
                   <Text fontSize={16} fontWeight="600" color="$white">
                     Rejoindre

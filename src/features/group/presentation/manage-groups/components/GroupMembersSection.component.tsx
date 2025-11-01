@@ -98,7 +98,7 @@ export const GroupMembersSection = ({
               borderRadius="$md"
               padding="$base"
               borderWidth={1}
-              borderColor={isMaxShare ? "$primary" : "$borderColor"}
+              borderColor={isMaxShare ? "$purple500" : "$borderColor"}
               alignItems="center"
               gap="$sm"
             >
@@ -150,7 +150,7 @@ export const GroupMembersSection = ({
                     <Text
                       fontSize={14}
                       fontWeight="700"
-                      color={isMaxShare ? "$primary" : "$color"}
+                      color={isMaxShare ? "$purple500" : "$color"}
                     >
                       {member.sharePercentage}%
                     </Text>

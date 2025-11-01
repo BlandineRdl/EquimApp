@@ -3,10 +3,9 @@ import React from "react";
 import { Clipboard, Modal, Pressable, Share as ShareAPI } from "react-native";
 import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
-import { Text, XStack, YStack } from "tamagui";
+import { Text, useTheme, XStack, YStack } from "tamagui";
 import { Button } from "../../../../components/Button";
 import { Input } from "../../../../components/Input";
-import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import { generateInviteLink } from "../../usecases/invitation/generateInviteLink.usecase";
 import {
@@ -29,9 +28,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
   groupName = "Foyer",
 }) => {
   const dispatch = useAppDispatch();
-  const { theme } = useThemeControl();
-  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
-  const iconPrimary = "#0284c7";
+  const theme = useTheme();
 
   const inviteLink = useSelector(selectGeneratedInviteLink);
   const isLoading = useSelector(selectInviteLinkLoading);
@@ -142,13 +139,13 @@ export const InviteModal: React.FC<InviteModalProps> = ({
               alignItems="center"
               marginRight="$md"
             >
-              <UserPlus size={20} color={iconPrimary} />
+              <UserPlus size={20} color={theme.primary600.val} />
             </YStack>
             <Text flex={1} fontSize={18} fontWeight="600" color="$color">
               Inviter au groupe {groupName}
             </Text>
             <Pressable onPress={onClose} style={{ padding: 4 }}>
-              <X size={20} color={iconSecondary} />
+              <X size={20} color={theme.colorSecondary.val} />
             </Pressable>
           </XStack>
 
@@ -212,7 +209,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
                     borderLeftWidth={1}
                     borderLeftColor="$borderColor"
                   >
-                    <Copy size={16} color={iconSecondary} />
+                    <Copy size={16} color={theme.colorSecondary.val} />
                     <Text
                       fontSize={14}
                       color="$colorSecondary"
@@ -248,7 +245,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
             marginBottom="$md"
           >
             <XStack alignItems="center" gap="$md">
-              <Share size={16} color="#ffffff" />
+              <Share size={16} color={theme.white.val} />
               <Text fontSize={16} fontWeight="600" color="$white">
                 Partager le lien
               </Text>

@@ -1,10 +1,9 @@
 import { X } from "lucide-react-native";
 import { KeyboardAvoidingView, Modal, Platform } from "react-native";
 import { useSelector } from "react-redux";
-import { Text, XStack, YStack } from "tamagui";
+import { Text, useTheme, XStack, YStack } from "tamagui";
 import { Button } from "../../../components/Button";
 import { ExpenseManager } from "../../../components/expense/ExpenseManager.component";
-import { useThemeControl } from "../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../store/buildReduxStore";
 import { addPersonalExpense } from "../usecases/addPersonalExpense.usecase";
 import { deletePersonalExpense } from "../usecases/deletePersonalExpense.usecase";
@@ -22,8 +21,7 @@ export function ManagePersonalExpensesModal({
 }: ManagePersonalExpensesModalProps) {
   const dispatch = useAppDispatch();
   const expenses = useSelector(selectPersonalExpenses);
-  const { theme } = useThemeControl();
-  const iconColor = theme === "light" ? "#111827" : "#ffffff";
+  const theme = useTheme();
 
   const handleAddExpense = async (label: string, amount: number) => {
     await dispatch(
@@ -84,7 +82,7 @@ export function ManagePersonalExpensesModal({
               borderRadius="$base"
               onPress={onClose}
             >
-              <X size={24} color={iconColor} />
+              <X size={24} color={theme.color.val} />
             </Button>
           </XStack>
 

@@ -1,8 +1,7 @@
 import { UserPlus, Users } from "lucide-react-native";
 import { Modal, Pressable } from "react-native";
-import { Text, XStack, YStack } from "tamagui";
+import { Text, useTheme, XStack, YStack } from "tamagui";
 import { Button } from "../../../../components/Button";
-import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
 
 interface MemberTypeChoiceModalProps {
   visible: boolean;
@@ -17,9 +16,7 @@ export const MemberTypeChoiceModal = ({
   onSelectInvite,
   onSelectPhantom,
 }: MemberTypeChoiceModalProps) => {
-  const { theme } = useThemeControl();
-  const iconPrimary = "#0284c7";
-  const iconPurple = "#a855f7";
+  const theme = useTheme();
 
   return (
     <Modal
@@ -82,7 +79,7 @@ export const MemberTypeChoiceModal = ({
                     alignItems="center"
                     marginRight="$base"
                   >
-                    <UserPlus size={24} color={iconPrimary} />
+                    <UserPlus size={24} color={theme.primary600.val} />
                   </YStack>
                   <YStack flex={1}>
                     <Text
@@ -120,7 +117,7 @@ export const MemberTypeChoiceModal = ({
                     alignItems="center"
                     marginRight="$base"
                   >
-                    <Users size={24} color={iconPurple} />
+                    <Users size={24} color={theme.purple500.val} />
                   </YStack>
                   <YStack flex={1}>
                     <Text

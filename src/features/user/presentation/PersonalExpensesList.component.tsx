@@ -33,13 +33,13 @@ export function PersonalExpensesList({
             </Text>
           ) : (
             <>
-              {expenses.map((expense) => (
+              {expenses.map((expense, index) => (
                 <XStack
                   key={expense.id}
                   justifyContent="space-between"
                   alignItems="center"
                   paddingVertical="$xs"
-                  borderBottomWidth={1}
+                  borderBottomWidth={index === expenses.length - 1 ? 0 : 1}
                   borderBottomColor="$borderColor"
                 >
                   <Text fontSize={14} color="$color">

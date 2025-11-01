@@ -8,10 +8,9 @@ import {
   Platform,
   Pressable,
 } from "react-native";
-import { Text, XStack, YStack } from "tamagui";
+import { Text, useTheme, XStack, YStack } from "tamagui";
 import { Button } from "../../../../components/Button";
 import { Input } from "../../../../components/Input";
-import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../../store/buildReduxStore";
 import { SUGGESTED_GROUP_NAMES } from "../../domain/manage-group/group.constants";
 import { createGroup } from "../../usecases/create-group/createGroup.usecase";
@@ -29,10 +28,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   onSuccess,
 }) => {
   const dispatch = useAppDispatch();
-  const { theme } = useThemeControl();
-  const _iconColor = theme === "light" ? "#111827" : "#ffffff";
-  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
-  const iconPrimary = "#0284c7";
+  const theme = useTheme();
 
   const [groupName, setGroupName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -120,7 +116,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
               alignItems="center"
               marginRight="$md"
             >
-              <Users size={24} color={iconPrimary} />
+              <Users size={24} color={theme.primary600.val} />
             </YStack>
             <Text flex={1} fontSize={18} fontWeight="600" color="$color">
               Créer un groupe
@@ -130,7 +126,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
               disabled={isCreating}
               style={{ padding: 4 }}
             >
-              <X size={20} color={iconSecondary} />
+              <X size={20} color={theme.colorSecondary.val} />
             </Pressable>
           </XStack>
 

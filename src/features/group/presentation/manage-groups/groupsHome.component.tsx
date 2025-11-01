@@ -2,7 +2,7 @@ import { ArrowRightLeft, UserPlus, Users } from "lucide-react-native";
 import { useEffect, useRef } from "react";
 import { Animated, Pressable } from "react-native";
 import { useSelector } from "react-redux";
-import { Text, XStack, YStack } from "tamagui";
+import { Text, useTheme, XStack, YStack } from "tamagui";
 
 import type { AppState } from "../../../../store/appState";
 import { selectAllGroups } from "./selectGroup.selector";
@@ -141,6 +141,8 @@ function EmptyGroupState({
   onCreateGroup: () => void;
   onJoinGroup: () => void;
 }) {
+  const theme = useTheme();
+
   return (
     <YStack
       backgroundColor="$backgroundSecondary"
@@ -161,7 +163,7 @@ function EmptyGroupState({
         justifyContent="center"
         marginBottom="$base"
       >
-        <Users size={48} color="#9ca3af" />
+        <Users size={48} color={theme.gray400.val} />
       </YStack>
       <Text fontSize={18} fontWeight="600" color="$color" marginBottom="$xs">
         Aucun groupe
@@ -179,7 +181,7 @@ function EmptyGroupState({
       <YStack width="100%" gap="$sm">
         <Pressable
           style={{
-            backgroundColor: "#111827",
+            backgroundColor: theme.gray900.val,
             paddingHorizontal: 24,
             paddingVertical: 14,
             borderRadius: 8,
@@ -187,7 +189,7 @@ function EmptyGroupState({
           }}
           onPress={onCreateGroup}
         >
-          <Text color="white" fontSize={15} fontWeight="600">
+          <Text color={theme.white.val} fontSize={15} fontWeight="600">
             Créer un groupe
           </Text>
         </Pressable>
@@ -247,6 +249,7 @@ export const GroupsHome = ({
   onCreateGroup,
   onJoinGroup,
 }: GroupsHomeProps) => {
+  const theme = useTheme();
   const groups = useSelector(selectAllGroups);
   const isLoading = useSelector((state: AppState) => state.groups.loading);
 
@@ -286,7 +289,7 @@ export const GroupsHome = ({
               padding="$1"
               marginRight="$xs"
             >
-              <Users size={16} color="#0284c7" />
+              <Users size={16} color={theme.primary600.val} />
             </YStack>
             <Text fontSize={18} fontWeight="600" color="$color">
               {group.name}
@@ -334,7 +337,7 @@ export const GroupsHome = ({
             >
               <ArrowRightLeft
                 size={14}
-                color="#374151"
+                color={theme.gray700.val}
                 style={{ marginRight: 6 }}
               />
               <Text fontSize={14} color="$color" fontWeight="500">
@@ -364,10 +367,10 @@ export const GroupsHome = ({
               >
                 <UserPlus
                   size={14}
-                  color="#ffffff"
+                  color={theme.white.val}
                   style={{ marginRight: 6 }}
                 />
-                <Text fontSize={14} color="white" fontWeight="500">
+                <Text fontSize={14} color={theme.white.val} fontWeight="500">
                   Inviter
                 </Text>
               </XStack>

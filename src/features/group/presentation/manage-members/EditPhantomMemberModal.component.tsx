@@ -3,7 +3,7 @@ import type React from "react";
 import { useState } from "react";
 import { Modal, Pressable } from "react-native";
 import Toast from "react-native-toast-message";
-import { Text, XStack, YStack } from "tamagui";
+import { Text, useTheme, XStack, YStack } from "tamagui";
 import { Button } from "../../../../components/Button";
 import { Input } from "../../../../components/Input";
 import { useThemeControl } from "../../../../lib/tamagui/theme-provider";
@@ -25,8 +25,10 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
   groupId,
 }) => {
   const dispatch = useAppDispatch();
-  const { theme } = useThemeControl();
-  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
+  const { theme: colorScheme } = useThemeControl();
+  const theme = useTheme();
+  const iconSecondary =
+    colorScheme === "light" ? theme.gray500.val : theme.gray400.val;
 
   // Extract suffix after "Membre-"
   const initialSuffix = member.pseudo.startsWith("Membre-")

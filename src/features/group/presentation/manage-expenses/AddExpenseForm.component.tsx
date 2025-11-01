@@ -2,7 +2,7 @@ import { Plus, X } from "lucide-react-native";
 import type React from "react";
 import { useState } from "react";
 import { Pressable } from "react-native";
-import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { ScrollView, Text, useTheme, XStack, YStack } from "tamagui";
 import { Button } from "../../../../components/Button";
 import { Input } from "../../../../components/Input";
 
@@ -15,6 +15,7 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
+  const theme = useTheme();
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
 
@@ -52,7 +53,7 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
           Ajouter une dépense
         </Text>
         <Pressable onPress={onCancel} style={{ padding: 4 }}>
-          <X size={24} color="#374151" />
+          <X size={24} color={theme.gray700.val} />
         </Pressable>
       </XStack>
 
@@ -104,7 +105,7 @@ export const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
           variant="success"
           onPress={handleSubmit}
           disabled={!canSubmit}
-          icon={<Plus size={20} color="#ffffff" />}
+          icon={<Plus size={20} color={theme.white.val} />}
         >
           Ajouter
         </Button>
