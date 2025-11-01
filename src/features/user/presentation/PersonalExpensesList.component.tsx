@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react-native";
-import { Pressable } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
 import { Card } from "../../../components/Card";
+import { IconButton } from "../../../components/IconButton";
 import type { PersonalExpense } from "../domain/manage-personal-expenses/personal-expense";
 
 interface PersonalExpensesListProps {
@@ -68,18 +68,15 @@ export function PersonalExpensesList({
             </>
           )}
         </YStack>
-        <Pressable onPress={onManagePress} style={{ marginLeft: 12 }}>
-          <YStack
-            width="$3xl"
-            height="$3xl"
-            borderRadius={20}
-            backgroundColor="$success100"
-            justifyContent="center"
-            alignItems="center"
-          >
-            <Plus size={20} color="#16a34a" />
-          </YStack>
-        </Pressable>
+        <YStack marginLeft="$sm">
+          <IconButton
+            icon={Plus}
+            variant="success"
+            size={40}
+            iconSize={20}
+            onPress={onManagePress}
+          />
+        </YStack>
       </XStack>
     </Card>
   );

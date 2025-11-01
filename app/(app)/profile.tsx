@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { ScrollView, Text, XStack, YStack } from "tamagui";
 import { Button } from "../../src/components/Button";
 import { Card } from "../../src/components/Card";
+import { IconButton } from "../../src/components/IconButton";
 import { signOut } from "../../src/features/auth/usecases/manage-session/signOut.usecase";
 import { resetAccount } from "../../src/features/auth/usecases/reset-account/resetAccount.usecase";
 import { ManagePersonalExpensesModal } from "../../src/features/user/presentation/ManagePersonalExpensesModal.component";
@@ -188,17 +189,13 @@ export default function ProfileScreen() {
                     Utilisé pour le calcul équitable des parts
                   </Text>
                 </YStack>
-                <Button
-                  variant="secondary"
-                  width="$3xl"
-                  height="$3xl"
-                  borderRadius="$full"
-                  backgroundColor="$success100"
-                  padding={0}
+                <IconButton
+                  icon={Edit2}
+                  variant="success"
+                  size={40}
+                  iconSize={20}
                   onPress={() => setIsIncomeModalVisible(true)}
-                >
-                  <Edit2 size={20} color={iconSuccess} />
-                </Button>
+                />
               </XStack>
             </Card>
 

@@ -118,7 +118,7 @@ export default function WelcomeScreen() {
                   <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
                     Utilisez le prénom, surnom ou pseudo de votre choix. Vous
                     pourrez le modifier à tout moment depuis votre espace Profil
-                    une fois ce dernier créé
+                    une fois ce dernier créé.
                   </Text>
                 </YStack>
               </Card>

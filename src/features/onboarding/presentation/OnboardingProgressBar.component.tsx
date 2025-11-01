@@ -14,7 +14,7 @@ export const OnboardingProgressBar: React.FC = () => {
     <YStack paddingTop="$base" paddingBottom="$xl">
       <YStack
         height="$1"
-        backgroundColor="$gray700"
+        backgroundColor="$gray200"
         borderRadius={2}
         overflow="hidden"
       >

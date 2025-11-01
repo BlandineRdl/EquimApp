@@ -98,12 +98,24 @@ notificationListeners.startListening({
 
 notificationListeners.startListening({
   matcher: isAnyOf(removeMemberFromGroup.fulfilled),
-  effect: async (_, { dispatch }) => {
+  effect: async (action, { dispatch, getState }) => {
+    const payload = action.payload as {
+      groupId: string;
+      memberId: string;
+    };
+    const { groupId, memberId } = payload;
+    const state = getState() as any;
+    const group = state.groups?.entities?.[groupId];
+    const member = group?.members?.find(
+      (m: { id: string; pseudo: string }) => m.id === memberId,
+    );
+    const memberPseudo = member?.pseudo || "Le membre";
+
     dispatch(
       addNotification({
         type: "success",
         title: "Membre supprimé",
-        message: "Le membre a été supprimé du groupe",
+        message: `${memberPseudo} a été retiré du groupe`,
       }),
     );
   },

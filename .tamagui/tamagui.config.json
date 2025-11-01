@@ -28475,6 +28475,16 @@
         "gray700": "#374151",
         "gray800": "#1f2937",
         "gray900": "#111827",
+        "purple50": "#faf5ff",
+        "purple100": "#f3e8ff",
+        "purple200": "#e9d5ff",
+        "purple300": "#d8b4fe",
+        "purple400": "#c084fc",
+        "purple500": "#a855f7",
+        "purple600": "#9333ea",
+        "purple700": "#7e22ce",
+        "purple800": "#6b21a8",
+        "purple900": "#581c87",
         "background": "#ffffff",
         "backgroundSecondary": "#f9fafb",
         "backgroundTertiary": "#f3f4f6",
@@ -28493,6 +28503,7 @@
         "warningHover": "#d97706",
         "error": "#ef4444",
         "errorHover": "#dc2626",
+        "highlight": "#a855f7",
         "id": "light"
       },
       "dark": {
@@ -28549,6 +28560,16 @@
         "gray700": "#374151",
         "gray800": "#1f2937",
         "gray900": "#111827",
+        "purple50": "#faf5ff",
+        "purple100": "#f3e8ff",
+        "purple200": "#e9d5ff",
+        "purple300": "#d8b4fe",
+        "purple400": "#c084fc",
+        "purple500": "#a855f7",
+        "purple600": "#9333ea",
+        "purple700": "#7e22ce",
+        "purple800": "#6b21a8",
+        "purple900": "#581c87",
         "background": "#111827",
         "backgroundSecondary": "#1f2937",
         "backgroundTertiary": "#374151",
@@ -28567,6 +28588,7 @@
         "warningHover": "#f59e0b",
         "error": "#f87171",
         "errorHover": "#ef4444",
+        "highlight": "#c084fc",
         "id": "dark"
       }
     },
@@ -28941,6 +28963,76 @@
           "key": "$gray900",
           "name": "c-color-gray900",
           "val": "#111827",
+          "variable": ""
+        },
+        "purple50": {
+          "isVar": true,
+          "key": "$purple50",
+          "name": "c-color-purple50",
+          "val": "#faf5ff",
+          "variable": ""
+        },
+        "purple100": {
+          "isVar": true,
+          "key": "$purple100",
+          "name": "c-color-purple100",
+          "val": "#f3e8ff",
+          "variable": ""
+        },
+        "purple200": {
+          "isVar": true,
+          "key": "$purple200",
+          "name": "c-color-purple200",
+          "val": "#e9d5ff",
+          "variable": ""
+        },
+        "purple300": {
+          "isVar": true,
+          "key": "$purple300",
+          "name": "c-color-purple300",
+          "val": "#d8b4fe",
+          "variable": ""
+        },
+        "purple400": {
+          "isVar": true,
+          "key": "$purple400",
+          "name": "c-color-purple400",
+          "val": "#c084fc",
+          "variable": ""
+        },
+        "purple500": {
+          "isVar": true,
+          "key": "$purple500",
+          "name": "c-color-purple500",
+          "val": "#a855f7",
+          "variable": ""
+        },
+        "purple600": {
+          "isVar": true,
+          "key": "$purple600",
+          "name": "c-color-purple600",
+          "val": "#9333ea",
+          "variable": ""
+        },
+        "purple700": {
+          "isVar": true,
+          "key": "$purple700",
+          "name": "c-color-purple700",
+          "val": "#7e22ce",
+          "variable": ""
+        },
+        "purple800": {
+          "isVar": true,
+          "key": "$purple800",
+          "name": "c-color-purple800",
+          "val": "#6b21a8",
+          "variable": ""
+        },
+        "purple900": {
+          "isVar": true,
+          "key": "$purple900",
+          "name": "c-color-purple900",
+          "val": "#581c87",
           "variable": ""
         }
       },
@@ -29878,6 +29970,76 @@
         "key": "$gray900",
         "name": "c-color-gray900",
         "val": "#111827",
+        "variable": ""
+      },
+      "$color.purple50": {
+        "isVar": true,
+        "key": "$purple50",
+        "name": "c-color-purple50",
+        "val": "#faf5ff",
+        "variable": ""
+      },
+      "$color.purple100": {
+        "isVar": true,
+        "key": "$purple100",
+        "name": "c-color-purple100",
+        "val": "#f3e8ff",
+        "variable": ""
+      },
+      "$color.purple200": {
+        "isVar": true,
+        "key": "$purple200",
+        "name": "c-color-purple200",
+        "val": "#e9d5ff",
+        "variable": ""
+      },
+      "$color.purple300": {
+        "isVar": true,
+        "key": "$purple300",
+        "name": "c-color-purple300",
+        "val": "#d8b4fe",
+        "variable": ""
+      },
+      "$color.purple400": {
+        "isVar": true,
+        "key": "$purple400",
+        "name": "c-color-purple400",
+        "val": "#c084fc",
+        "variable": ""
+      },
+      "$color.purple500": {
+        "isVar": true,
+        "key": "$purple500",
+        "name": "c-color-purple500",
+        "val": "#a855f7",
+        "variable": ""
+      },
+      "$color.purple600": {
+        "isVar": true,
+        "key": "$purple600",
+        "name": "c-color-purple600",
+        "val": "#9333ea",
+        "variable": ""
+      },
+      "$color.purple700": {
+        "isVar": true,
+        "key": "$purple700",
+        "name": "c-color-purple700",
+        "val": "#7e22ce",
+        "variable": ""
+      },
+      "$color.purple800": {
+        "isVar": true,
+        "key": "$purple800",
+        "name": "c-color-purple800",
+        "val": "#6b21a8",
+        "variable": ""
+      },
+      "$color.purple900": {
+        "isVar": true,
+        "key": "$purple900",
+        "name": "c-color-purple900",
+        "val": "#581c87",
         "variable": ""
       },
       "$space.0": {

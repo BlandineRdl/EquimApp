@@ -121,10 +121,11 @@ export const selectOnboardingSummary = createSelector(
       return sum + amount;
     }, 0);
 
-    // Compter les dépenses configurées
-    const expensesCount = expenses.filter(
-      (expense) => expense.amount.trim() !== "",
-    ).length;
+    // Compter les dépenses configurées (avec un montant > 0)
+    const expensesCount = expenses.filter((expense) => {
+      const amount = parseFloat(expense.amount);
+      return !Number.isNaN(amount) && amount > 0;
+    }).length;
 
     // Vérifier si tout est prêt pour la création
     // Group name is only required if user didn't skip group creation
@@ -141,7 +142,10 @@ export const selectOnboardingSummary = createSelector(
       totalExpenses,
       isComplete,
       skipGroupCreation,
-      expenses: expenses.filter((expense) => expense.amount.trim() !== ""),
+      expenses: expenses.filter((expense) => {
+        const amount = parseFloat(expense.amount);
+        return !Number.isNaN(amount) && amount > 0;
+      }),
     };
   },
 );

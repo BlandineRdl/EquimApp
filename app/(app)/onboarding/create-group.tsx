@@ -166,6 +166,7 @@ export default function CreateGroupScreen() {
             paddingHorizontal="$xl"
             paddingTop="$lg"
             paddingBottom="$base"
+            gap="$md"
           >
             <Button
               variant="primary"
@@ -173,6 +174,9 @@ export default function CreateGroupScreen() {
               disabled={!canContinue}
             >
               Ajouter des dépenses →
+            </Button>
+            <Button variant="secondary" onPress={() => router.back()}>
+              ← Retour
             </Button>
           </YStack>
         </YStack>

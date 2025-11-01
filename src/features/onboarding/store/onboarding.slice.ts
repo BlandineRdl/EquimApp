@@ -93,8 +93,8 @@ export const onboardingSlice = createSlice({
       state.expenses.push({ id, label, amount, isCustom: true });
     },
     removeCustomExpense: (state, action) => {
-      const index = action.payload;
-      state.expenses.splice(index, 1);
+      const id = action.payload;
+      state.expenses = state.expenses.filter((expense) => expense.id !== id);
     },
 
     // NEW: Store personal expenses during onboarding

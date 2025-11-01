@@ -34,10 +34,10 @@ import { deleteExpense } from "../../usecases/expense/deleteExpense.usecase";
 import { updateExpense } from "../../usecases/expense/updateExpense.usecase";
 import { leaveGroup } from "../../usecases/leave-group/leaveGroup.usecase";
 import { loadGroupById } from "../../usecases/load-group/loadGroup.usecase";
-import { removeMemberFromGroup } from "../../usecases/remove-member/removeMember.usecase";
 import { InviteModal } from "../manage-invitations/InviteModal.component";
 import { EditPhantomMemberModal } from "../manage-members/EditPhantomMemberModal.component";
 import { MemberTypeChoiceModal } from "../manage-members/MemberTypeChoiceModal.component";
+import { RemoveMemberConfirmModal } from "../manage-members/RemoveMemberConfirmModal.component";
 import { GroupDetailsHeader } from "./components/GroupDetailsHeader.component";
 import { GroupExpensesSection } from "./components/GroupExpensesSection.component";
 import { GroupMembersSection } from "./components/GroupMembersSection.component";
@@ -52,6 +52,10 @@ export const GroupDetailsScreen = () => {
   const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
   const [showMemberTypeChoice, setShowMemberTypeChoice] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<{
+    id: string;
+    pseudo: string;
+  } | null>(null);
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { theme } = useThemeControl();
@@ -171,15 +175,6 @@ export const GroupDetailsScreen = () => {
     }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
-    if (!groupId) return;
-    try {
-      await dispatch(removeMemberFromGroup({ groupId, memberId })).unwrap();
-    } catch (error: unknown) {
-      logger.error("Error removing member", error);
-    }
-  };
-
   const handleDeleteExpense = async (expenseId: string) => {
     if (!groupId) return;
     try {
@@ -248,7 +243,10 @@ export const GroupDetailsScreen = () => {
   };
 
   const handleRemoveMemberClick = (memberId: string) => {
-    handleRemoveMember(memberId);
+    const member = members.find((m) => m.id === memberId);
+    if (member) {
+      setMemberToRemove({ id: memberId, pseudo: member.pseudo });
+    }
   };
 
   // Fonctions pour gérer la modal d'ajout de dépense
@@ -553,6 +551,17 @@ export const GroupDetailsScreen = () => {
             visible={editingMember !== null}
             onClose={() => setEditingMember(null)}
             member={editingMember}
+            groupId={groupId}
+          />
+        )}
+
+        {/* Modal de confirmation de suppression de membre */}
+        {memberToRemove && groupId && (
+          <RemoveMemberConfirmModal
+            visible={memberToRemove !== null}
+            onClose={() => setMemberToRemove(null)}
+            memberId={memberToRemove.id}
+            memberPseudo={memberToRemove.pseudo}
             groupId={groupId}
           />
         )}
