@@ -1,10 +1,19 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AuthGateway } from "../../ports/AuthGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
 
-export const signOut = createAsyncThunk<
-  void,
-  void,
-  { extra: { authGateway: AuthGateway } }
->("auth/signOut", async (_, { extra: { authGateway } }) => {
-  await authGateway.signOut();
-});
+export const signOut = createAsyncThunk<void, void, AppThunkApiConfig>(
+  "auth/signOut",
+  async (_, { extra: { authGateway }, rejectWithValue }) => {
+    try {
+      await authGateway.signOut();
+    } catch (error) {
+      return rejectWithValue({
+        code: "SIGN_OUT_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la déconnexion",
+      });
+    }
+  },
+);

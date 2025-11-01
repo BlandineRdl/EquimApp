@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../../store/appState";
-import type { GroupGateway, Shares } from "../../ports/GroupGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
+import type { Shares } from "../../ports/GroupGateway";
 
 export interface RemoveMemberInput {
   groupId: string;
@@ -14,38 +14,61 @@ export const removeMemberFromGroup = createAsyncThunk<
     shares: Shares;
   },
   RemoveMemberInput,
-  {
-    state: AppState;
-    extra: { groupGateway: GroupGateway };
-  }
+  AppThunkApiConfig
 >(
   "groups/removeMember",
-  async ({ groupId, memberId }, { getState, extra: { groupGateway } }) => {
+  async (
+    { groupId, memberId },
+    { getState, extra: { groupGateway }, rejectWithValue },
+  ) => {
     // Validate: group exists in state
     const state = getState();
     const group = state.groups.entities[groupId];
     if (!group) {
-      throw new Error("Groupe non trouvé");
+      return rejectWithValue({
+        code: "GROUP_NOT_FOUND",
+        message: "Groupe non trouvé",
+        details: { groupId },
+      });
     }
 
     // Validate: member exists
     const member = group.members.find((m) => m.id === memberId);
     if (!member) {
-      throw new Error("Membre non trouvé");
+      return rejectWithValue({
+        code: "MEMBER_NOT_FOUND",
+        message: "Membre non trouvé",
+        details: { groupId, memberId },
+      });
     }
 
     // Validate: cannot remove group creator
     if (member.userId === group.creatorId) {
-      throw new Error("Impossible de supprimer le créateur du groupe");
+      return rejectWithValue({
+        code: "CANNOT_REMOVE_CREATOR",
+        message: "Impossible de supprimer le créateur du groupe",
+        details: { groupId, memberId, creatorId: group.creatorId },
+      });
     }
 
-    // Remove member via gateway
-    const result = await groupGateway.removeMember(groupId, memberId);
+    try {
+      // Remove member via gateway
+      const result = await groupGateway.removeMember(groupId, memberId);
 
-    return {
-      groupId,
-      memberId,
-      shares: result.shares,
-    };
+      return {
+        groupId,
+        memberId,
+        shares: result.shares,
+      };
+    } catch (error) {
+      return rejectWithValue({
+        code: "REMOVE_MEMBER_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la suppression du membre",
+        details: { groupId, memberId },
+      });
+    }
   },
 );

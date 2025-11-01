@@ -1,6 +1,7 @@
 // src/features/user/store/user.slice.ts
 import { createSlice } from "@reduxjs/toolkit";
 import { logger } from "../../../lib/logger";
+import type { AppError } from "../../../types/thunk.types";
 import { signOut } from "../../auth/usecases/manage-session/signOut.usecase";
 import { completeOnboarding } from "../../onboarding/usecases/complete-onboarding/completeOnboarding.usecase";
 import type { PersonalExpense } from "../domain/manage-personal-expenses/personal-expense";
@@ -14,7 +15,7 @@ import { updateUserIncome } from "../usecases/updateUserIncome.usecase";
 interface UserState {
   profile: User | null;
   loading: boolean;
-  error: string | null;
+  error: AppError | null;
   previousIncome: number | null; // For optimistic update rollback
 }
 
@@ -87,13 +88,16 @@ export const userSlice = createSlice({
       })
       .addCase(loadUserProfile.rejected, (state, action) => {
         logger.error("[UserSlice] loadUserProfile.rejected", {
-          error: action.error.message,
-          errorName: action.error.name,
-          errorStack: action.error.stack,
+          error: action.error?.message,
+          errorName: action.error?.name,
+          errorStack: action.error?.stack,
           payload: action.payload,
         });
         state.loading = false;
-        state.error = action.error.message || "Failed to load profile";
+        state.error = (action.payload as AppError | undefined) ?? {
+          code: "LOAD_PROFILE_FAILED",
+          message: action.error?.message ?? "Failed to load profile",
+        };
       })
       // Listen to completeOnboarding - profile will be loaded separately
       .addCase(completeOnboarding.fulfilled, (state, action) => {
@@ -132,7 +136,10 @@ export const userSlice = createSlice({
         logger.info("Income update confirmed");
       })
       .addCase(updateUserIncome.rejected, (state, action) => {
-        state.error = action.error.message || "Failed to update income";
+        state.error = action.payload ?? {
+          code: "UPDATE_INCOME_FAILED",
+          message: action.error?.message ?? "Failed to update income",
+        };
 
         // Rollback optimistic update
         if (state.profile && state.previousIncome !== null) {
@@ -163,7 +170,10 @@ export const userSlice = createSlice({
         }
       })
       .addCase(addPersonalExpense.rejected, (state, action) => {
-        state.error = action.error.message || "Failed to add personal expense";
+        state.error = action.payload ?? {
+          code: "ADD_EXPENSE_FAILED",
+          message: action.error?.message ?? "Failed to add personal expense",
+        };
       })
       .addCase(updatePersonalExpense.pending, (state) => {
         state.error = null;
@@ -185,8 +195,10 @@ export const userSlice = createSlice({
         }
       })
       .addCase(updatePersonalExpense.rejected, (state, action) => {
-        state.error =
-          action.error.message || "Failed to update personal expense";
+        state.error = action.payload ?? {
+          code: "UPDATE_EXPENSE_FAILED",
+          message: action.error?.message ?? "Failed to update personal expense",
+        };
       })
       .addCase(deletePersonalExpense.pending, (state) => {
         state.error = null;
@@ -206,8 +218,10 @@ export const userSlice = createSlice({
         }
       })
       .addCase(deletePersonalExpense.rejected, (state, action) => {
-        state.error =
-          action.error.message || "Failed to delete personal expense";
+        state.error = action.payload ?? {
+          code: "DELETE_EXPENSE_FAILED",
+          message: action.error?.message ?? "Failed to delete personal expense",
+        };
       })
       // Clean up state on sign out
       .addCase(signOut.fulfilled, (state) => {

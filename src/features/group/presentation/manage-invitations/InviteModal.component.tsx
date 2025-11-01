@@ -48,12 +48,14 @@ export const InviteModal: React.FC<InviteModalProps> = ({
 
     try {
       await Clipboard.setString(inviteLink);
+      // Success: show toast directly (clipboard is not a Redux action)
       Toast.show({
         type: "success",
         text1: "Lien copié !",
         text2: "Collez-le dans WhatsApp ou SMS",
       });
     } catch (_error) {
+      // Clipboard error: show toast directly (not a Redux action)
       Toast.show({
         type: "error",
         text1: "Impossible de copier",
@@ -83,6 +85,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
         title: `Invitation au groupe ${groupName}`,
       });
     } catch (_error) {
+      // Share API error: show toast directly (not a Redux action)
       Toast.show({
         type: "error",
         text1: "Impossible de partager",
@@ -94,11 +97,9 @@ export const InviteModal: React.FC<InviteModalProps> = ({
     if (groupId) {
       try {
         await dispatch(generateInviteLink({ groupId })).unwrap();
+        // Success toast handled by listener
       } catch (_error) {
-        Toast.show({
-          type: "error",
-          text1: "Impossible de générer le lien",
-        });
+        // Error toast handled by listener
       }
     }
   }, [dispatch, groupId]);

@@ -1,25 +1,39 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../../store/appState";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
 
 export const generateInviteLink = createAsyncThunk<
   string,
   { groupId: string },
-  {
-    state: AppState;
-    extra: { groupGateway: GroupGateway };
-  }
+  AppThunkApiConfig
 >(
   "groups/generateInviteLink",
-  async ({ groupId }, { getState, extra: { groupGateway } }) => {
+  async (
+    { groupId },
+    { getState, extra: { groupGateway }, rejectWithValue },
+  ) => {
     const state = getState();
     const groupExists = state.groups.entities[groupId];
 
     if (!groupExists) {
-      throw new Error("Groupe non trouvé");
+      return rejectWithValue({
+        code: "GROUP_NOT_FOUND",
+        message: "Groupe non trouvé",
+        details: { groupId },
+      });
     }
 
-    const result = await groupGateway.generateInvitation(groupId);
-    return result.link;
+    try {
+      const result = await groupGateway.generateInvitation(groupId);
+      return result.link;
+    } catch (error) {
+      return rejectWithValue({
+        code: "GENERATE_INVITE_LINK_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la génération du lien d'invitation",
+        details: { groupId },
+      });
+    }
   },
 );

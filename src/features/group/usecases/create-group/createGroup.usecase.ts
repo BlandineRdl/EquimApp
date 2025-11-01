@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../../store/appState";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
 
 export interface CreateGroupInput {
   name: string;
@@ -12,32 +11,51 @@ export const createGroup = createAsyncThunk<
     groupId: string;
   },
   CreateGroupInput,
-  {
-    state: AppState;
-    extra: { groupGateway: GroupGateway };
-  }
+  AppThunkApiConfig
 >(
   "groups/createGroup",
-  async ({ name, currency = "EUR" }, { extra: { groupGateway } }) => {
+  async (
+    { name, currency = "EUR" },
+    { extra: { groupGateway }, rejectWithValue },
+  ) => {
     // Validate group name
     const trimmedName = name.trim();
     if (!trimmedName) {
-      throw new Error("Le nom du groupe ne peut pas être vide");
+      return rejectWithValue({
+        code: "EMPTY_GROUP_NAME",
+        message: "Le nom du groupe ne peut pas être vide",
+      });
     }
 
     if (trimmedName.length < 2) {
-      throw new Error("Le nom du groupe doit contenir au moins 2 caractères");
+      return rejectWithValue({
+        code: "GROUP_NAME_TOO_SHORT",
+        message: "Le nom du groupe doit contenir au moins 2 caractères",
+        details: { minLength: 2, actualLength: trimmedName.length },
+      });
     }
 
     if (trimmedName.length > 50) {
-      throw new Error("Le nom du groupe ne peut pas dépasser 50 caractères");
+      return rejectWithValue({
+        code: "GROUP_NAME_TOO_LONG",
+        message: "Le nom du groupe ne peut pas dépasser 50 caractères",
+        details: { maxLength: 50, actualLength: trimmedName.length },
+      });
     }
 
     // Create group via gateway
-    const result = await groupGateway.createGroup(trimmedName, currency);
+    try {
+      const result = await groupGateway.createGroup(trimmedName, currency);
 
-    return {
-      groupId: result.groupId,
-    };
+      return {
+        groupId: result.groupId,
+      };
+    } catch (error) {
+      return rejectWithValue({
+        code: "GROUP_CREATION_FAILED",
+        message: "Erreur lors de la création du groupe",
+        details: { error },
+      });
+    }
   },
 );

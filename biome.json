@@ -1,13 +1,25 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.2/schema.json",
   "vcs": {
     "enabled": false,
     "clientKind": "git",
     "useIgnoreFile": false
   },
   "files": {
-    "includes": ["src/**/*", "app/**/*", "App.tsx", "*.config.js"]
+    "includes": ["src/**/*", "app/**/*", "App.tsx", "*.config.js"],
+    "ignoreUnknown": false
   },
+  "overrides": [
+    {
+      "includes": [".conductor/**/*"],
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      }
+    }
+  ],
   "formatter": {
     "enabled": true,
     "indentStyle": "space",

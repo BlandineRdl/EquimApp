@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../../store/appState";
-import type { GroupGateway, Shares } from "../../ports/GroupGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
+import type { Shares } from "../../ports/GroupGateway";
 
 export interface UpdatePhantomMemberData {
   memberId: string;
@@ -18,52 +18,75 @@ export const updatePhantomMember = createAsyncThunk<
     shares: Shares;
   },
   UpdatePhantomMemberData,
-  {
-    state: AppState;
-    extra: { groupGateway: GroupGateway };
-  }
+  AppThunkApiConfig
 >(
   "groups/updatePhantomMember",
   async (
     { memberId, groupId, newPseudo, newIncome },
-    { extra: { groupGateway } },
+    { extra: { groupGateway }, rejectWithValue },
   ) => {
     // Validate format: must start with "Membre-"
     if (!newPseudo.startsWith("Membre-")) {
-      throw new Error('Le pseudo doit commencer par "Membre-"');
+      return rejectWithValue({
+        code: "INVALID_PSEUDO_FORMAT",
+        message: 'Le pseudo doit commencer par "Membre-"',
+        details: { pseudo: newPseudo },
+      });
     }
 
     // Extract and validate suffix
     const suffix = newPseudo.substring(7);
     if (suffix.length < 1 || suffix.length > 50) {
-      throw new Error("Le pseudo doit faire entre 8 et 57 caractères");
+      return rejectWithValue({
+        code: "INVALID_PSEUDO_LENGTH",
+        message: "Le pseudo doit faire entre 8 et 57 caractères",
+        details: { length: newPseudo.length, min: 8, max: 57 },
+      });
     }
 
     // Validate characters (letters, digits, hyphens, spaces)
     if (!/^[a-zA-Z0-9\s-]+$/.test(suffix)) {
-      throw new Error(
-        "Le pseudo ne peut contenir que des lettres, chiffres, tirets et espaces",
-      );
+      return rejectWithValue({
+        code: "INVALID_PSEUDO_CHARACTERS",
+        message:
+          "Le pseudo ne peut contenir que des lettres, chiffres, tirets et espaces",
+        details: { pseudo: newPseudo },
+      });
     }
 
     // Validate income if provided
     if (newIncome !== undefined && newIncome < 0) {
-      throw new Error("Le revenu ne peut pas être négatif");
+      return rejectWithValue({
+        code: "NEGATIVE_INCOME",
+        message: "Le revenu ne peut pas être négatif",
+        details: { income: newIncome },
+      });
     }
 
-    // Call gateway
-    const result = await groupGateway.updatePhantomMember(
-      memberId,
-      newPseudo,
-      newIncome,
-    );
+    try {
+      // Call gateway
+      const result = await groupGateway.updatePhantomMember(
+        memberId,
+        newPseudo,
+        newIncome,
+      );
 
-    return {
-      memberId: result.memberId,
-      groupId,
-      pseudo: result.pseudo,
-      income: newIncome ?? 0,
-      shares: result.shares,
-    };
+      return {
+        memberId: result.memberId,
+        groupId,
+        pseudo: result.pseudo,
+        income: newIncome ?? 0,
+        shares: result.shares,
+      };
+    } catch (error) {
+      return rejectWithValue({
+        code: "UPDATE_PHANTOM_MEMBER_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la mise à jour du membre",
+        details: { memberId, groupId, pseudo: newPseudo },
+      });
+    }
   },
 );

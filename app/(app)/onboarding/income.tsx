@@ -114,8 +114,9 @@ export default function IncomeScreen() {
                   </Text>
                   <Text fontSize={14} color="$colorSecondary" lineHeight={20}>
                     Equim calcule des parts équitables basées sur les revenus.
-                    Cette donnée reste confidentielle et vous contrôlez qui peut
-                    la voir.
+                    Cette donnée reste confidentielle à votre Groupe. Vous
+                    pouvez la modifier n'importe quand depuis votre profil une
+                    fois ce dernier créé.
                   </Text>
                 </YStack>
               </Card>

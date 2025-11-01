@@ -10,6 +10,7 @@ import {
   initReduxStore,
   type ReduxStore,
 } from "../../../../store/buildReduxStore";
+import type { AppError } from "../../../../types/thunk.types";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
@@ -191,8 +192,9 @@ describe("Feature: Add member to group", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("non trouvé");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("non trouvé");
       }
     });
 
@@ -216,8 +218,9 @@ describe("Feature: Add member to group", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("1 et 50 caractères");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("1 et 50 caractères");
       }
     });
 
@@ -241,8 +244,9 @@ describe("Feature: Add member to group", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("1 et 50 caractères");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("1 et 50 caractères");
       }
     });
 
@@ -320,8 +324,9 @@ describe("Feature: Add member to group", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("négatif");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("négatif");
       }
     });
   });

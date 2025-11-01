@@ -1,13 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../store/appState";
+import type { AppThunkApiConfig } from "../../../types/thunk.types";
 import type { PersonalExpense } from "../domain/manage-personal-expenses/personal-expense";
 import { validateExpense } from "../domain/manage-personal-expenses/validate-expense";
-import type { PersonalExpenseUpdate, UserGateway } from "../ports/UserGateway";
+import type { PersonalExpenseUpdate } from "../ports/UserGateway";
 
 export const updatePersonalExpense = createAsyncThunk<
   PersonalExpense, // Return the updated expense
   PersonalExpenseUpdate,
-  { extra: { userGateway: UserGateway }; state: AppState }
+  AppThunkApiConfig
 >(
   "user/updatePersonalExpense",
   async (expense, { rejectWithValue, extra, getState }) => {
@@ -20,7 +20,10 @@ export const updatePersonalExpense = createAsyncThunk<
       const userId = state.auth?.user?.id;
 
       if (!userId) {
-        throw new Error("User not authenticated");
+        return rejectWithValue({
+          code: "USER_NOT_AUTHENTICATED",
+          message: "User not authenticated",
+        });
       }
 
       // Update expense via gateway
@@ -32,10 +35,18 @@ export const updatePersonalExpense = createAsyncThunk<
       // Return the updated expense so the reducer can update it in state
       return updatedExpense;
     } catch (error) {
-      if (error instanceof Error) {
-        return rejectWithValue(error.message);
-      }
-      return rejectWithValue("Failed to update personal expense");
+      return rejectWithValue({
+        code: "UPDATE_PERSONAL_EXPENSE_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to update personal expense",
+        details: {
+          id: expense.id,
+          label: expense.label,
+          amount: expense.amount,
+        },
+      });
     }
   },
 );

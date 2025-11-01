@@ -1,10 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { logger } from "../../../../lib/logger";
-import type { AppState } from "../../../../store/appState";
-import type { AuthGateway } from "../../../auth/ports/AuthGateway";
-import type { UserGateway } from "../../../user/ports/UserGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
 import { MIN_PSEUDO_LENGTH } from "../../domain/manage-members/member.constants";
-import type { GroupGateway } from "../../ports/GroupGateway";
 
 export interface AcceptInvitationInput {
   token: string;
@@ -15,19 +12,12 @@ export interface AcceptInvitationInput {
 export const acceptInvitation = createAsyncThunk<
   { groupId: string },
   AcceptInvitationInput,
-  {
-    state: AppState;
-    extra: {
-      groupGateway: GroupGateway;
-      authGateway: AuthGateway;
-      userGateway: UserGateway;
-    };
-  }
+  AppThunkApiConfig
 >(
   "groups/acceptInvitation",
   async (
     { token, pseudo, monthlyIncome },
-    { extra: { groupGateway, authGateway, userGateway } },
+    { extra: { groupGateway, authGateway, userGateway }, rejectWithValue },
   ) => {
     logger.debug("[acceptInvitation] Starting", {
       token,
@@ -38,64 +28,92 @@ export const acceptInvitation = createAsyncThunk<
     // Validate token
     if (!token || !token.trim()) {
       logger.error("[acceptInvitation] Invalid token");
-      throw new Error("Token d'invitation invalide");
+      return rejectWithValue({
+        code: "INVALID_INVITATION_TOKEN",
+        message: "Token d'invitation invalide",
+        details: { token },
+      });
     }
 
     // Validate member data
     if (!pseudo.trim()) {
       logger.error("[acceptInvitation] Invalid pseudo");
-      throw new Error("Le pseudo ne peut pas être vide");
+      return rejectWithValue({
+        code: "EMPTY_PSEUDO",
+        message: "Le pseudo ne peut pas être vide",
+        details: { pseudo },
+      });
     }
 
     if (pseudo.trim().length < MIN_PSEUDO_LENGTH) {
-      throw new Error(
-        `Le pseudo doit contenir au moins ${MIN_PSEUDO_LENGTH} caractères`,
-      );
+      return rejectWithValue({
+        code: "PSEUDO_TOO_SHORT",
+        message: `Le pseudo doit contenir au moins ${MIN_PSEUDO_LENGTH} caractères`,
+        details: { length: pseudo.trim().length, minLength: MIN_PSEUDO_LENGTH },
+      });
     }
 
     if (monthlyIncome <= 0) {
-      throw new Error("Le revenu mensuel doit être positif");
-    }
-
-    // Get current user session
-    const session = await authGateway.getSession();
-    if (!session?.user) {
-      throw new Error("Utilisateur non authentifié");
-    }
-
-    const userId = session.user.id;
-
-    // Update or create user profile first
-    // Check if profile exists
-    const existingProfile = await userGateway.getProfileById(userId);
-
-    if (existingProfile) {
-      // Update existing profile
-      await userGateway.updateProfile(userId, {
-        pseudo: pseudo.trim(),
-        monthlyIncome,
-        shareRevenue: true,
+      return rejectWithValue({
+        code: "INVALID_MONTHLY_INCOME",
+        message: "Le revenu mensuel doit être positif",
+        details: { monthlyIncome },
       });
-      logger.debug("[acceptInvitation] Updated existing profile", { userId });
-    } else {
-      // Create new profile
-      // Note: We need to provide currency, defaulting to EUR
-      await userGateway.createProfile({
-        id: userId,
-        pseudo: pseudo.trim(),
-        monthlyIncome,
-        shareRevenue: true,
-        currency: "EUR",
-      });
-      logger.debug("[acceptInvitation] Created new profile", { userId });
     }
 
-    // Now accept invitation
-    logger.debug("[acceptInvitation] Calling gateway.acceptInvitation", {
-      token,
-    });
-    const result = await groupGateway.acceptInvitation(token);
-    logger.info("[acceptInvitation] Success", { groupId: result.groupId });
-    return { groupId: result.groupId };
+    try {
+      // Get current user session
+      const session = await authGateway.getSession();
+      if (!session?.user) {
+        return rejectWithValue({
+          code: "USER_NOT_AUTHENTICATED",
+          message: "Utilisateur non authentifié",
+        });
+      }
+
+      const userId = session.user.id;
+
+      // Update or create user profile first
+      // Check if profile exists
+      const existingProfile = await userGateway.getProfileById(userId);
+
+      if (existingProfile) {
+        // Update existing profile
+        await userGateway.updateProfile(userId, {
+          pseudo: pseudo.trim(),
+          monthlyIncome,
+          shareRevenue: true,
+        });
+        logger.debug("[acceptInvitation] Updated existing profile", { userId });
+      } else {
+        // Create new profile
+        // Note: We need to provide currency, defaulting to EUR
+        await userGateway.createProfile({
+          id: userId,
+          pseudo: pseudo.trim(),
+          monthlyIncome,
+          shareRevenue: true,
+          currency: "EUR",
+        });
+        logger.debug("[acceptInvitation] Created new profile", { userId });
+      }
+
+      // Now accept invitation
+      logger.debug("[acceptInvitation] Calling gateway.acceptInvitation", {
+        token,
+      });
+      const result = await groupGateway.acceptInvitation(token);
+      logger.info("[acceptInvitation] Success", { groupId: result.groupId });
+      return { groupId: result.groupId };
+    } catch (error) {
+      return rejectWithValue({
+        code: "ACCEPT_INVITATION_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de l'acceptation de l'invitation",
+        details: { token, pseudo: pseudo.trim() },
+      });
+    }
   },
 );

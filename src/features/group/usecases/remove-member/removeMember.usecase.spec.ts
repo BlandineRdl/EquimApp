@@ -10,6 +10,7 @@ import {
   initReduxStore,
   type ReduxStore,
 } from "../../../../store/buildReduxStore";
+import type { AppError } from "../../../../types/thunk.types";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
@@ -121,8 +122,9 @@ describe("Feature: Remove member", () => {
 
       // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("non trouvé");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("non trouvé");
       }
     });
 
@@ -143,8 +145,9 @@ describe("Feature: Remove member", () => {
 
       // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("non trouvé");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("non trouvé");
       }
     });
 
@@ -188,8 +191,9 @@ describe("Feature: Remove member", () => {
 
       // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("créateur");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("créateur");
       }
     });
   });

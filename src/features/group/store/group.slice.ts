@@ -1,5 +1,6 @@
 import type { EntityState } from "@reduxjs/toolkit";
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
+import type { AppError } from "../../../types/thunk.types";
 import { signOut } from "../../auth/usecases/manage-session/signOut.usecase";
 import type { Group } from "../domain/manage-group/group.model";
 import type { InvitationPreview } from "../ports/GroupGateway";
@@ -34,19 +35,19 @@ interface AddExpenseForm {
 
 interface GroupState extends EntityState<Group, string> {
   loading: boolean;
-  error: string | null;
+  error: AppError | null;
   addMemberForm: AddMemberForm | null;
   addExpenseForm: AddExpenseForm | null;
   invitation: {
     generateLink: {
       loading: boolean;
       link: string | null;
-      error: string | null;
+      error: AppError | null;
     };
     details: {
       loading: boolean;
       data: InvitationPreview | null;
-      error: string | null;
+      error: AppError | null;
     };
   };
 }
@@ -127,8 +128,11 @@ export const groupSlice = createSlice({
       })
       .addCase(loadUserGroups.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors du chargement des groupes";
+        state.error = (action.payload as AppError | undefined) ?? {
+          code: "LOAD_GROUPS_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors du chargement des groupes",
+        };
       })
       // Ajouter un membre au groupe
       .addCase(addMemberToGroup.pending, (state) => {
@@ -155,8 +159,10 @@ export const groupSlice = createSlice({
       })
       .addCase(addMemberToGroup.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors de l'ajout du membre";
+        state.error = action.payload ?? {
+          code: "ADD_MEMBER_FAILED",
+          message: action.error?.message ?? "Erreur lors de l'ajout du membre",
+        };
       })
       // Generate invite link
       .addCase(generateInviteLink.pending, (state) => {
@@ -169,8 +175,11 @@ export const groupSlice = createSlice({
       })
       .addCase(generateInviteLink.rejected, (state, action) => {
         state.invitation.generateLink.loading = false;
-        state.invitation.generateLink.error =
-          action.error.message || "Erreur lors de la génération du lien";
+        state.invitation.generateLink.error = action.payload ?? {
+          code: "GENERATE_INVITE_LINK_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors de la génération du lien",
+        };
       })
       // Get invitation details
       .addCase(getInvitationDetails.pending, (state) => {
@@ -183,8 +192,12 @@ export const groupSlice = createSlice({
       })
       .addCase(getInvitationDetails.rejected, (state, action) => {
         state.invitation.details.loading = false;
-        state.invitation.details.error =
-          action.error.message || "Erreur lors de la récupération des détails";
+        state.invitation.details.error = action.payload ?? {
+          code: "GET_INVITATION_DETAILS_FAILED",
+          message:
+            action.error?.message ??
+            "Erreur lors de la récupération des détails",
+        };
       })
       // Accept invitation
       .addCase(acceptInvitation.pending, (state) => {
@@ -197,9 +210,12 @@ export const groupSlice = createSlice({
       })
       .addCase(acceptInvitation.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message ||
-          "Erreur lors de l'acceptation de l'invitation";
+        state.error = action.payload ?? {
+          code: "ACCEPT_INVITATION_FAILED",
+          message:
+            action.error?.message ??
+            "Erreur lors de l'acceptation de l'invitation",
+        };
       })
       // Remove member from group
       .addCase(removeMemberFromGroup.pending, (state) => {
@@ -221,8 +237,11 @@ export const groupSlice = createSlice({
       })
       .addCase(removeMemberFromGroup.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors de la suppression du membre";
+        state.error = action.payload ?? {
+          code: "REMOVE_MEMBER_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors de la suppression du membre",
+        };
       })
       // Update phantom member
       .addCase(updatePhantomMember.pending, (state) => {
@@ -249,8 +268,11 @@ export const groupSlice = createSlice({
       })
       .addCase(updatePhantomMember.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors de la modification du membre";
+        state.error = action.payload ?? {
+          code: "UPDATE_MEMBER_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors de la modification du membre",
+        };
       })
       // Add expense to group
       .addCase(addExpenseToGroup.pending, (state) => {
@@ -274,8 +296,11 @@ export const groupSlice = createSlice({
       })
       .addCase(addExpenseToGroup.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors de l'ajout de la dépense";
+        state.error = action.payload ?? {
+          code: "ADD_EXPENSE_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors de l'ajout de la dépense",
+        };
       })
       // Delete expense from group
       .addCase(deleteExpense.pending, (state) => {
@@ -297,8 +322,12 @@ export const groupSlice = createSlice({
       })
       .addCase(deleteExpense.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors de la suppression de la dépense";
+        state.error = action.payload ?? {
+          code: "DELETE_EXPENSE_FAILED",
+          message:
+            action.error?.message ??
+            "Erreur lors de la suppression de la dépense",
+        };
       })
       // Update expense in group
       .addCase(updateExpense.pending, (state) => {
@@ -324,9 +353,12 @@ export const groupSlice = createSlice({
       })
       .addCase(updateExpense.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message ||
-          "Erreur lors de la modification de la dépense";
+        state.error = action.payload ?? {
+          code: "UPDATE_EXPENSE_FAILED",
+          message:
+            action.error?.message ??
+            "Erreur lors de la modification de la dépense",
+        };
       })
       // Load single group by ID (for refresh)
       .addCase(loadGroupById.pending, (state) => {
@@ -339,8 +371,11 @@ export const groupSlice = createSlice({
       })
       .addCase(loadGroupById.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors du rechargement du groupe";
+        state.error = (action.payload as AppError | undefined) ?? {
+          code: "LOAD_GROUP_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors du rechargement du groupe",
+        };
       })
       // Leave group (self-removal)
       .addCase(leaveGroup.pending, (state) => {
@@ -356,8 +391,11 @@ export const groupSlice = createSlice({
       })
       .addCase(leaveGroup.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors de la sortie du groupe";
+        state.error = action.payload ?? {
+          code: "LEAVE_GROUP_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors de la sortie du groupe",
+        };
       })
       // Delete group (creator only)
       .addCase(deleteGroup.pending, (state) => {
@@ -373,8 +411,11 @@ export const groupSlice = createSlice({
       })
       .addCase(deleteGroup.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors de la suppression du groupe";
+        state.error = action.payload ?? {
+          code: "DELETE_GROUP_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors de la suppression du groupe",
+        };
       })
       // Create group
       .addCase(createGroup.pending, (state) => {
@@ -387,8 +428,11 @@ export const groupSlice = createSlice({
       })
       .addCase(createGroup.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          action.error.message || "Erreur lors de la création du groupe";
+        state.error = action.payload ?? {
+          code: "CREATE_GROUP_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors de la création du groupe",
+        };
       })
       // Clean up state on sign out
       .addCase(signOut.fulfilled, (state) => {

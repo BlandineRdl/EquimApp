@@ -11,6 +11,7 @@ import {
   initReduxStore,
   type ReduxStore,
 } from "../../../../store/buildReduxStore";
+import type { AppError } from "../../../../types/thunk.types";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { MIN_PSEUDO_LENGTH } from "../../domain/manage-members/member.constants";
@@ -159,8 +160,9 @@ describe("Feature: Accept invitation", () => {
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("authentifié");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("authentifié");
       }
     });
   });
@@ -179,8 +181,9 @@ describe("Feature: Accept invitation", () => {
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("invalide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("invalide");
       }
     });
 
@@ -197,8 +200,9 @@ describe("Feature: Accept invitation", () => {
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("invalide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("invalide");
       }
     });
 
@@ -215,8 +219,9 @@ describe("Feature: Accept invitation", () => {
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("vide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("vide");
       }
     });
 
@@ -233,8 +238,9 @@ describe("Feature: Accept invitation", () => {
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("vide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("vide");
       }
     });
 
@@ -251,10 +257,9 @@ describe("Feature: Accept invitation", () => {
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain(
-          `${MIN_PSEUDO_LENGTH} caractères`,
-        );
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain(`${MIN_PSEUDO_LENGTH} caractères`);
       }
     });
 
@@ -271,8 +276,9 @@ describe("Feature: Accept invitation", () => {
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("positif");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("positif");
       }
     });
 
@@ -289,8 +295,9 @@ describe("Feature: Accept invitation", () => {
 
       // Then l'acceptation échoue
       expect(result.type).toBe("groups/acceptInvitation/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("positif");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("positif");
       }
     });
   });

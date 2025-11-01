@@ -6,10 +6,10 @@ import {
   MAX_EXPENSE_AMOUNT,
   MAX_LABEL_LENGTH,
   MIN_EXPENSE_AMOUNT,
-} from "../features/user/domain/manage-personal-expenses/personal-expense.constants";
-import { Button } from "./Button";
-import { IconButton } from "./IconButton";
-import { Input } from "./Input";
+} from "../../features/user/domain/manage-personal-expenses/personal-expense.constants";
+import { Button } from "../Button";
+import { IconButton } from "../IconButton";
+import { Input } from "../Input";
 
 export interface Expense {
   id: string;
@@ -72,29 +72,18 @@ export function ExpenseManager({
     setIsSubmitting(true);
     try {
       await onAdd(newLabel.trim(), amount);
-
-      Toast.show({
-        type: "success",
-        text1: "Dépense ajoutée",
-      });
+      // Success toast handled by listener
 
       setNewLabel("");
       setNewAmount("");
-    } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Erreur",
-        text2:
-          error instanceof Error
-            ? error.message
-            : "Impossible d'ajouter la dépense",
-      });
+    } catch (_error) {
+      // Error toast handled by listener
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDeleteExpense = async (expenseId: string, label: string) => {
+  const handleDeleteExpense = async (expenseId: string, _label: string) => {
     if (!onDelete) return;
 
     if (expenses.length <= minExpenses) {
@@ -109,21 +98,9 @@ export function ExpenseManager({
     setIsSubmitting(true);
     try {
       await onDelete(expenseId);
-
-      Toast.show({
-        type: "success",
-        text1: "Dépense supprimée",
-        text2: label,
-      });
-    } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Erreur",
-        text2:
-          error instanceof Error
-            ? error.message
-            : "Impossible de supprimer la dépense",
-      });
+      // Success toast handled by listener
+    } catch (_error) {
+      // Error toast handled by listener
     } finally {
       setIsSubmitting(false);
     }
@@ -174,22 +151,11 @@ export function ExpenseManager({
     setIsSubmitting(true);
     try {
       await onEdit(expenseId, editLabel.trim(), amount);
-
-      Toast.show({
-        type: "success",
-        text1: "Dépense modifiée",
-      });
+      // Success toast handled by listener
 
       handleCancelEdit();
-    } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Erreur",
-        text2:
-          error instanceof Error
-            ? error.message
-            : "Impossible de modifier la dépense",
-      });
+    } catch (_error) {
+      // Error toast handled by listener
     } finally {
       setIsSubmitting(false);
     }

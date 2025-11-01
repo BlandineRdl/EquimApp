@@ -176,7 +176,10 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
               >
                 <Text fontSize={13} color="$colorSecondary" lineHeight={18}>
                   💡 Collez le lien d'invitation que vous avez reçu pour
-                  rejoindre un groupe existant.
+                  rejoindre un groupe existant. Vous souhaitez rejoindre le
+                  groupe d'un.e ami.e ? demandez-lui de passer par la fonction
+                  "Inviter" depuis son application Equim et de vous envoyer le
+                  lien d'ajout à son groupe.
                 </Text>
               </YStack>
 

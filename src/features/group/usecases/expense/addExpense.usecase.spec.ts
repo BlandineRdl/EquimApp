@@ -10,6 +10,7 @@ import {
   initReduxStore,
   type ReduxStore,
 } from "../../../../store/buildReduxStore";
+import type { AppError } from "../../../../types/thunk.types";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { initSession } from "../../../auth/usecases/manage-session/initSession.usecase";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
@@ -165,8 +166,9 @@ describe("Feature: Add expense", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("non trouvé");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("non trouvé");
       }
     });
 
@@ -188,8 +190,9 @@ describe("Feature: Add expense", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("vide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("vide");
       }
     });
 
@@ -211,8 +214,9 @@ describe("Feature: Add expense", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("vide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("vide");
       }
     });
 
@@ -234,8 +238,9 @@ describe("Feature: Add expense", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("supérieur à 0");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("supérieur à 0");
       }
     });
 
@@ -257,8 +262,9 @@ describe("Feature: Add expense", () => {
 
       // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("supérieur à 0");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("supérieur à 0");
       }
     });
   });

@@ -72,22 +72,9 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
         }),
       ).unwrap();
 
-      Toast.show({
-        type: "success",
-        text1: "Membre modifié",
-        text2: `${newPseudo} a été mis à jour`,
-      });
-
       onClose();
-    } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Erreur",
-        text2:
-          error instanceof Error
-            ? error.message
-            : "Impossible de modifier le membre",
-      });
+    } catch (_error) {
+      // Error toast handled by listener
     } finally {
       setLoading(false);
     }

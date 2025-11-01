@@ -40,6 +40,9 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Tamagui
+.tamagui/
 # <AIDD-PRIVACY>
 #
 # You might want to ignore the following files and directories:

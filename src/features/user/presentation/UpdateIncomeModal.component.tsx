@@ -7,6 +7,10 @@ import { useSelector } from "react-redux";
 import { Text, XStack, YStack } from "tamagui";
 import { Button } from "../../../components/Button";
 import { Input } from "../../../components/Input";
+import {
+  getTextColorTertiary,
+  SEMANTIC_COLORS,
+} from "../../../constants/theme.constants";
 import { useThemeControl } from "../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../store/buildReduxStore";
 import {
@@ -17,6 +21,10 @@ import { validateIncome } from "../domain/manage-profile/validate-income";
 import { updateUserIncome } from "../usecases/updateUserIncome.usecase";
 import { selectPersonalExpenses } from "./selectors/selectPersonalExpenses.selector";
 import { selectUserProfile } from "./selectors/selectUser.selector";
+import {
+  UPDATE_INCOME_LABELS,
+  UPDATE_INCOME_MESSAGES,
+} from "./update-income.constants";
 
 export interface UpdateIncomeModalProps {
   isVisible: boolean;
@@ -31,10 +39,10 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const user = useSelector(selectUserProfile);
-  const personalExpenses = useSelector(selectPersonalExpenses);
+  const _personalExpenses = useSelector(selectPersonalExpenses);
   const { theme } = useThemeControl();
-  const iconSecondary = theme === "light" ? "#6b7280" : "#9ca3af";
-  const iconSuccess = "#16a34a";
+  const iconSecondary = getTextColorTertiary(theme);
+  const iconSuccess = SEMANTIC_COLORS.SUCCESS;
 
   const [income, setIncome] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -61,7 +69,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
     // Parse and validate
     const numericValue = Number.parseFloat(text);
     if (Number.isNaN(numericValue)) {
-      setValidationError("Valeur invalide");
+      setValidationError(UPDATE_INCOME_LABELS.INVALID_VALUE);
       return;
     }
 
@@ -78,32 +86,22 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
 
     const trimmedIncome = income.trim();
     if (!trimmedIncome) {
-      Toast.show({
-        type: "error",
-        text1: "Erreur",
-        text2: "Veuillez entrer un revenu",
-      });
+      Toast.show(UPDATE_INCOME_MESSAGES.EMPTY_INCOME);
       return;
     }
 
     const numericIncome = Number.parseFloat(trimmedIncome);
     if (Number.isNaN(numericIncome)) {
-      Toast.show({
-        type: "error",
-        text1: "Erreur",
-        text2: "Le revenu doit être un nombre valide",
-      });
+      Toast.show(UPDATE_INCOME_MESSAGES.INVALID_NUMBER);
       return;
     }
 
     // Validate
     const validation = validateIncome(numericIncome);
     if (!validation.isValid) {
-      Toast.show({
-        type: "error",
-        text1: "Validation échouée",
-        text2: validation.errors.join(", "),
-      });
+      Toast.show(
+        UPDATE_INCOME_MESSAGES.VALIDATION_FAILED(validation.errors.join(", ")),
+      );
       return;
     }
 
@@ -115,32 +113,14 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
         updateUserIncome({ userId: user.id, newIncome: numericIncome }),
       ).unwrap();
 
-      // Calculate new capacity for display
-      const totalExpenses = personalExpenses.reduce(
-        (sum, exp) => sum + exp.amount,
-        0,
-      );
-      const newCapacity = numericIncome - totalExpenses;
-
-      Toast.show({
-        type: "success",
-        text1: "Revenu mis à jour",
-        text2: `Nouvelle capacité : ${newCapacity.toLocaleString("fr-FR")}€`,
-      });
-
+      // Success toast handled by listener
       onClose();
 
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Erreur inconnue";
-      Toast.show({
-        type: "error",
-        text1: "Échec de la mise à jour",
-        text2: errorMessage,
-      });
+    } catch (_error: unknown) {
+      // Error toast handled by listener
     } finally {
       setIsUpdating(false);
     }
@@ -189,7 +169,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
               <DollarSign size={24} color={iconSuccess} />
             </YStack>
             <Text flex={1} fontSize={18} fontWeight="600" color="$color">
-              Modifier mon revenu
+              {UPDATE_INCOME_LABELS.MODAL_TITLE}
             </Text>
             <Button
               variant="secondary"
@@ -212,17 +192,19 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
               color="$gray700"
               marginBottom="$1"
             >
-              Revenu mensuel net (€)
+              {UPDATE_INCOME_LABELS.FIELD_LABEL}
             </Text>
             <Text fontSize={12} color="$colorSecondary" marginBottom="$md">
-              Entre {MIN_INCOME.toLocaleString("fr-FR")}€ et{" "}
+              {UPDATE_INCOME_LABELS.FIELD_HINT_PREFIX}{" "}
+              {MIN_INCOME.toLocaleString("fr-FR")}€{" "}
+              {UPDATE_INCOME_LABELS.FIELD_HINT_SUFFIX}{" "}
               {MAX_INCOME.toLocaleString("fr-FR")}€
             </Text>
 
             <Input
               value={income}
               onChangeText={handleIncomeChange}
-              placeholder="Ex: 2500"
+              placeholder={UPDATE_INCOME_LABELS.FIELD_PLACEHOLDER}
               keyboardType="numeric"
               editable={!isUpdating}
               error={!!validationError}
@@ -250,7 +232,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
               disabled={isUpdating}
             >
               <Text fontSize={16} fontWeight="500" color="$gray700">
-                Annuler
+                {UPDATE_INCOME_LABELS.CANCEL_BUTTON}
               </Text>
             </Button>
 
@@ -261,7 +243,9 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
               disabled={!isValid || isUpdating}
             >
               <Text fontSize={16} fontWeight="600" color="$white">
-                {isUpdating ? "Enregistrement..." : "Enregistrer"}
+                {isUpdating
+                  ? UPDATE_INCOME_LABELS.SAVING_TEXT
+                  : UPDATE_INCOME_LABELS.SAVE_BUTTON}
               </Text>
             </Button>
           </XStack>

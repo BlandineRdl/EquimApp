@@ -13,6 +13,7 @@ import { groupReducer } from "../features/group/store/group.slice";
 import { notificationListeners } from "../features/notification/store/notification.listeners";
 import { notificationReducer } from "../features/notification/store/notification.slice";
 import type { OnboardingGateway } from "../features/onboarding/ports/OnboardingGateway";
+import { onboardingListeners } from "../features/onboarding/store/onboarding.listeners";
 import { onboardingReducer } from "../features/onboarding/store/onboarding.slice";
 import type { UserGateway } from "../features/user/ports/UserGateway";
 import { userReducer } from "../features/user/store/user.slice";
@@ -69,7 +70,9 @@ export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
             groupGateway: dependencies.groupGateway,
           },
         },
-      }).prepend(notificationListeners.middleware);
+      })
+        .prepend(notificationListeners.middleware)
+        .prepend(onboardingListeners.middleware);
 
       // Only add group listeners if groupGateway is provided
       if (groupListeners) {

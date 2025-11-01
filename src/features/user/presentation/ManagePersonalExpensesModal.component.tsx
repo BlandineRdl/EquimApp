@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Modal, Platform } from "react-native";
 import { useSelector } from "react-redux";
 import { Text, XStack, YStack } from "tamagui";
 import { Button } from "../../../components/Button";
-import { ExpenseManager } from "../../../components/ExpenseManager.component";
+import { ExpenseManager } from "../../../components/expense/ExpenseManager.component";
 import { useThemeControl } from "../../../lib/tamagui/theme-provider";
 import { useAppDispatch } from "../../../store/buildReduxStore";
 import { addPersonalExpense } from "../usecases/addPersonalExpense.usecase";

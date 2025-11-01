@@ -72,7 +72,7 @@ describe("Feature: Sign in with email", () => {
 
       // Then la demande échoue
       const state = store.getState();
-      expect(state.auth.error).toContain("valid email");
+      expect(state.auth.error?.message).toContain("valid email");
     });
 
     it("should reject email without domain", async () => {
@@ -84,7 +84,7 @@ describe("Feature: Sign in with email", () => {
 
       // Then la demande échoue
       const state = store.getState();
-      expect(state.auth.error).toContain("valid email");
+      expect(state.auth.error?.message).toContain("valid email");
     });
 
     it("should reject email without local part", async () => {
@@ -96,7 +96,7 @@ describe("Feature: Sign in with email", () => {
 
       // Then la demande échoue
       const state = store.getState();
-      expect(state.auth.error).toContain("valid email");
+      expect(state.auth.error?.message).toContain("valid email");
     });
 
     it("should reject empty email", async () => {
@@ -108,7 +108,7 @@ describe("Feature: Sign in with email", () => {
 
       // Then la demande échoue
       const state = store.getState();
-      expect(state.auth.error).toContain("valid email");
+      expect(state.auth.error?.message).toContain("valid email");
     });
 
     it("should reject whitespace-only email", async () => {
@@ -120,7 +120,7 @@ describe("Feature: Sign in with email", () => {
 
       // Then la demande échoue
       const state = store.getState();
-      expect(state.auth.error).toContain("valid email");
+      expect(state.auth.error?.message).toContain("valid email");
     });
 
     it("should reject email with spaces", async () => {
@@ -132,7 +132,7 @@ describe("Feature: Sign in with email", () => {
 
       // Then la demande échoue
       const state = store.getState();
-      expect(state.auth.error).toContain("valid email");
+      expect(state.auth.error?.message).toContain("valid email");
     });
   });
 });

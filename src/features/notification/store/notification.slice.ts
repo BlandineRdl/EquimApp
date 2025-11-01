@@ -18,7 +18,11 @@ export const notificationSlice = createSlice({
   initialState,
   reducers: {
     addNotification: {
-      prepare: (payload: { type: NotificationType; message: string }) => ({
+      prepare: (payload: {
+        type: NotificationType;
+        title?: string;
+        message: string;
+      }) => ({
         payload: {
           id: nanoid(),
           timestamp: Date.now(),

@@ -1,22 +1,34 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../../store/appState";
-import type { GroupGateway, InvitationPreview } from "../../ports/GroupGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
+import type { InvitationPreview } from "../../ports/GroupGateway";
 
 export const getInvitationDetails = createAsyncThunk<
   InvitationPreview | null,
   { token: string },
-  {
-    state: AppState;
-    extra: { groupGateway: GroupGateway };
-  }
+  AppThunkApiConfig
 >(
   "groups/getInvitationDetails",
-  async ({ token }, { extra: { groupGateway } }) => {
+  async ({ token }, { extra: { groupGateway }, rejectWithValue }) => {
     if (!token || !token.trim()) {
-      throw new Error("Token d'invitation invalide");
+      return rejectWithValue({
+        code: "INVALID_INVITATION_TOKEN",
+        message: "Token d'invitation invalide",
+        details: { token },
+      });
     }
 
-    const invitationDetails = await groupGateway.getInvitationDetails(token);
-    return invitationDetails;
+    try {
+      const invitationDetails = await groupGateway.getInvitationDetails(token);
+      return invitationDetails;
+    } catch (error) {
+      return rejectWithValue({
+        code: "GET_INVITATION_DETAILS_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la récupération des détails de l'invitation",
+        details: { token },
+      });
+    }
   },
 );

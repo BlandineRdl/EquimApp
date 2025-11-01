@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../../store/appState";
-import type { GroupGateway } from "../../ports/GroupGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
 
 export interface DeleteGroupInput {
   groupId: string;
@@ -11,31 +10,50 @@ export const deleteGroup = createAsyncThunk<
     groupId: string;
   },
   DeleteGroupInput,
-  {
-    state: AppState;
-    extra: { groupGateway: GroupGateway };
-  }
+  AppThunkApiConfig
 >(
   "groups/deleteGroup",
-  async ({ groupId }, { getState, extra: { groupGateway } }) => {
+  async (
+    { groupId },
+    { getState, extra: { groupGateway }, rejectWithValue },
+  ) => {
     // Validate: group exists in state
     const state = getState();
     const group = state.groups.entities[groupId];
     if (!group) {
-      throw new Error("Groupe non trouvé");
+      return rejectWithValue({
+        code: "GROUP_NOT_FOUND",
+        message: "Groupe non trouvé",
+        details: { groupId },
+      });
     }
 
     // Validate: current user is the creator
     const currentUserId = state.auth.user?.id;
     if (group.creatorId !== currentUserId) {
-      throw new Error("Seul le créateur peut supprimer le groupe");
+      return rejectWithValue({
+        code: "NOT_GROUP_CREATOR",
+        message: "Seul le créateur peut supprimer le groupe",
+        details: { groupId, creatorId: group.creatorId, currentUserId },
+      });
     }
 
-    // Delete group via gateway
-    await groupGateway.deleteGroup(groupId);
+    try {
+      // Delete group via gateway
+      await groupGateway.deleteGroup(groupId);
 
-    return {
-      groupId,
-    };
+      return {
+        groupId,
+      };
+    } catch (error) {
+      return rejectWithValue({
+        code: "DELETE_GROUP_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la suppression du groupe",
+        details: { groupId },
+      });
+    }
   },
 );

@@ -10,6 +10,7 @@ import {
   initReduxStore,
   type ReduxStore,
 } from "../../../../store/buildReduxStore";
+import type { AppError } from "../../../../types/thunk.types";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
@@ -86,8 +87,9 @@ describe("Feature: Get invitation details", () => {
 
       // Then la récupération échoue
       expect(result.type).toBe("groups/getInvitationDetails/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("invalide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("invalide");
       }
     });
 
@@ -100,8 +102,9 @@ describe("Feature: Get invitation details", () => {
 
       // Then la récupération échoue
       expect(result.type).toBe("groups/getInvitationDetails/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("invalide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("invalide");
       }
     });
   });

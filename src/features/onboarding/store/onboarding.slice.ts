@@ -1,5 +1,6 @@
 // src/features/onboarding/store/onboarding.slice.ts
 import { createSlice } from "@reduxjs/toolkit";
+import type { AppError } from "../../../types/thunk.types";
 import { PREDEFINED_EXPENSES } from "../domain/manage-predefined-expenses/predefined-expense.constants";
 import { completeOnboarding } from "../usecases/complete-onboarding/completeOnboarding.usecase";
 
@@ -31,7 +32,7 @@ interface OnboardingState {
   // État de la completion
   completing: boolean;
   completed: boolean;
-  error: string | null;
+  error: AppError | null;
 }
 
 const initialState: OnboardingState = {
@@ -128,8 +129,11 @@ export const onboardingSlice = createSlice({
       })
       .addCase(completeOnboarding.rejected, (state, action) => {
         state.completing = false;
-        state.error =
-          action.error.message || "Erreur lors de la création du compte";
+        state.error = action.payload ?? {
+          code: "COMPLETE_ONBOARDING_FAILED",
+          message:
+            action.error?.message ?? "Erreur lors de la création du compte",
+        };
       });
   },
 });

@@ -103,7 +103,7 @@ describe("View model generation for User UI", () => {
 
     const userUI = selectUserUI(store.getState());
 
-    expect(userUI.error).toBe("Network error");
+    expect(userUI.error?.message).toBe("Network error");
     expect(userUI.loading).toBe(false);
     expect(userUI.hasProfile).toBe(false);
   });
@@ -175,7 +175,7 @@ describe("View model generation for User UI", () => {
     const userUI = selectUserUI(store.getState());
 
     expect(userUI.monthlyIncome).toBe(2000); // Rolled back
-    expect(userUI.error).toBe("Failed to update");
+    expect(userUI.error?.message).toBe("Failed to update");
   });
 
   it("should show profile after onboarding completion", () => {

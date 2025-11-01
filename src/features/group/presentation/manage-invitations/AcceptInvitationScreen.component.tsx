@@ -14,6 +14,10 @@ import { InvitationActions } from "./components/InvitationActions.component";
 import { InvitationCard } from "./components/InvitationCard.component";
 import { InvitationHeader } from "./components/InvitationHeader.component";
 import { MemberForm } from "./components/MemberForm.component";
+import {
+  INVITATION_BACKGROUND_COLOR,
+  INVITATION_MESSAGES,
+} from "./invitation.constants";
 
 export const AcceptInvitationScreen = () => {
   const { token } = useLocalSearchParams<{ token: string }>();
@@ -32,15 +36,18 @@ export const AcceptInvitationScreen = () => {
 
   useEffect(() => {
     if (!token) {
-      Alert.alert("Erreur", "Lien d'invitation invalide");
+      Alert.alert(
+        INVITATION_MESSAGES.INVALID_TOKEN.title,
+        INVITATION_MESSAGES.INVALID_TOKEN.message,
+      );
       router.back();
       return;
     }
 
     dispatch(getInvitationDetails({ token })).catch(() => {
       Alert.alert(
-        "Erreur",
-        "Impossible de récupérer les détails de l'invitation",
+        INVITATION_MESSAGES.FETCH_ERROR.title,
+        INVITATION_MESSAGES.FETCH_ERROR.message,
       );
       router.back();
     });
@@ -52,7 +59,10 @@ export const AcceptInvitationScreen = () => {
 
     const monthlyIncomeNumber = parseFloat(memberForm.monthlyIncome);
     if (Number.isNaN(monthlyIncomeNumber) || monthlyIncomeNumber <= 0) {
-      Alert.alert("Erreur", "Veuillez saisir un revenu mensuel valide");
+      Alert.alert(
+        INVITATION_MESSAGES.INVALID_INCOME.title,
+        INVITATION_MESSAGES.INVALID_INCOME.message,
+      );
       return;
     }
 
@@ -65,9 +75,16 @@ export const AcceptInvitationScreen = () => {
         }),
       ).unwrap();
 
-      Alert.alert("Succès", "Vous avez rejoint le groupe avec succès !", [
-        { text: "OK", onPress: () => router.push("/home") },
-      ]);
+      Alert.alert(
+        INVITATION_MESSAGES.SUCCESS.title,
+        INVITATION_MESSAGES.SUCCESS.message,
+        [
+          {
+            text: INVITATION_MESSAGES.SUCCESS.buttonText,
+            onPress: () => router.push("/home"),
+          },
+        ],
+      );
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -80,21 +97,42 @@ export const AcceptInvitationScreen = () => {
   const handleRefuse = () => {
     // Simply go back - invitations expire naturally if not accepted
     Alert.alert(
-      "Refuser l'invitation",
-      "Êtes-vous sûr de vouloir refuser cette invitation ?",
+      INVITATION_MESSAGES.REFUSE_CONFIRMATION.title,
+      INVITATION_MESSAGES.REFUSE_CONFIRMATION.message,
       [
-        { text: "Annuler", style: "cancel" },
-        { text: "Refuser", style: "destructive", onPress: () => router.back() },
+        {
+          text: INVITATION_MESSAGES.REFUSE_CONFIRMATION.cancelText,
+          style: "cancel",
+        },
+        {
+          text: INVITATION_MESSAGES.REFUSE_CONFIRMATION.confirmText,
+          style: "destructive",
+          onPress: () => router.back(),
+        },
       ],
     );
+  };
+
+  const handlePseudoChange = (text: string) => {
+    setMemberForm((prev) => ({ ...prev, pseudo: text }));
+  };
+
+  const handleIncomeChange = (text: string) => {
+    setMemberForm((prev) => ({ ...prev, monthlyIncome: text }));
+  };
+
+  const handleBack = () => {
+    router.back();
   };
 
   const canSubmit = !!memberForm.pseudo.trim() && !!memberForm.monthlyIncome;
 
   if (invitationState.details.loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <InvitationHeader onBack={() => router.back()} />
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: INVITATION_BACKGROUND_COLOR }}
+      >
+        <InvitationHeader onBack={handleBack} />
         <LoadingState />
       </SafeAreaView>
     );
@@ -102,10 +140,15 @@ export const AcceptInvitationScreen = () => {
 
   if (invitationState.details.error || !invitationState.details.data) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <InvitationHeader onBack={() => router.back()} />
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: INVITATION_BACKGROUND_COLOR }}
+      >
+        <InvitationHeader onBack={handleBack} />
         <ErrorState
-          message={invitationState.details.error || "Invitation introuvable"}
+          message={
+            invitationState.details.error?.message ||
+            INVITATION_MESSAGES.NOT_FOUND
+          }
         />
       </SafeAreaView>
     );
@@ -114,8 +157,10 @@ export const AcceptInvitationScreen = () => {
   const invitationDetails = invitationState.details.data;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <InvitationHeader onBack={() => router.back()} />
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: INVITATION_BACKGROUND_COLOR }}
+    >
+      <InvitationHeader onBack={handleBack} />
 
       <YStack flex={1} paddingHorizontal="$xl" paddingTop="$lg">
         <InvitationCard invitationDetails={invitationDetails} />
@@ -123,12 +168,8 @@ export const AcceptInvitationScreen = () => {
         <MemberForm
           pseudo={memberForm.pseudo}
           monthlyIncome={memberForm.monthlyIncome}
-          onPseudoChange={(text) =>
-            setMemberForm((prev) => ({ ...prev, pseudo: text }))
-          }
-          onIncomeChange={(text) =>
-            setMemberForm((prev) => ({ ...prev, monthlyIncome: text }))
-          }
+          onPseudoChange={handlePseudoChange}
+          onIncomeChange={handleIncomeChange}
         />
 
         <InvitationActions

@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { Session, User } from "@supabase/supabase-js";
+import type { AppError } from "../../../types/thunk.types";
 import { signInWithEmail } from "../usecases/authenticate-with-email/signInWithEmail.usecase";
 import { verifyOtp } from "../usecases/authenticate-with-email/verifyOtp.usecase";
 import { deleteAccount } from "../usecases/delete-account/deleteAccount.usecase";
@@ -16,7 +17,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   hydrated: boolean; // True once initial session check is complete
   profileDeleted: boolean;
-  error: string | null;
+  error: AppError | null;
 }
 
 // Initial state
@@ -68,7 +69,10 @@ const authSlice = createSlice({
       })
       .addCase(signInWithEmail.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || "Failed to sign in";
+        state.error = action.payload ?? {
+          code: "SIGN_IN_FAILED",
+          message: action.error?.message ?? "Failed to sign in",
+        };
       });
 
     // Sign out
@@ -87,7 +91,10 @@ const authSlice = createSlice({
       })
       .addCase(signOut.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || "Failed to sign out";
+        state.error = action.payload ?? {
+          code: "SIGN_OUT_FAILED",
+          message: action.error?.message ?? "Failed to sign out",
+        };
       });
 
     // Delete account
@@ -106,7 +113,10 @@ const authSlice = createSlice({
       })
       .addCase(deleteAccount.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || "Failed to delete account";
+        state.error = action.payload ?? {
+          code: "DELETE_ACCOUNT_FAILED",
+          message: action.error?.message ?? "Failed to delete account",
+        };
       });
 
     // Reset account
@@ -127,9 +137,12 @@ const authSlice = createSlice({
       })
       .addCase(resetAccount.rejected, (state, action) => {
         state.isLoading = false;
-        state.error =
-          action.error.message ||
-          "Erreur lors de la réinitialisation du compte";
+        state.error = action.payload ?? {
+          code: "RESET_ACCOUNT_FAILED",
+          message:
+            action.error?.message ??
+            "Erreur lors de la réinitialisation du compte",
+        };
       });
 
     // Init session
@@ -148,7 +161,10 @@ const authSlice = createSlice({
       })
       .addCase(initSession.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || "Failed to initialize session";
+        state.error = action.payload ?? {
+          code: "INIT_SESSION_FAILED",
+          message: action.error?.message ?? "Failed to initialize session",
+        };
         state.hydrated = true; // Mark as hydrated even on error
       });
 
@@ -164,7 +180,10 @@ const authSlice = createSlice({
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || "Code de vérification invalide";
+        state.error = action.payload ?? {
+          code: "VERIFY_OTP_FAILED",
+          message: action.error?.message ?? "Code de vérification invalide",
+        };
       });
   },
 });

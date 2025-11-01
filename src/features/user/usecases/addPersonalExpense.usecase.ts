@@ -1,13 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../store/appState";
+import type { AppThunkApiConfig } from "../../../types/thunk.types";
 import type { PersonalExpense } from "../domain/manage-personal-expenses/personal-expense";
 import { validateExpense } from "../domain/manage-personal-expenses/validate-expense";
-import type { NewPersonalExpense, UserGateway } from "../ports/UserGateway";
+import type { NewPersonalExpense } from "../ports/UserGateway";
 
 export const addPersonalExpense = createAsyncThunk<
   PersonalExpense, // Return the created expense
   NewPersonalExpense,
-  { extra: { userGateway: UserGateway }; state: AppState }
+  AppThunkApiConfig
 >(
   "user/addPersonalExpense",
   async (expense, { rejectWithValue, extra, getState }) => {
@@ -20,7 +20,10 @@ export const addPersonalExpense = createAsyncThunk<
       const userId = state.auth?.user?.id;
 
       if (!userId) {
-        throw new Error("User not authenticated");
+        return rejectWithValue({
+          code: "USER_NOT_AUTHENTICATED",
+          message: "User not authenticated",
+        });
       }
 
       // Add expense via gateway
@@ -32,10 +35,14 @@ export const addPersonalExpense = createAsyncThunk<
       // Return the created expense so the reducer can add it to state
       return createdExpense;
     } catch (error) {
-      if (error instanceof Error) {
-        return rejectWithValue(error.message);
-      }
-      return rejectWithValue("Failed to add personal expense");
+      return rejectWithValue({
+        code: "ADD_PERSONAL_EXPENSE_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to add personal expense",
+        details: { label: expense.label, amount: expense.amount },
+      });
     }
   },
 );

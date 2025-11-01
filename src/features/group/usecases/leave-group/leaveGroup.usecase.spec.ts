@@ -10,6 +10,7 @@ import {
   initReduxStore,
   type ReduxStore,
 } from "../../../../store/buildReduxStore";
+import type { AppError } from "../../../../types/thunk.types";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
@@ -109,8 +110,9 @@ describe("Feature: Leave group", () => {
 
       // Then la sortie échoue
       expect(result.type).toBe("groups/leaveGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("non trouvé");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("non trouvé");
       }
     });
   });

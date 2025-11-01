@@ -1,19 +1,24 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { logger } from "../../../../lib/logger";
-import type { AuthGateway } from "../../ports/AuthGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
 
-export const resetAccount = createAsyncThunk<
-  void,
-  void,
-  {
-    extra: {
-      authGateway: AuthGateway;
-    };
-  }
->("auth/resetAccount", async (_, { extra }) => {
-  logger.info("[resetAccount] Starting account reset");
+export const resetAccount = createAsyncThunk<void, void, AppThunkApiConfig>(
+  "auth/resetAccount",
+  async (_, { extra, rejectWithValue }) => {
+    logger.info("[resetAccount] Starting account reset");
 
-  await extra.authGateway.resetAccount();
+    try {
+      await extra.authGateway.resetAccount();
 
-  logger.info("[resetAccount] Account reset successful");
-});
+      logger.info("[resetAccount] Account reset successful");
+    } catch (error) {
+      return rejectWithValue({
+        code: "RESET_ACCOUNT_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la réinitialisation du compte",
+      });
+    }
+  },
+);

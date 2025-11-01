@@ -10,6 +10,7 @@ import {
   initReduxStore,
   type ReduxStore,
 } from "../../../../store/buildReduxStore";
+import type { AppError } from "../../../../types/thunk.types";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
 import { InMemoryGroupGateway } from "../../infra/inMemoryGroup.gateway";
@@ -89,8 +90,9 @@ describe("Feature: Create group", () => {
 
       // Then la création échoue
       expect(result.type).toBe("groups/createGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("vide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("vide");
       }
     });
 
@@ -103,8 +105,9 @@ describe("Feature: Create group", () => {
 
       // Then la création échoue
       expect(result.type).toBe("groups/createGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("vide");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("vide");
       }
     });
 
@@ -117,8 +120,9 @@ describe("Feature: Create group", () => {
 
       // Then la création échoue
       expect(result.type).toBe("groups/createGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("2 caractères");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("2 caractères");
       }
     });
 
@@ -131,8 +135,9 @@ describe("Feature: Create group", () => {
 
       // Then la création échoue
       expect(result.type).toBe("groups/createGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("50 caractères");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("50 caractères");
       }
     });
   });

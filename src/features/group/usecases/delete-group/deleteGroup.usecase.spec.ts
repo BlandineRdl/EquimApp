@@ -10,6 +10,7 @@ import {
   initReduxStore,
   type ReduxStore,
 } from "../../../../store/buildReduxStore";
+import type { AppError } from "../../../../types/thunk.types";
 import { InMemoryAuthGateway } from "../../../auth/infra/InMemoryAuthGateway";
 import { initSession } from "../../../auth/usecases/manage-session/initSession.usecase";
 import { InMemoryUserGateway } from "../../../user/infra/InMemoryUserGateway";
@@ -80,8 +81,9 @@ describe("Feature: Delete group", () => {
 
       // Then la suppression échoue
       expect(result.type).toBe("groups/deleteGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("non trouvé");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("non trouvé");
       }
     });
 
@@ -103,8 +105,9 @@ describe("Feature: Delete group", () => {
 
       // Then la suppression échoue
       expect(result.type).toBe("groups/deleteGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("créateur");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("créateur");
       }
     });
 
@@ -127,8 +130,9 @@ describe("Feature: Delete group", () => {
 
       // Then la suppression échoue
       expect(result.type).toBe("groups/deleteGroup/rejected");
-      if ("error" in result) {
-        expect(result.error.message).toContain("créateur");
+      if ("payload" in result) {
+        const error = result.payload as AppError | undefined;
+        expect(error?.message).toContain("créateur");
       }
     });
   });

@@ -1,14 +1,24 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AppState } from "../../../../store/appState";
-import type { AuthGateway } from "../../ports/AuthGateway";
+import type { AppThunkApiConfig } from "../../../../types/thunk.types";
 
 export const verifyOtp = createAsyncThunk<
   void,
   { email: string; token: string },
-  {
-    state: AppState;
-    extra: { authGateway: AuthGateway };
-  }
->("auth/verifyOtp", async ({ email, token }, { extra: { authGateway } }) => {
-  await authGateway.verifyOtp(email, token);
-});
+  AppThunkApiConfig
+>(
+  "auth/verifyOtp",
+  async ({ email, token }, { extra: { authGateway }, rejectWithValue }) => {
+    try {
+      await authGateway.verifyOtp(email, token);
+    } catch (error) {
+      return rejectWithValue({
+        code: "VERIFY_OTP_FAILED",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la vérification du code",
+        details: { email },
+      });
+    }
+  },
+);

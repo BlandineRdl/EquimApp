@@ -96,3 +96,23 @@ export const selectGroupExpenses = createSelector(
     }));
   },
 );
+
+// Selector pour obtenir la quote-part maximale du groupe
+export const selectMaxShareAmount = createSelector(
+  [selectGroupDetails],
+  (groupDetails) => {
+    if (!groupDetails || groupDetails.members.length === 0) return 0;
+
+    return Math.max(...groupDetails.members.map((m) => m.shareAmount));
+  },
+);
+
+// Selector pour obtenir le pourcentage de quote-part maximal du groupe
+export const selectMaxSharePercentage = createSelector(
+  [selectGroupDetails],
+  (groupDetails) => {
+    if (!groupDetails || groupDetails.members.length === 0) return 0;
+
+    return Math.max(...groupDetails.members.map((m) => m.sharePercentage));
+  },
+);

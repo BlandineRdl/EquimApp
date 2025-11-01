@@ -59,6 +59,17 @@ const allColors = {
   gray700: '#374151',
   gray800: '#1f2937',
   gray900: '#111827',
+
+  purple50: '#faf5ff',
+  purple100: '#f3e8ff',
+  purple200: '#e9d5ff',
+  purple300: '#d8b4fe',
+  purple400: '#c084fc',
+  purple500: '#a855f7',
+  purple600: '#9333ea',
+  purple700: '#7e22ce',
+  purple800: '#6b21a8',
+  purple900: '#581c87',
 };
 
 const lightColors = {
@@ -85,6 +96,8 @@ const lightColors = {
 
   error: '#ef4444',
   errorHover: '#dc2626',
+
+  highlight: '#a855f7', // purple500 - for highlighting max values
 };
 
 const darkColors = {
@@ -111,6 +124,8 @@ const darkColors = {
 
   error: '#f87171',
   errorHover: '#ef4444',
+
+  highlight: '#c084fc', // purple400 - for highlighting max values (lighter in dark mode)
 };
 
 const config = createTamagui({
