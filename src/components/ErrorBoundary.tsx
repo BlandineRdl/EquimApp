@@ -134,7 +134,7 @@ export class ErrorBoundary extends Component<Props, State> {
               accessibilityLabel="Réessayer"
               accessibilityRole="button"
               style={{
-                backgroundColor: "#3b82f6",
+                backgroundColor: "$primary500",
                 paddingHorizontal: 32,
                 paddingVertical: 12,
                 borderRadius: 8,

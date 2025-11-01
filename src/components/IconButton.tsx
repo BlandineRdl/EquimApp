@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { Pressable, type PressableProps } from "react-native";
+import { useTheme } from "tamagui";
 
 interface LucideIconProps {
   size?: number;
@@ -16,17 +17,6 @@ interface IconButtonProps extends Omit<PressableProps, "style"> {
   strokeWidth?: number;
 }
 
-const COLORS = {
-  gray100: "#f3f4f6",
-  gray300: "#d1d5db",
-  gray500: "#6b7280",
-  gray600: "#4b5563",
-  success100: "#dcfce7",
-  success600: "#16a34a",
-  error100: "#fee2e2",
-  error500: "#ef4444",
-};
-
 export function IconButton({
   icon: Icon,
   variant = "neutral",
@@ -36,37 +26,39 @@ export function IconButton({
   strokeWidth = 2,
   ...props
 }: IconButtonProps) {
+  const theme = useTheme();
+
   const getVariantStyles = () => {
     switch (variant) {
       case "success":
         return {
-          backgroundColor: disabled ? COLORS.gray100 : COLORS.success100,
-          iconColor: disabled ? COLORS.gray300 : COLORS.success600,
-          borderColor: disabled ? COLORS.gray300 : COLORS.success600,
+          backgroundColor: disabled ? theme.gray100.val : theme.success100.val,
+          iconColor: disabled ? theme.gray300.val : theme.success600.val,
+          borderColor: disabled ? theme.gray300.val : theme.success600.val,
         };
       case "error":
         return {
-          backgroundColor: disabled ? COLORS.gray100 : COLORS.error100,
-          iconColor: disabled ? COLORS.gray300 : COLORS.error500,
-          borderColor: disabled ? COLORS.gray300 : COLORS.error500,
+          backgroundColor: disabled ? theme.gray100.val : theme.error100.val,
+          iconColor: disabled ? theme.gray300.val : theme.error500.val,
+          borderColor: disabled ? theme.gray300.val : theme.error500.val,
         };
       case "check":
         return {
-          backgroundColor: COLORS.gray100,
-          iconColor: disabled ? COLORS.gray300 : COLORS.success600,
-          borderColor: disabled ? COLORS.gray300 : COLORS.success600,
+          backgroundColor: theme.gray100.val,
+          iconColor: disabled ? theme.gray300.val : theme.success600.val,
+          borderColor: disabled ? theme.gray300.val : theme.success600.val,
         };
       case "cancel":
         return {
-          backgroundColor: COLORS.gray100,
-          iconColor: disabled ? COLORS.gray300 : COLORS.gray500,
-          borderColor: disabled ? COLORS.gray300 : COLORS.gray500,
+          backgroundColor: theme.gray100.val,
+          iconColor: disabled ? theme.gray300.val : theme.gray500.val,
+          borderColor: disabled ? theme.gray300.val : theme.gray500.val,
         };
       default:
         return {
-          backgroundColor: COLORS.gray100,
-          iconColor: disabled ? COLORS.gray300 : COLORS.gray600,
-          borderColor: disabled ? COLORS.gray300 : COLORS.gray600,
+          backgroundColor: theme.gray100.val,
+          iconColor: disabled ? theme.gray300.val : theme.gray600.val,
+          borderColor: disabled ? theme.gray300.val : theme.gray600.val,
         };
     }
   };

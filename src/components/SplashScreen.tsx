@@ -1,13 +1,15 @@
 import { ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text, YStack } from "tamagui";
+import { Text, useTheme, YStack } from "tamagui";
 
 /**
  * Splash screen shown during app initialization
  */
 export function SplashScreen() {
+  const theme = useTheme();
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.white.val }}>
       <YStack flex={1} alignItems="center" justifyContent="center">
         <YStack
           width="$6xl"
@@ -30,7 +32,7 @@ export function SplashScreen() {
         </Text>
         <ActivityIndicator
           size="large"
-          color="#16a34a"
+          color={theme.success600.val}
           style={{ marginTop: 16 }}
         />
       </YStack>

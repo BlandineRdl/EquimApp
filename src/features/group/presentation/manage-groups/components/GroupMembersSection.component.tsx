@@ -1,11 +1,4 @@
-import {
-  ChevronDown,
-  ChevronUp,
-  Edit,
-  Plus,
-  Trash2,
-  Users,
-} from "lucide-react-native";
+import { Edit, Plus, Trash2, Users } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
@@ -231,26 +224,35 @@ export const GroupMembersSection = ({
       </YStack>
 
       {/* Toggle button for showing more/less members */}
-      {shouldShowToggle && (
-        <Pressable onPress={() => setShowAllMembers(!showAllMembers)}>
-          <XStack
+      {shouldShowToggle && !showAllMembers && (
+        <Pressable onPress={() => setShowAllMembers(true)}>
+          <YStack
+            paddingVertical="$base"
             alignItems="center"
-            justifyContent="center"
-            paddingVertical="$sm"
+            borderTopWidth={1}
+            borderTopColor="$borderColor"
             marginTop="$xs"
-            gap="$xs"
           >
-            <Text fontSize={14} fontWeight="600" color="$primary">
-              {showAllMembers
-                ? "Voir moins"
-                : `Voir plus (${members.length - 2} autres)`}
+            <Text fontSize={14} color="$colorSecondary" fontWeight="500">
+              Voir plus ({members.length - 2} autres)
             </Text>
-            {showAllMembers ? (
-              <ChevronUp size={16} color={iconColor} />
-            ) : (
-              <ChevronDown size={16} color={iconColor} />
-            )}
-          </XStack>
+          </YStack>
+        </Pressable>
+      )}
+
+      {shouldShowToggle && showAllMembers && (
+        <Pressable onPress={() => setShowAllMembers(false)}>
+          <YStack
+            paddingVertical="$base"
+            alignItems="center"
+            borderTopWidth={1}
+            borderTopColor="$borderColor"
+            marginTop="$xs"
+          >
+            <Text fontSize={14} color="$colorSecondary" fontWeight="500">
+              Voir moins
+            </Text>
+          </YStack>
         </Pressable>
       )}
 

@@ -1,7 +1,7 @@
 import { Check, Edit3, Plus, Trash2, X } from "lucide-react-native";
 import { useState } from "react";
 import Toast from "react-native-toast-message";
-import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { ScrollView, Text, useTheme, XStack, YStack } from "tamagui";
 import {
   MAX_EXPENSE_AMOUNT,
   MAX_LABEL_LENGTH,
@@ -36,6 +36,7 @@ export function ExpenseManager({
   title = "Mes dépenses",
   addSectionTitle = "Ajouter une dépense",
 }: ExpenseManagerProps) {
+  const theme = useTheme();
   const [newLabel, setNewLabel] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -215,7 +216,7 @@ export function ExpenseManager({
           variant="success"
           onPress={handleAddExpense}
           disabled={isSubmitting}
-          icon={<Plus size={20} color="#ffffff" />}
+          icon={<Plus size={20} color={theme.white.val} />}
         >
           Ajouter
         </Button>
