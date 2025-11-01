@@ -21,6 +21,7 @@ import { selectAllGroups } from "../../src/features/group/presentation/manage-gr
 import { InviteModal } from "../../src/features/group/presentation/manage-invitations/InviteModal.component";
 import { JoinGroupModal } from "../../src/features/group/presentation/manage-invitations/JoinGroupModal.component";
 import { loadUserGroups } from "../../src/features/group/usecases/load-groups/loadGroups.usecase";
+import { BudgetSection } from "../../src/features/user/presentation/budget/BudgetSection.component";
 import { selectUserProfile } from "../../src/features/user/presentation/selectors/selectUser.selector";
 import { logger } from "../../src/lib/logger";
 import { useThemeControl } from "../../src/lib/tamagui/theme-provider";
@@ -170,6 +171,9 @@ export default function HomeScreen() {
               )}
             </Button>
           </XStack>
+
+          {/* Mon budget Section */}
+          <BudgetSection />
 
           {/* Mon groupe Section */}
           <Text
