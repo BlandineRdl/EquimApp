@@ -31,6 +31,16 @@ export const GroupMembersSection = ({
   onEditMember,
   onRemoveMember,
 }: GroupMembersSectionProps) => {
+  // Get initials from pseudo
+  const getInitials = (pseudo: string) => {
+    return pseudo
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <YStack
       backgroundColor="$backgroundSecondary"
@@ -67,104 +77,143 @@ export const GroupMembersSection = ({
         </Pressable>
       </XStack>
 
-      {members.map((member, index) => (
-        <YStack
-          key={member.id}
-          paddingVertical={10}
-          paddingHorizontal="$sm"
-          borderBottomWidth={index < members.length - 1 ? 1 : 0}
-          borderBottomColor="$borderColor"
-        >
-          {/* Ligne 1: Nom + Badge + Actions */}
-          <XStack
-            justifyContent="space-between"
-            alignItems="center"
-            marginBottom="$1"
-          >
-            <XStack alignItems="center" gap="$xs" flex={1}>
-              <Text
-                fontSize={15}
-                fontWeight="600"
-                color="$color"
-                flexShrink={1}
+      {/* Member Cards */}
+      <YStack gap="$sm">
+        {members.map((member) => {
+          const isMaxShare = member.sharePercentage === maxSharePercentage;
+          const isCreatorMember = member.userId === groupCreatorId;
+
+          return (
+            <XStack
+              key={member.id}
+              backgroundColor="$background"
+              borderRadius="$md"
+              padding="$base"
+              borderWidth={1}
+              borderColor={isMaxShare ? "$primary" : "$borderColor"}
+              alignItems="center"
+              gap="$sm"
+            >
+              {/* Avatar/Initials */}
+              <YStack
+                width={44}
+                height={44}
+                borderRadius={22}
+                backgroundColor={isCreatorMember ? "$success600" : "$primary"}
+                alignItems="center"
+                justifyContent="center"
               >
-                {member.pseudo}
-              </Text>
-              {member.userId === groupCreatorId && (
-                <YStack
-                  backgroundColor="$success600"
-                  paddingHorizontal={6}
-                  paddingVertical={2}
-                  borderRadius="$sm"
+                <Text
+                  fontSize={16}
+                  fontWeight="700"
+                  color="$white"
+                  textTransform="uppercase"
                 >
-                  <Text color="$white" fontSize={10} fontWeight="600">
-                    Créateur
+                  {getInitials(member.pseudo)}
+                </Text>
+              </YStack>
+
+              {/* Center: Name + Info */}
+              <YStack flex={1} gap="$2">
+                <XStack alignItems="center" gap="$xs">
+                  <Text fontSize={15} fontWeight="600" color="$color">
+                    {member.pseudo}
                   </Text>
-                </YStack>
-              )}
-            </XStack>
-            {isCreator &&
-              (member.isPhantom || member.userId !== groupCreatorId) && (
-                <XStack gap="$xs">
-                  {member.isPhantom && (
-                    <Pressable
-                      onPress={() => onEditMember(member)}
-                      style={{ padding: 4 }}
+                  {isCreatorMember && (
+                    <YStack
+                      backgroundColor="$success600"
+                      paddingHorizontal={6}
+                      paddingVertical={2}
+                      borderRadius="$sm"
                     >
-                      <Edit size={16} color={SEMANTIC_COLORS.PRIMARY_HOVER} />
-                    </Pressable>
-                  )}
-                  {member.userId !== groupCreatorId && (
-                    <Pressable
-                      onPress={() => onRemoveMember(member.id)}
-                      style={{ padding: 4 }}
-                    >
-                      <Trash2 size={16} color={iconError} />
-                    </Pressable>
+                      <Text color="$white" fontSize={10} fontWeight="600">
+                        Créateur
+                      </Text>
+                    </YStack>
                   )}
                 </XStack>
-              )}
-          </XStack>
 
-          {/* Ligne 2: Valeurs uniquement */}
-          <XStack alignItems="center" gap="$xs" flexWrap="wrap">
-            <Text fontSize={14} color="$colorSecondary" fontWeight="500">
-              {(member.monthlyCapacity || 0).toLocaleString("fr-FR", {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
-              €/mois
-            </Text>
-            <Text fontSize={14} color="$gray300" marginHorizontal={2}>
-              •
-            </Text>
-            <Text
-              fontSize={14}
-              fontWeight="700"
-              color={
-                member.sharePercentage === maxSharePercentage
-                  ? "$highlight"
-                  : "$color"
-              }
-            >
-              {member.sharePercentage}%
-            </Text>
-            <Text
-              fontSize={14}
-              fontWeight="600"
-              color={iconSuccess}
-              marginLeft="$1"
-            >
-              (
-              {member.shareAmount.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              €)
-            </Text>
-          </XStack>
-        </YStack>
-      ))}
+                {/* Info Grid */}
+                <YStack gap="$1">
+                  <XStack alignItems="center" gap="$xs">
+                    <Text fontSize={11} color="$colorSecondary" width={90}>
+                      Quote-part
+                    </Text>
+                    <Text
+                      fontSize={14}
+                      fontWeight="700"
+                      color={isMaxShare ? "$primary" : "$color"}
+                    >
+                      {member.sharePercentage}%
+                    </Text>
+                  </XStack>
+
+                  <XStack alignItems="center" gap="$xs">
+                    <Text fontSize={11} color="$colorSecondary" width={90}>
+                      Participation €
+                    </Text>
+                    <Text fontSize={14} fontWeight="600" color={iconSuccess}>
+                      {member.shareAmount.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </Text>
+                  </XStack>
+
+                  <XStack alignItems="center" gap="$xs">
+                    <Text fontSize={11} color="$colorSecondary" width={90}>
+                      Reste à vivre
+                    </Text>
+                    <Text
+                      fontSize={14}
+                      fontWeight="500"
+                      color="$colorSecondary"
+                    >
+                      {(member.monthlyCapacity || 0).toLocaleString("fr-FR", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}{" "}
+                      €/mois
+                    </Text>
+                  </XStack>
+                </YStack>
+              </YStack>
+
+              {/* Actions (Edit/Delete) */}
+              {isCreator &&
+                (member.isPhantom || member.userId !== groupCreatorId) && (
+                  <YStack gap="$xs">
+                    {member.isPhantom && (
+                      <Pressable
+                        onPress={() => onEditMember(member)}
+                        style={{
+                          padding: 6,
+                          backgroundColor: "rgba(14, 165, 233, 0.1)",
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Edit size={16} color={SEMANTIC_COLORS.PRIMARY_HOVER} />
+                      </Pressable>
+                    )}
+                    {member.userId !== groupCreatorId && (
+                      <Pressable
+                        onPress={() => onRemoveMember(member.id)}
+                        style={{
+                          padding: 6,
+                          backgroundColor: "rgba(239, 68, 68, 0.1)",
+                          borderRadius: 6,
+                        }}
+                      >
+                        <Trash2 size={16} color={iconError} />
+                      </Pressable>
+                    )}
+                  </YStack>
+                )}
+            </XStack>
+          );
+        })}
+      </YStack>
 
       {/* Explication du calcul */}
       <XStack

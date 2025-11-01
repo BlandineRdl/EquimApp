@@ -12,7 +12,6 @@ import { Input } from "../../../../components/Input";
 import {
   getSafeAreaBackgroundColor,
   getTextColor,
-  getTextColorTertiary,
   SEMANTIC_COLORS,
 } from "../../../../constants/theme.constants";
 import { logger } from "../../../../lib/logger";
@@ -39,10 +38,12 @@ import { EditPhantomMemberModal } from "../manage-members/EditPhantomMemberModal
 import { MemberTypeChoiceModal } from "../manage-members/MemberTypeChoiceModal.component";
 import { RemoveMemberConfirmModal } from "../manage-members/RemoveMemberConfirmModal.component";
 import { GroupDetailsHeader } from "./components/GroupDetailsHeader.component";
+import { GroupExpenseDistributionCard } from "./components/GroupExpenseDistributionCard.component";
 import { GroupExpensesSection } from "./components/GroupExpensesSection.component";
 import { GroupMembersSection } from "./components/GroupMembersSection.component";
-import { GroupStatsSection } from "./components/GroupStatsSection.component";
+import { GroupTotalExpenseCard } from "./components/GroupTotalExpenseCard.component";
 import { selectGroupDetailsUIViewModel } from "./selectGroupDetailsUI.selector";
+import { selectGroupExpenseDistribution } from "./selectors/selectGroupExpenseDistribution.selector";
 
 export const GroupDetailsScreen = () => {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
@@ -62,7 +63,6 @@ export const GroupDetailsScreen = () => {
 
   // Theme-aware colors for icons
   const iconColor = getTextColor(theme);
-  const iconSecondary = getTextColorTertiary(theme);
   const iconSuccess = SEMANTIC_COLORS.SUCCESS;
   const iconError = SEMANTIC_COLORS.ERROR;
 
@@ -81,6 +81,11 @@ export const GroupDetailsScreen = () => {
     isLoading,
     isCreator,
   } = viewModel;
+
+  // Get expense distribution data
+  const expenseDistribution = useSelector((state: AppState) =>
+    selectGroupExpenseDistribution(state, groupId || ""),
+  );
 
   // Load group on mount
   useEffect(() => {
@@ -315,12 +320,18 @@ export const GroupDetailsScreen = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          {/* Total mensuel */}
-          <GroupStatsSection
-            totalBudget={groupStats.totalBudget}
-            expensesCount={groupStats.expensesCount}
-            iconSecondary={iconSecondary}
-          />
+          {/* Cartes de répartition et total des dépenses */}
+          <YStack gap="$base" marginTop="$base" marginBottom="$lg">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <GroupExpenseDistributionCard
+                expenseDistribution={expenseDistribution.expenseDistribution}
+                expensesCount={expenseDistribution.expensesCount}
+              />
+              <GroupTotalExpenseCard
+                totalExpenses={expenseDistribution.totalExpenses}
+              />
+            </ScrollView>
+          </YStack>
 
           {/* Dépenses configurées */}
           <GroupExpensesSection
