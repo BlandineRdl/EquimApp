@@ -2,6 +2,7 @@ import { PieChart } from "react-native-gifted-charts";
 import { Text, useTheme, YStack } from "tamagui";
 import { Card } from "../../../../../components/Card";
 import type { ExpenseDistributionItem } from "../selectors/selectGroupExpenseDistribution.selector";
+import { getExpenseColorByIndex } from "../utils/expenseColors.utils";
 
 interface GroupExpenseDistributionCardProps {
   expenseDistribution: ExpenseDistributionItem[];
@@ -14,19 +15,10 @@ export function GroupExpenseDistributionCard({
 }: GroupExpenseDistributionCardProps) {
   const theme = useTheme();
 
-  // Prepare data for donut chart using theme colors
-  // Use a color palette for multiple expenses
-  const colorPalette = [
-    theme.primary.val,
-    theme.success?.val || theme.primary.val,
-    theme.warning?.val || theme.primary.val,
-    theme.error?.val || theme.primary.val,
-    theme.borderColor.val,
-  ];
-
+  // Prepare data for donut chart using consistent color palette
   const pieData = expenseDistribution.map((expense, index) => ({
     value: expense.percentage,
-    color: colorPalette[index % colorPalette.length] || theme.borderColor.val,
+    color: getExpenseColorByIndex(index),
   }));
 
   return (

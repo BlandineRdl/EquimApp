@@ -1,6 +1,8 @@
 import { Plus, Trash2 } from "lucide-react-native";
 import { Pressable } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
+import { ColorIndicator } from "../../../../../components/ColorIndicator";
+import { getExpenseColorByIndex } from "../utils/expenseColors.utils";
 
 interface Expense {
   id: string;
@@ -63,43 +65,50 @@ export const GroupExpensesSection = ({
         </Pressable>
       </XStack>
 
-      {displayedExpenses.map((expense, index) => (
-        <YStack
-          key={expense.id}
-          paddingVertical="$sm"
-          borderBottomWidth={index < displayedExpenses.length - 1 ? 1 : 0}
-          borderBottomColor="$borderColor"
-          marginBottom={index < displayedExpenses.length - 1 ? "$sm" : 0}
-        >
-          <XStack justifyContent="space-between" alignItems="center">
-            <YStack flex={1}>
-              <Text fontSize={16} fontWeight="500" color="$color">
-                {expense.name}
-              </Text>
-            </YStack>
-            <XStack alignItems="center">
-              <Text
-                fontSize={16}
-                fontWeight="600"
-                color="$color"
-                marginRight="$xs"
-              >
-                {expense.amount.toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}{" "}
-                €
-              </Text>
-              <Pressable
-                onPress={() => onDeleteExpense(expense.id)}
-                style={{ padding: 4 }}
-              >
-                <Trash2 size={16} color={iconError} />
-              </Pressable>
+      {displayedExpenses.map((expense, index) => {
+        // Get the original index from the full expenses array to maintain color consistency
+        const originalIndex = expenses.findIndex((e) => e.id === expense.id);
+        const expenseColor = getExpenseColorByIndex(originalIndex);
+
+        return (
+          <YStack
+            key={expense.id}
+            paddingVertical="$sm"
+            borderBottomWidth={index < displayedExpenses.length - 1 ? 1 : 0}
+            borderBottomColor="$borderColor"
+            marginBottom={index < displayedExpenses.length - 1 ? "$sm" : 0}
+          >
+            <XStack justifyContent="space-between" alignItems="center">
+              <XStack flex={1} alignItems="center" gap="$xs">
+                <ColorIndicator color={expenseColor} size={12} />
+                <Text fontSize={16} fontWeight="500" color="$color">
+                  {expense.name}
+                </Text>
+              </XStack>
+              <XStack alignItems="center">
+                <Text
+                  fontSize={16}
+                  fontWeight="600"
+                  color="$color"
+                  marginRight="$xs"
+                >
+                  {expense.amount.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </Text>
+                <Pressable
+                  onPress={() => onDeleteExpense(expense.id)}
+                  style={{ padding: 4 }}
+                >
+                  <Trash2 size={16} color={iconError} />
+                </Pressable>
+              </XStack>
             </XStack>
-          </XStack>
-        </YStack>
-      ))}
+          </YStack>
+        );
+      })}
 
       {expenses.length > 1 && !showAllExpenses && (
         <Pressable onPress={onShowAll}>
