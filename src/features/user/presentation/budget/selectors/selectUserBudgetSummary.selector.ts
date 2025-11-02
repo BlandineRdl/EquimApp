@@ -1,6 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { selectAllGroups } from "../../../../group/presentation/manage-groups/selectGroup.selector";
 import { selectUserProfile } from "../../selectors/selectUser.selector";
+import { selectUserRemainingCapacity } from "./selectUserRemainingCapacity.selector";
 
 export interface GroupShareInfo {
   groupId: string;
@@ -24,16 +25,17 @@ export interface UserBudgetSummary {
 /**
  * Selector that aggregates user budget data from profile and groups
  * Calculates total contributions, remaining budget, and expense ratio
+ * Uses the centralized selectUserRemainingCapacity for consistent calculations
  */
 export const selectUserBudgetSummary = createSelector(
-  [selectUserProfile, selectAllGroups],
-  (user, groups): UserBudgetSummary | null => {
-    if (!user) {
+  [selectUserProfile, selectAllGroups, selectUserRemainingCapacity],
+  (user, groups, remainingCapacity): UserBudgetSummary | null => {
+    if (!user || !remainingCapacity) {
       return null;
     }
 
     const income = user.monthlyIncome || 0;
-    const capacity = user.capacity || 0;
+    const capacity = remainingCapacity.monthlyCapacity;
     const userId = user.id;
 
     // Handle edge case: capacity is 0 or negative
@@ -60,14 +62,9 @@ export const selectUserBudgetSummary = createSelector(
       })
       .filter((share): share is GroupShareInfo => share !== null);
 
-    // Calculate total group contributions
-    const totalGroupContributions = groupShares.reduce(
-      (sum, share) => sum + share.shareAmount,
-      0,
-    );
-
-    // Calculate remaining budget after group contributions
-    const remainingBudget = capacity - totalGroupContributions;
+    // Use centralized calculation for total contributions and remaining budget
+    const totalGroupContributions = remainingCapacity.totalGroupContributions;
+    const remainingBudget = remainingCapacity.remainingAfterAllGroups;
 
     // Calculate expense ratio (percentage of capacity used)
     // Handle division by zero
@@ -76,7 +73,7 @@ export const selectUserBudgetSummary = createSelector(
       : 0;
 
     // Determine if budget is healthy (not negative)
-    const isHealthy = remainingBudget >= 0;
+    const isHealthy = !remainingCapacity.isNegative;
 
     return {
       income,

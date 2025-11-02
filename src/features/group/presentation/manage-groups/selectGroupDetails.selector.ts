@@ -1,6 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { logger } from "../../../../lib/logger";
 import type { AppState } from "../../../../store/appState";
+import { selectUserRemainingCapacity } from "../../../user/presentation/budget/selectors/selectUserRemainingCapacity.selector";
 import type { GroupMember as StoreGroupMember } from "../../domain/manage-group/group.model";
 import type { MemberShare } from "../../ports/GroupGateway";
 import { selectGroupById } from "./selectGroup.selector";
@@ -9,12 +10,17 @@ import { selectGroupById } from "./selectGroup.selector";
 export interface GroupMemberWithShare extends StoreGroupMember {
   sharePercentage: number;
   shareAmount: number;
+  remainingAfterShare: number; // Reste à vivre après contribution au groupe
 }
 
 // Selector pour obtenir les détails complets d'un groupe avec quotes-parts
 export const selectGroupDetails = createSelector(
-  [(state: AppState, groupId: string) => selectGroupById(state, groupId)],
-  (group) => {
+  [
+    (state: AppState, groupId: string) => selectGroupById(state, groupId),
+    (state: AppState) => selectUserRemainingCapacity(state),
+    (state: AppState) => state.auth.user?.id,
+  ],
+  (group, userRemainingCapacity, currentUserId) => {
     if (!group) {
       return null;
     }
@@ -31,12 +37,6 @@ export const selectGroupDetails = createSelector(
     // Utiliser les shares depuis le backend (déjà calculés)
     const totalExpenses = group.shares?.totalExpenses || 0;
 
-    // DEBUG: Log pour voir ce qui arrive du backend
-    logger.debug("DEBUG shares from backend", { shares: group.shares });
-    logger.debug("DEBUG members", {
-      members: members.map((m) => ({ id: m.id, pseudo: m.pseudo })),
-    });
-
     const sharesByMemberId = new Map(
       group.shares?.shares.map((share: MemberShare) => [
         share.memberId,
@@ -47,15 +47,37 @@ export const selectGroupDetails = createSelector(
     // Mapper les membres avec leurs shares
     const membersWithShares: GroupMemberWithShare[] = members.map((member) => {
       const share = sharesByMemberId.get(member.id);
+      const shareAmount = share?.shareAmount || 0;
+      const monthlyCapacity = member.monthlyCapacity || 0;
+
+      // Pour l'utilisateur connecté, utiliser le calcul centralisé (reste à vivre global)
+      // Pour les autres membres, calculer le reste à vivre local (juste pour ce groupe)
+      let remainingAfterShare: number;
+
+      if (member.userId === currentUserId && userRemainingCapacity) {
+        // Utilisateur connecté : reste à vivre après TOUS les groupes
+        remainingAfterShare = userRemainingCapacity.remainingAfterAllGroups;
+      } else {
+        // Autre membre : reste à vivre après CE groupe uniquement
+        remainingAfterShare = monthlyCapacity - shareAmount;
+      }
+
       logger.debug(`Member mapping`, {
         pseudo: member.pseudo,
         id: member.id,
+        userId: member.userId,
+        isCurrentUser: member.userId === currentUserId,
         share,
+        monthlyCapacity,
+        shareAmount,
+        remainingAfterShare,
       });
+
       return {
         ...member,
         sharePercentage: share?.sharePercentage || 0,
-        shareAmount: share?.shareAmount || 0,
+        shareAmount,
+        remainingAfterShare,
       };
     });
 

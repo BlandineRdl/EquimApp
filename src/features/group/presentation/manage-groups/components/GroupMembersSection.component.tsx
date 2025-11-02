@@ -176,9 +176,13 @@ export const GroupMembersSection = ({
                     <Text
                       fontSize={14}
                       fontWeight="500"
-                      color="$colorSecondary"
+                      color={
+                        member.remainingAfterShare < 0
+                          ? iconError
+                          : "$colorSecondary"
+                      }
                     >
-                      {(member.monthlyCapacity || 0).toLocaleString("fr-FR", {
+                      {member.remainingAfterShare.toLocaleString("fr-FR", {
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
                       })}{" "}
