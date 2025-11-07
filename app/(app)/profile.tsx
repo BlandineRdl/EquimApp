@@ -189,13 +189,15 @@ export default function ProfileScreen() {
                     Utilisé pour le calcul équitable des parts
                   </Text>
                 </YStack>
-                <IconButton
-                  icon={Edit2}
-                  variant="success"
-                  size={40}
-                  iconSize={20}
-                  onPress={() => setIsIncomeModalVisible(true)}
-                />
+                <YStack marginTop={-4}>
+                  <IconButton
+                    icon={Edit2}
+                    variant="success"
+                    size={32}
+                    iconSize={16}
+                    onPress={() => setIsIncomeModalVisible(true)}
+                  />
+                </YStack>
               </XStack>
             </Card>
 

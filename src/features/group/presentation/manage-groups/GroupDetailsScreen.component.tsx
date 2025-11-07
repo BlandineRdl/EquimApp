@@ -1,14 +1,9 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { AlertTriangle, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, RefreshControl } from "react-native";
+import { RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 import { useSelector } from "react-redux";
-import { ScrollView, Text, XStack, YStack } from "tamagui";
-import { Button } from "../../../../components/Button";
-import { ExpenseManager } from "../../../../components/expense/ExpenseManager.component";
-import { Input } from "../../../../components/Input";
+import { ScrollView, Text, YStack } from "tamagui";
 import {
   getSafeAreaBackgroundColor,
   getTextColor,
@@ -21,28 +16,33 @@ import { useAppDispatch } from "../../../../store/buildReduxStore";
 import type { GroupMember } from "../../ports/GroupGateway";
 import {
   closeAddExpenseForm,
-  closeAddMemberForm,
   openAddExpenseForm,
   openAddMemberForm,
-  updateAddMemberForm,
 } from "../../store/group.slice";
-import { addMemberToGroup } from "../../usecases/add-member/addMember.usecase";
-import { deleteGroup } from "../../usecases/delete-group/deleteGroup.usecase";
 import { addExpenseToGroup } from "../../usecases/expense/addExpense.usecase";
 import { deleteExpense } from "../../usecases/expense/deleteExpense.usecase";
 import { updateExpense } from "../../usecases/expense/updateExpense.usecase";
-import { leaveGroup } from "../../usecases/leave-group/leaveGroup.usecase";
 import { loadGroupById } from "../../usecases/load-group/loadGroup.usecase";
 import { InviteModal } from "../manage-invitations/InviteModal.component";
 import { EditPhantomMemberModal } from "../manage-members/EditPhantomMemberModal.component";
 import { MemberTypeChoiceModal } from "../manage-members/MemberTypeChoiceModal.component";
 import { RemoveMemberConfirmModal } from "../manage-members/RemoveMemberConfirmModal.component";
+import { AddExpenseModal } from "./components/AddExpenseModal.component";
+import { AddMemberModal } from "./components/AddMemberModal.component";
+import { DeleteGroupConfirmModal } from "./components/DeleteGroupConfirmModal.component";
 import { GroupDetailsHeader } from "./components/GroupDetailsHeader.component";
 import { GroupExpenseDistributionCard } from "./components/GroupExpenseDistributionCard.component";
 import { GroupExpensesSection } from "./components/GroupExpensesSection.component";
 import { GroupMembersSection } from "./components/GroupMembersSection.component";
 import { GroupTotalExpenseCard } from "./components/GroupTotalExpenseCard.component";
-import { selectGroupDetailsUIViewModel } from "./selectGroupDetailsUI.selector";
+import { LeaveGroupConfirmModal } from "./components/LeaveGroupConfirmModal.component";
+import { selectAddExpenseUI, selectAddMemberUI } from "./selectGroup.selector";
+import {
+  selectGroupDetails,
+  selectGroupExpenses,
+  selectGroupStats,
+  selectMaxSharePercentage,
+} from "./selectGroupDetails.selector";
 import { selectGroupExpenseDistribution } from "./selectors/selectGroupExpenseDistribution.selector";
 
 export const GroupDetailsScreen = () => {
@@ -50,6 +50,7 @@ export const GroupDetailsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showAllExpenses, setShowAllExpenses] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
   const [showMemberTypeChoice, setShowMemberTypeChoice] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -66,26 +67,29 @@ export const GroupDetailsScreen = () => {
   const iconSuccess = SEMANTIC_COLORS.SUCCESS;
   const iconError = SEMANTIC_COLORS.ERROR;
 
-  // Use consolidated view model selector
-  const viewModel = useSelector((state: AppState) =>
-    selectGroupDetailsUIViewModel(state, groupId || ""),
+  // Select data from store
+  const currentUserId = useSelector((state: AppState) => state.auth.user?.id);
+  const groupDetails = useSelector((state: AppState) =>
+    selectGroupDetails(state, groupId || ""),
   );
-
-  const {
-    groupDetails,
-    groupStats,
-    expenses,
-    maxSharePercentage,
-    addMemberUI,
-    addExpenseUI,
-    isLoading,
-    isCreator,
-  } = viewModel;
-
-  // Get expense distribution data
+  const groupStats = useSelector((state: AppState) =>
+    selectGroupStats(state, groupId || ""),
+  );
+  const expenses = useSelector((state: AppState) =>
+    selectGroupExpenses(state, groupId || ""),
+  );
+  const maxSharePercentage = useSelector((state: AppState) =>
+    selectMaxSharePercentage(state, groupId || ""),
+  );
+  const addMemberUI = useSelector(selectAddMemberUI);
+  const addExpenseUI = useSelector(selectAddExpenseUI);
   const expenseDistribution = useSelector((state: AppState) =>
     selectGroupExpenseDistribution(state, groupId || ""),
   );
+
+  // Computed values
+  const isLoading = !groupDetails || !groupStats;
+  const isCreator = groupDetails?.group.creatorId === currentUserId;
 
   // Load group on mount
   useEffect(() => {
@@ -128,46 +132,6 @@ export const GroupDetailsScreen = () => {
     dispatch(openAddMemberForm(groupId));
   };
 
-  const closeAddMemberModal = () => {
-    dispatch(closeAddMemberForm());
-  };
-
-  const handleAddMember = async () => {
-    if (addMemberUI.form) {
-      const pseudo = addMemberUI.form.pseudo?.trim() || "";
-      const income = addMemberUI.form.monthlyIncome
-        ? parseFloat(addMemberUI.form.monthlyIncome)
-        : 0;
-
-      // Validate pseudo is not empty
-      if (!pseudo) {
-        Toast.show({
-          type: "error",
-          text1: "Erreur",
-          text2: "Le nom est obligatoire",
-        });
-        return;
-      }
-
-      // Toast notifications (success and error) are handled by listener
-      await dispatch(
-        addMemberToGroup({
-          groupId: addMemberUI.form.groupId,
-          memberData: {
-            pseudo,
-            monthlyIncome: income,
-          },
-        }),
-      );
-    }
-  };
-
-  const onPseudoChange = (text: string) =>
-    dispatch(updateAddMemberForm({ pseudo: text }));
-
-  const onIncomeChange = (text: string) =>
-    dispatch(updateAddMemberForm({ monthlyIncome: text }));
-
   const onRefresh = async () => {
     if (!groupId) return;
     setRefreshing(true);
@@ -189,26 +153,22 @@ export const GroupDetailsScreen = () => {
     }
   };
 
-  const handleLeaveGroup = async () => {
-    if (!groupId) return;
-    try {
-      await dispatch(leaveGroup({ groupId })).unwrap();
-      // Navigate to home after successfully leaving
-      router.replace("/home");
-    } catch (error: unknown) {
-      logger.error("Error leaving group", error);
-    }
+  const openLeaveConfirmModal = () => {
+    setShowLeaveConfirm(true);
   };
 
-  const handleDeleteGroup = async () => {
-    if (!groupId) return;
-    try {
-      await dispatch(deleteGroup({ groupId })).unwrap();
-      // Navigate to home after successfully deleting
-      router.replace("/home");
-    } catch (error: unknown) {
-      logger.error("Error deleting group", error);
-    }
+  const closeLeaveConfirmModal = () => {
+    setShowLeaveConfirm(false);
+  };
+
+  const handleLeaveSuccess = () => {
+    // Navigate to home after successfully leaving
+    router.replace("/home");
+  };
+
+  const handleDeleteSuccess = () => {
+    // Navigate to home after successfully deleting
+    router.replace("/home");
   };
 
   const openDeleteConfirmModal = () => {
@@ -217,11 +177,6 @@ export const GroupDetailsScreen = () => {
 
   const closeDeleteConfirmModal = () => {
     setShowDeleteConfirm(false);
-  };
-
-  const confirmDeleteGroup = async () => {
-    closeDeleteConfirmModal();
-    await handleDeleteGroup();
   };
 
   // Navigation handlers
@@ -248,7 +203,7 @@ export const GroupDetailsScreen = () => {
   };
 
   const handleRemoveMemberClick = (memberId: string) => {
-    const member = members.find((m) => m.id === memberId);
+    const member = members.find((m: GroupMember) => m.id === memberId);
     if (member) {
       setMemberToRemove({ id: memberId, pseudo: member.pseudo });
     }
@@ -309,7 +264,7 @@ export const GroupDetailsScreen = () => {
           iconError={iconError}
           onBack={handleBackToHome}
           onDelete={openDeleteConfirmModal}
-          onLeave={handleLeaveGroup}
+          onLeave={openLeaveConfirmModal}
         />
 
         <ScrollView
@@ -338,8 +293,6 @@ export const GroupDetailsScreen = () => {
             expenses={expenses}
             expensesCount={groupStats.expensesCount}
             showAllExpenses={showAllExpenses}
-            iconColor={iconColor}
-            iconError={iconError}
             onAddExpense={openExpenseModal}
             onDeleteExpense={handleDeleteExpenseClick}
             onShowAll={handleShowAllExpenses}
@@ -366,178 +319,27 @@ export const GroupDetailsScreen = () => {
         </ScrollView>
 
         {/* Modal d'ajout de membre */}
-        {addMemberUI.isOpen && (
-          <YStack
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            backgroundColor="rgba(0, 0, 0, 0.5)"
-            justifyContent="center"
-            alignItems="center"
-            padding="$lg"
-          >
-            <YStack
-              backgroundColor="$background"
-              borderRadius="$lg"
-              padding="$xl"
-              width="85%"
-              maxWidth={400}
-            >
-              <Text
-                fontSize={20}
-                fontWeight="700"
-                marginBottom="$sm"
-                color="$color"
-              >
-                Ajouter un membre fantôme
-              </Text>
-              <Text
-                fontSize={14}
-                color="$colorSecondary"
-                marginBottom="$base"
-                lineHeight={20}
-              >
-                💡 Le préfixe "Membre-" sera ajouté automatiquement
-              </Text>
-              <Input
-                placeholder="Nom (ex: Bob)"
-                value={addMemberUI.form?.pseudo}
-                onChangeText={onPseudoChange}
-                maxLength={50}
-                marginBottom="$sm"
-              />
-              <Input
-                placeholder="Revenu mensuel (€) - optionnel"
-                keyboardType="numeric"
-                value={addMemberUI.form?.monthlyIncome}
-                onChangeText={onIncomeChange}
-                marginBottom="$sm"
-              />
-              <Button
-                variant="success"
-                onPress={handleAddMember}
-                marginBottom="$xs"
-              >
-                Ajouter
-              </Button>
-              <Button variant="secondary" onPress={closeAddMemberModal}>
-                Annuler
-              </Button>
-            </YStack>
-          </YStack>
-        )}
+        <AddMemberModal visible={addMemberUI.isOpen} form={addMemberUI.form} />
 
         {/* Modal d'ajout de dépense */}
-        <Modal
+        <AddExpenseModal
           visible={addExpenseUI.isOpen}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={closeAddExpenseModal}
-        >
-          <YStack flex={1} backgroundColor="$background">
-            {/* Header */}
-            <XStack
-              alignItems="center"
-              justifyContent="space-between"
-              paddingHorizontal="$base"
-              paddingVertical="$base"
-              borderBottomWidth={1}
-              borderBottomColor="$borderColor"
-            >
-              <Text fontSize={18} fontWeight="600" color="$color">
-                Dépenses du groupe
-              </Text>
-              <Pressable onPress={closeAddExpenseModal}>
-                <X size={24} color={iconColor} />
-              </Pressable>
-            </XStack>
-
-            {/* Content */}
-            <YStack flex={1} padding="$base">
-              <ExpenseManager
-                expenses={expenses.map((exp) => ({
-                  id: exp.id,
-                  label: exp.name,
-                  amount: exp.amount,
-                }))}
-                onAdd={handleAddExpense}
-                onEdit={handleEditExpense}
-                onDelete={handleDeleteExpense}
-                minExpenses={0}
-                title="Dépenses du groupe"
-                addSectionTitle="Ajouter une dépense"
-              />
-            </YStack>
-          </YStack>
-        </Modal>
+          onClose={closeAddExpenseModal}
+          expenses={expenses}
+          onAdd={handleAddExpense}
+          onEdit={handleEditExpense}
+          onDelete={handleDeleteExpense}
+        />
 
         {/* Modal de confirmation de suppression du groupe */}
-        <Modal
-          visible={showDeleteConfirm}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={closeDeleteConfirmModal}
-        >
-          <YStack flex={1} backgroundColor="$background">
-            {/* Header */}
-            <XStack
-              alignItems="center"
-              justifyContent="space-between"
-              paddingHorizontal="$base"
-              paddingVertical="$base"
-              borderBottomWidth={1}
-              borderBottomColor="$borderColor"
-            >
-              <Text fontSize={18} fontWeight="600" color="$color">
-                Supprimer le groupe ?
-              </Text>
-              <Pressable onPress={closeDeleteConfirmModal}>
-                <X size={24} color={iconColor} />
-              </Pressable>
-            </XStack>
-
-            {/* Content */}
-            <YStack
-              flex={1}
-              padding="$xl"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <YStack marginBottom="$xl">
-                <AlertTriangle size={64} color={iconError} />
-              </YStack>
-              <Text
-                fontSize={16}
-                color="$gray500"
-                textAlign="center"
-                marginBottom="$2xl"
-                lineHeight={24}
-              >
-                Cette action est irréversible. Tous les membres, dépenses et
-                données du groupe seront définitivement supprimés.
-              </Text>
-
-              <Button
-                variant="error"
-                onPress={confirmDeleteGroup}
-                marginBottom="$sm"
-                width="100%"
-              >
-                Supprimer définitivement
-              </Button>
-
-              <Button
-                variant="secondary"
-                onPress={closeDeleteConfirmModal}
-                width="100%"
-              >
-                Annuler
-              </Button>
-            </YStack>
-          </YStack>
-        </Modal>
+        {groupId && (
+          <DeleteGroupConfirmModal
+            visible={showDeleteConfirm}
+            onClose={closeDeleteConfirmModal}
+            groupId={groupId}
+            onDeleteSuccess={handleDeleteSuccess}
+          />
+        )}
 
         {/* Modal de choix du type de membre */}
         <MemberTypeChoiceModal
@@ -574,6 +376,16 @@ export const GroupDetailsScreen = () => {
             memberId={memberToRemove.id}
             memberPseudo={memberToRemove.pseudo}
             groupId={groupId}
+          />
+        )}
+
+        {/* Modal de confirmation pour quitter le groupe */}
+        {groupId && (
+          <LeaveGroupConfirmModal
+            visible={showLeaveConfirm}
+            onClose={closeLeaveConfirmModal}
+            groupId={groupId}
+            onLeaveSuccess={handleLeaveSuccess}
           />
         )}
       </YStack>

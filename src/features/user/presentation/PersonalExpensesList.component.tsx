@@ -68,12 +68,12 @@ export function PersonalExpensesList({
             </>
           )}
         </YStack>
-        <YStack marginLeft="$sm">
+        <YStack marginLeft="$sm" marginTop={-4}>
           <IconButton
             icon={Plus}
             variant="success"
-            size={40}
-            iconSize={20}
+            size={32}
+            iconSize={16}
             onPress={onManagePress}
           />
         </YStack>

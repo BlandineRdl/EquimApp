@@ -2,7 +2,7 @@ import { Edit, Plus, Trash2, Users } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
-import { SEMANTIC_COLORS } from "../../../../../constants/theme.constants";
+import { IconButton } from "../../../../../components/IconButton";
 import type { GroupMemberWithShare } from "../selectGroupDetails.selector";
 
 interface GroupMembersSectionProps {
@@ -69,20 +69,13 @@ export const GroupMembersSection = ({
             Membres et quotes-parts
           </Text>
         </XStack>
-        <Pressable onPress={onAddMember}>
-          <XStack
-            alignItems="center"
-            backgroundColor="$backgroundTertiary"
-            borderWidth={1}
-            borderColor="$borderColor"
-            borderRadius={8}
-            paddingHorizontal="$sm"
-            paddingVertical="$xs"
-          >
-            <Plus size={16} color={iconColor} />
-            <Users size={16} color={iconColor} style={{ marginLeft: 4 }} />
-          </XStack>
-        </Pressable>
+        <IconButton
+          icon={Plus}
+          variant="success"
+          size={32}
+          iconSize={16}
+          onPress={onAddMember}
+        />
       </XStack>
 
       {/* Member Cards */}
@@ -197,28 +190,22 @@ export const GroupMembersSection = ({
                 (member.isPhantom || member.userId !== groupCreatorId) && (
                   <YStack gap="$xs">
                     {member.isPhantom && (
-                      <Pressable
+                      <IconButton
+                        icon={Edit}
+                        variant="success"
+                        size={28}
+                        iconSize={14}
                         onPress={() => onEditMember(member)}
-                        style={{
-                          padding: 6,
-                          backgroundColor: "rgba(14, 165, 233, 0.1)",
-                          borderRadius: 6,
-                        }}
-                      >
-                        <Edit size={16} color={SEMANTIC_COLORS.PRIMARY_HOVER} />
-                      </Pressable>
+                      />
                     )}
                     {member.userId !== groupCreatorId && (
-                      <Pressable
+                      <IconButton
+                        icon={Trash2}
+                        variant="error"
+                        size={28}
+                        iconSize={14}
                         onPress={() => onRemoveMember(member.id)}
-                        style={{
-                          padding: 6,
-                          backgroundColor: "rgba(239, 68, 68, 0.1)",
-                          borderRadius: 6,
-                        }}
-                      >
-                        <Trash2 size={16} color={iconError} />
-                      </Pressable>
+                      />
                     )}
                   </YStack>
                 )}

@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react-native";
 import { Pressable } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
 import { ColorIndicator } from "../../../../../components/ColorIndicator";
+import { IconButton } from "../../../../../components/IconButton";
 import { getExpenseColorByIndex } from "../utils/expenseColors.utils";
 
 interface Expense {
@@ -14,8 +15,6 @@ interface GroupExpensesSectionProps {
   expenses: Expense[];
   expensesCount: number;
   showAllExpenses: boolean;
-  iconColor: string;
-  iconError: string;
   onAddExpense: () => void;
   onDeleteExpense: (expenseId: string) => void;
   onShowAll: () => void;
@@ -26,8 +25,6 @@ export const GroupExpensesSection = ({
   expenses,
   expensesCount,
   showAllExpenses,
-  iconColor,
-  iconError,
   onAddExpense,
   onDeleteExpense,
   onShowAll,
@@ -52,17 +49,13 @@ export const GroupExpensesSection = ({
         <Text fontSize={16} fontWeight="600" color="$color">
           Dépenses configurées ({expensesCount})
         </Text>
-        <Pressable onPress={onAddExpense}>
-          <YStack
-            backgroundColor="$backgroundTertiary"
-            borderWidth={1}
-            borderColor="$borderColor"
-            borderRadius={8}
-            padding="$xs"
-          >
-            <Plus size={16} color={iconColor} />
-          </YStack>
-        </Pressable>
+        <IconButton
+          icon={Plus}
+          variant="success"
+          size={32}
+          iconSize={16}
+          onPress={onAddExpense}
+        />
       </XStack>
 
       {displayedExpenses.map((expense, index) => {
@@ -85,25 +78,21 @@ export const GroupExpensesSection = ({
                   {expense.name}
                 </Text>
               </XStack>
-              <XStack alignItems="center">
-                <Text
-                  fontSize={16}
-                  fontWeight="600"
-                  color="$color"
-                  marginRight="$xs"
-                >
+              <XStack alignItems="center" gap="$xs">
+                <Text fontSize={16} fontWeight="600" color="$color">
                   {expense.amount.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}{" "}
                   €
                 </Text>
-                <Pressable
+                <IconButton
+                  icon={Trash2}
+                  variant="error"
+                  size={28}
+                  iconSize={14}
                   onPress={() => onDeleteExpense(expense.id)}
-                  style={{ padding: 4 }}
-                >
-                  <Trash2 size={16} color={iconError} />
-                </Pressable>
+                />
               </XStack>
             </XStack>
           </YStack>
