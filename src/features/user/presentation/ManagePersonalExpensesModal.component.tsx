@@ -100,6 +100,8 @@ export function ManagePersonalExpensesModal({
               minExpenses={1}
               title="Mes charges"
               addSectionTitle="Ajouter une charge"
+              requireConfirmation={true}
+              confirmationMessage="Cette charge sera définitivement supprimée. Votre capacité de participation sera recalculée automatiquement."
             />
           </YStack>
         </YStack>

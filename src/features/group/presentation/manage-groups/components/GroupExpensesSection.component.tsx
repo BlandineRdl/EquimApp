@@ -16,7 +16,7 @@ interface GroupExpensesSectionProps {
   expensesCount: number;
   showAllExpenses: boolean;
   onAddExpense: () => void;
-  onDeleteExpense: (expenseId: string) => void;
+  onRequestDeleteExpense: (expenseId: string, expenseName: string, expenseAmount: number) => void;
   onShowAll: () => void;
   onShowLess: () => void;
 }
@@ -26,7 +26,7 @@ export const GroupExpensesSection = ({
   expensesCount,
   showAllExpenses,
   onAddExpense,
-  onDeleteExpense,
+  onRequestDeleteExpense,
   onShowAll,
   onShowLess,
 }: GroupExpensesSectionProps) => {
@@ -91,7 +91,7 @@ export const GroupExpensesSection = ({
                   variant="error"
                   size={28}
                   iconSize={14}
-                  onPress={() => onDeleteExpense(expense.id)}
+                  onPress={() => onRequestDeleteExpense(expense.id, expense.name, expense.amount)}
                 />
               </XStack>
             </XStack>

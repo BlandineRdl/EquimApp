@@ -23,6 +23,7 @@ import { addExpenseToGroup } from "../../usecases/expense/addExpense.usecase";
 import { deleteExpense } from "../../usecases/expense/deleteExpense.usecase";
 import { updateExpense } from "../../usecases/expense/updateExpense.usecase";
 import { loadGroupById } from "../../usecases/load-group/loadGroup.usecase";
+import { DeleteExpenseConfirmModal } from "../manage-expenses/DeleteExpenseConfirmModal.component";
 import { InviteModal } from "../manage-invitations/InviteModal.component";
 import { EditPhantomMemberModal } from "../manage-members/EditPhantomMemberModal.component";
 import { MemberTypeChoiceModal } from "../manage-members/MemberTypeChoiceModal.component";
@@ -57,6 +58,11 @@ export const GroupDetailsScreen = () => {
   const [memberToRemove, setMemberToRemove] = useState<{
     id: string;
     pseudo: string;
+  } | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState<{
+    id: string;
+    name: string;
+    amount: number;
   } | null>(null);
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -144,15 +150,6 @@ export const GroupDetailsScreen = () => {
     }
   };
 
-  const handleDeleteExpense = async (expenseId: string) => {
-    if (!groupId) return;
-    try {
-      await dispatch(deleteExpense({ groupId, expenseId })).unwrap();
-    } catch (error: unknown) {
-      logger.error("Error deleting expense", error);
-    }
-  };
-
   const openLeaveConfirmModal = () => {
     setShowLeaveConfirm(true);
   };
@@ -198,8 +195,21 @@ export const GroupDetailsScreen = () => {
     setEditingMember(member);
   };
 
-  const handleDeleteExpenseClick = (expenseId: string) => {
-    handleDeleteExpense(expenseId);
+  const handleRequestDeleteExpense = (
+    expenseId: string,
+    expenseName: string,
+    expenseAmount: number,
+  ) => {
+    setExpenseToDelete({ id: expenseId, name: expenseName, amount: expenseAmount });
+  };
+
+  const handleDeleteExpense = async (expenseId: string) => {
+    if (!groupId) return;
+    try {
+      await dispatch(deleteExpense({ groupId, expenseId })).unwrap();
+    } catch (error: unknown) {
+      logger.error("Error deleting expense", error);
+    }
   };
 
   const handleRemoveMemberClick = (memberId: string) => {
@@ -294,7 +304,7 @@ export const GroupDetailsScreen = () => {
             expensesCount={groupStats.expensesCount}
             showAllExpenses={showAllExpenses}
             onAddExpense={openExpenseModal}
-            onDeleteExpense={handleDeleteExpenseClick}
+            onRequestDeleteExpense={handleRequestDeleteExpense}
             onShowAll={handleShowAllExpenses}
             onShowLess={handleHideExpenses}
           />
@@ -386,6 +396,18 @@ export const GroupDetailsScreen = () => {
             onClose={closeLeaveConfirmModal}
             groupId={groupId}
             onLeaveSuccess={handleLeaveSuccess}
+          />
+        )}
+
+        {/* Modal de confirmation de suppression de dépense */}
+        {expenseToDelete && groupId && (
+          <DeleteExpenseConfirmModal
+            visible={expenseToDelete !== null}
+            onClose={() => setExpenseToDelete(null)}
+            expenseId={expenseToDelete.id}
+            expenseName={expenseToDelete.name}
+            expenseAmount={expenseToDelete.amount}
+            groupId={groupId}
           />
         )}
       </YStack>

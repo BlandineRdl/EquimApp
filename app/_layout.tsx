@@ -1,9 +1,10 @@
+import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
+import { ToastPortal } from "../src/components/ToastPortal";
 import { useAuthInit } from "../src/features/auth/hooks/useAuthInit";
 import { SupabaseAuthGateway } from "../src/features/auth/infra/SupabaseAuthGateway";
 import { SupabaseGroupGateway } from "../src/features/group/infra/SupabaseGroupGateway";
@@ -32,7 +33,7 @@ function InitializeApp() {
   return (
     <>
       <Slot />
-      <Toast />
+      <PortalHost name="toast" />
     </>
   );
 }
@@ -43,7 +44,10 @@ export default function RootLayout() {
       <TamaguiProvider>
         <SafeAreaProvider>
           <Provider store={store}>
-            <InitializeApp />
+            <PortalProvider>
+              <InitializeApp />
+              <ToastPortal />
+            </PortalProvider>
           </Provider>
         </SafeAreaProvider>
       </TamaguiProvider>
