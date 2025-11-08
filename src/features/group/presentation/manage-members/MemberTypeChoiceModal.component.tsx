@@ -59,7 +59,7 @@ export const MemberTypeChoiceModal = ({
                 Choisissez comment ajouter un membre au groupe
               </Text>
 
-              {/* Option 1: Inviter un membre */}
+              {}
               <Pressable onPress={onSelectInvite}>
                 <XStack
                   alignItems="center"
@@ -97,7 +97,7 @@ export const MemberTypeChoiceModal = ({
                 </XStack>
               </Pressable>
 
-              {/* Option 2: Membre fantôme */}
+              {}
               <Pressable onPress={onSelectPhantom}>
                 <XStack
                   alignItems="center"
@@ -135,7 +135,7 @@ export const MemberTypeChoiceModal = ({
                 </XStack>
               </Pressable>
 
-              {/* Bouton Annuler */}
+              {}
               <Button variant="secondary" onPress={onClose} marginTop="$md">
                 <Text fontSize={16} fontWeight="600" color="$colorSecondary">
                   Annuler

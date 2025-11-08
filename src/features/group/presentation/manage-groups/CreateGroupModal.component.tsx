@@ -33,7 +33,6 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   const [groupName, setGroupName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
-  // Reset form when modal closes
   useEffect(() => {
     if (!isVisible) {
       setGroupName("");
@@ -60,7 +59,6 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         createGroup({ name: trimmedName }),
       ).unwrap();
 
-      // Reload groups to include the new one
       await dispatch(loadUserGroups());
 
       onClose();
@@ -105,7 +103,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
           borderRadius="$xl"
           padding="$lg"
         >
-          {/* Header */}
+          {}
           <XStack alignItems="center" marginBottom="$lg">
             <YStack
               width="$3xl"
@@ -130,7 +128,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             </Pressable>
           </XStack>
 
-          {/* Form */}
+          {}
           <YStack marginBottom="$lg">
             <Text
               fontSize={14}
@@ -151,7 +149,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
               autoFocus
             />
 
-            {/* Suggestions */}
+            {}
             <YStack marginTop="$base">
               <Text
                 fontSize={12}
@@ -195,7 +193,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             </YStack>
           </YStack>
 
-          {/* Actions */}
+          {}
           <Button
             variant="primary"
             onPress={handleCreate}

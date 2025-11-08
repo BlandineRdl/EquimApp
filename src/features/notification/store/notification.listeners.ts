@@ -1,4 +1,3 @@
-// src/features/notification/store/notification.listeners.ts
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 import Toast from "react-native-toast-message";
 import type { AppError } from "../../../types/thunk.types";
@@ -38,7 +37,6 @@ function getToastTitle(type: "success" | "error" | "info"): string {
 
 export const notificationListeners = createListenerMiddleware();
 
-// 1) Listener générique : afficher un toast dès qu'une notification est ajoutée
 notificationListeners.startListening({
   actionCreator: addNotification,
   effect: async (action) => {
@@ -46,7 +44,7 @@ notificationListeners.startListening({
 
     Toast.show({
       type,
-      text1: title || getToastTitle(type), // Use custom title if provided, otherwise use default
+      text1: title || getToastTitle(type),
       text2: message,
       visibilityTime:
         type === "error" ? TOAST_TIMEOUT_ERROR : TOAST_TIMEOUT_DEFAULT,
@@ -56,7 +54,6 @@ notificationListeners.startListening({
   },
 });
 
-// 2) Listeners spécifiques pour les succès
 notificationListeners.startListening({
   matcher: isAnyOf(addMemberToGroup.fulfilled),
   effect: async (_, { dispatch }) => {
@@ -252,7 +249,6 @@ notificationListeners.startListening({
   },
 });
 
-// 3) Listeners spécifiques pour les erreurs
 notificationListeners.startListening({
   matcher: isAnyOf(
     addMemberToGroup.rejected,
@@ -271,7 +267,6 @@ notificationListeners.startListening({
     deletePersonalExpense.rejected,
   ),
   effect: async (action, { dispatch }) => {
-    // With the new event-driven pattern, errors are in action.payload as AppError
     const errorPayload = action.payload as AppError | undefined;
     const fallbackError = action.error as { message?: string } | undefined;
     const message =

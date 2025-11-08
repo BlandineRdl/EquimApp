@@ -4,13 +4,10 @@ import type {
   Shares,
 } from "../../ports/GroupGateway";
 
-// Domain group member - matches gateway interface
 export type GroupMember = GatewayGroupMember;
 
-// Domain expense - matches gateway interface
 export type Expense = GatewayExpense;
 
-// Domain group - enriched with computed fields
 export interface Group {
   id: string;
   name: string;
@@ -19,7 +16,7 @@ export interface Group {
   members: GroupMember[];
   expenses: Expense[];
   shares: Shares;
-  totalMonthlyBudget: number; // Computed from shares.totalExpenses
+  totalMonthlyBudget: number;
   createdAt: string;
   updatedAt: string;
 }

@@ -2,9 +2,6 @@ import { ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, useTheme, YStack } from "tamagui";
 
-/**
- * Splash screen shown during app initialization
- */
 export function SplashScreen() {
   const theme = useTheme();
 

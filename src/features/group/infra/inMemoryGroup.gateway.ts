@@ -1,8 +1,3 @@
-/**
- * In-Memory Group Gateway for tests
- * Implements the new GroupGateway interface with full validation
- */
-
 import type {
   Expense,
   GroupFull,
@@ -96,8 +91,8 @@ export class InMemoryGroupGateway implements GroupGateway {
       name: group.name,
       currency: group.currency,
       creatorId: group.creatorId,
-      members: members.map((m) => ({ ...m })), // Return a copy to avoid mutation issues
-      expenses: groupExpenses.map((e) => ({ ...e })), // Return a copy
+      members: members.map((m) => ({ ...m })),
+      expenses: groupExpenses.map((e) => ({ ...e })),
       shares,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,
@@ -111,17 +106,14 @@ export class InMemoryGroupGateway implements GroupGateway {
     currency: string;
     isPredefined: boolean;
   }): Promise<{ expenseId: string; shares: Shares }> {
-    // Validate group exists
     if (!this.groups.has(input.groupId)) {
       throw new Error("Groupe non trouvé");
     }
 
-    // Validate name
     if (!input.name.trim()) {
       throw new Error("Le nom de la dépense ne peut pas être vide");
     }
 
-    // Validate amount
     if (input.amount <= 0) {
       throw new Error("Le montant doit être supérieur à 0");
     }
@@ -171,7 +163,6 @@ export class InMemoryGroupGateway implements GroupGateway {
   async generateInvitation(
     groupId: string,
   ): Promise<{ token: string; link: string }> {
-    // Validate group exists
     if (!this.groups.has(groupId)) {
       throw new Error("Groupe non trouvé");
     }
@@ -188,7 +179,6 @@ export class InMemoryGroupGateway implements GroupGateway {
   }
 
   async getInvitationDetails(token: string): Promise<InvitationPreview | null> {
-    // Validate token
     if (!token || !token.trim()) {
       throw new Error("Token d'invitation invalide");
     }
@@ -217,7 +207,6 @@ export class InMemoryGroupGateway implements GroupGateway {
 
     invitation.isConsumed = true;
 
-    // Add member
     const members = this.members.get(invitation.groupId) || [];
     const memberId = `member-${Date.now()}`;
     members.push({
@@ -261,12 +250,10 @@ export class InMemoryGroupGateway implements GroupGateway {
     suffix: string,
     income: number = 0,
   ): Promise<{ memberId: string; pseudo: string; shares: Shares }> {
-    // Validate income >= 0
     if (income < 0) {
       throw new Error("Le revenu ne peut pas être négatif");
     }
 
-    // Trim and validate suffix
     const trimmedSuffix = suffix.trim();
     if (trimmedSuffix.length < 1 || trimmedSuffix.length > 50) {
       throw new Error("Le nom doit faire entre 1 et 50 caractères");
@@ -277,7 +264,6 @@ export class InMemoryGroupGateway implements GroupGateway {
       );
     }
 
-    // Generate pseudo with suffix
     const pseudo = `Membre-${trimmedSuffix}`;
 
     const members = this.members.get(groupId) || [];
@@ -304,7 +290,6 @@ export class InMemoryGroupGateway implements GroupGateway {
     newPseudo: string,
     newIncome?: number,
   ): Promise<{ memberId: string; pseudo: string; shares: Shares }> {
-    // Validate format
     if (!newPseudo.startsWith("Membre-")) {
       throw new Error(
         'Le pseudo d\'un membre fantôme doit commencer par "Membre-"',
@@ -318,19 +303,16 @@ export class InMemoryGroupGateway implements GroupGateway {
       );
     }
 
-    // Validate characters
     if (!/^[a-zA-Z0-9\s-]+$/.test(suffix)) {
       throw new Error(
         'Le pseudo ne peut contenir que des lettres, chiffres, tirets et espaces après "Membre-"',
       );
     }
 
-    // Validate income if provided
     if (newIncome !== undefined && newIncome < 0) {
       throw new Error("Le revenu ne peut pas être négatif");
     }
 
-    // Find the member
     let foundMember: GroupMember | undefined;
     let groupId: string | undefined;
 
@@ -347,7 +329,6 @@ export class InMemoryGroupGateway implements GroupGateway {
       throw new Error("Membre fantôme non trouvé");
     }
 
-    // Update
     foundMember.pseudo = newPseudo;
     if (newIncome !== undefined) {
       foundMember.incomeOrWeight = newIncome;
@@ -362,7 +343,6 @@ export class InMemoryGroupGateway implements GroupGateway {
     groupId: string,
     memberId: string,
   ): Promise<{ shares: Shares }> {
-    // Validate inputs
     if (!groupId.trim()) {
       throw new Error("ID de groupe invalide");
     }
@@ -371,20 +351,17 @@ export class InMemoryGroupGateway implements GroupGateway {
       throw new Error("ID de membre invalide");
     }
 
-    // Check group exists
     if (!this.groups.has(groupId)) {
       throw new Error("Groupe non trouvé");
     }
 
     const members = this.members.get(groupId) || [];
 
-    // Check member exists
     const memberExists = members.some((m) => m.id === memberId);
     if (!memberExists) {
       throw new Error("Membre non trouvé");
     }
 
-    // Remove by member ID (not userId)
     const filtered = members.filter((m) => m.id !== memberId);
     this.members.set(groupId, filtered);
 
@@ -392,27 +369,21 @@ export class InMemoryGroupGateway implements GroupGateway {
   }
 
   async leaveGroup(groupId: string): Promise<{ groupDeleted: boolean }> {
-    // Check group exists
     if (!this.groups.has(groupId)) {
       throw new Error("Groupe non trouvé");
     }
 
     const members = this.members.get(groupId) || [];
 
-    // In memory implementation: remove the last added member (simulates current user)
-    // In real implementation, Supabase gets current user from auth context
     if (members.length === 0) {
       throw new Error("Aucun membre à retirer");
     }
 
-    // Remove last member (simulates current user leaving)
     const filtered = members.slice(0, -1);
 
     if (filtered.length === 0) {
-      // Delete group when last member leaves
       this.groups.delete(groupId);
       this.members.delete(groupId);
-      // Delete expenses
       for (const [expenseId, expense] of this.expenses.entries()) {
         if (expense.groupId === groupId) {
           this.expenses.delete(expenseId);
@@ -426,23 +397,19 @@ export class InMemoryGroupGateway implements GroupGateway {
   }
 
   async deleteGroup(groupId: string): Promise<{ success: boolean }> {
-    // Check group exists
     const group = this.groups.get(groupId);
     if (!group) {
       throw new Error("Groupe non trouvé");
     }
 
-    // Delete all members
     this.members.delete(groupId);
 
-    // Delete all expenses
     for (const [expenseId, expense] of this.expenses.entries()) {
       if (expense.groupId === groupId) {
         this.expenses.delete(expenseId);
       }
     }
 
-    // Delete group
     this.groups.delete(groupId);
 
     return { success: true };
@@ -485,13 +452,9 @@ export class InMemoryGroupGateway implements GroupGateway {
   }
 
   subscribe(_groupId: string, _callbacks: RealtimeCallbacks): Unsubscribe {
-    // Mock subscription
-    return () => {
-      // Unsubscribe
-    };
+    return () => {};
   }
 
-  // Helper for tests
   reset() {
     this.groups.clear();
     this.expenses.clear();

@@ -57,7 +57,6 @@ export const GroupExpensesSection = ({
       </XStack>
 
       {displayedExpenses.map((expense, index) => {
-        // Get the original index from the full expenses array to maintain color consistency
         const originalIndex = expenses.findIndex((e) => e.id === expense.id);
         const expenseColor = getExpenseColorByIndex(originalIndex);
 

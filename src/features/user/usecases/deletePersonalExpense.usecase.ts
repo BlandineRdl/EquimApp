@@ -2,14 +2,13 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppThunkApiConfig } from "../../../types/thunk.types";
 
 export const deletePersonalExpense = createAsyncThunk<
-  string, // Return the expenseId that was deleted
+  string,
   string,
   AppThunkApiConfig
 >(
   "user/deletePersonalExpense",
   async (expenseId, { rejectWithValue, extra, getState }) => {
     try {
-      // Get current user ID
       const state = getState();
       const userId = state.auth?.user?.id;
 
@@ -20,10 +19,8 @@ export const deletePersonalExpense = createAsyncThunk<
         });
       }
 
-      // Delete expense via gateway
       await extra.userGateway.deletePersonalExpense(userId, expenseId);
 
-      // Return the expenseId so the reducer can remove it from state
       return expenseId;
     } catch (error) {
       return rejectWithValue({

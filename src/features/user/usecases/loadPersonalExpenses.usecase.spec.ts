@@ -1,13 +1,3 @@
-/**
- * Feature: Charger mes dépenses personnelles
- * En tant qu'utilisateur authentifié,
- * Je veux charger toutes mes dépenses personnelles,
- * Afin de voir le détail de mes dépenses.
- *
- * NOTE: In the current architecture, personal expenses are loaded as part of loadUserProfile.
- * This test validates that the Redux thunk works correctly.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -31,12 +21,10 @@ describe("Feature: Charger mes dépenses personnelles", () => {
     authGateway = new InMemoryAuthGateway();
     store = initReduxStore({ userGateway, authGateway });
 
-    // Setup authenticated user session using verifyOtp
     const session = await authGateway.verifyOtp(testEmail, "123456");
     userId = session.user.id;
     await store.dispatch(initSession());
 
-    // Setup initial profile data
     await userGateway.createProfile({
       id: userId,
       pseudo: "TestUser",
@@ -48,25 +36,20 @@ describe("Feature: Charger mes dépenses personnelles", () => {
 
   describe("Success scenarios", () => {
     it("Charge une liste vide quand aucune dépense", async () => {
-      // Act - Load profile which includes expenses
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.personalExpenses).toEqual([]);
     });
 
     it("Charge une seule dépense", async () => {
-      // Arrange - Add expense via gateway
       await userGateway.addPersonalExpense(userId, {
         label: "Loyer",
         amount: 800,
       });
 
-      // Act - Load profile which includes expenses
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       const expenses = state.user.profile?.personalExpenses || [];
       expect(expenses).toHaveLength(1);
@@ -79,7 +62,6 @@ describe("Feature: Charger mes dépenses personnelles", () => {
     });
 
     it("Charge plusieurs dépenses dans l'ordre d'ajout", async () => {
-      // Arrange
       await userGateway.addPersonalExpense(userId, {
         label: "Loyer",
         amount: 800,
@@ -93,10 +75,8 @@ describe("Feature: Charger mes dépenses personnelles", () => {
         amount: 300,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       const expenses = state.user.profile?.personalExpenses || [];
       expect(expenses).toHaveLength(3);
@@ -106,16 +86,13 @@ describe("Feature: Charger mes dépenses personnelles", () => {
     });
 
     it("Charge toutes les propriétés des dépenses", async () => {
-      // Arrange
       const expense = await userGateway.addPersonalExpense(userId, {
         label: "Loyer",
         amount: 800,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       const expenses = state.user.profile?.personalExpenses || [];
       expect(expenses[0]).toEqual({
@@ -127,7 +104,6 @@ describe("Feature: Charger mes dépenses personnelles", () => {
     });
 
     it("Ne charge que les dépenses de l'utilisateur concerné", async () => {
-      // Arrange - Create another user
       const otherUserId = "other-user-456";
       await userGateway.createProfile({
         id: otherUserId,
@@ -137,7 +113,6 @@ describe("Feature: Charger mes dépenses personnelles", () => {
         shareRevenue: true,
       });
 
-      // Add expenses for both users
       await userGateway.addPersonalExpense(userId, {
         label: "My Rent",
         amount: 800,
@@ -147,10 +122,8 @@ describe("Feature: Charger mes dépenses personnelles", () => {
         amount: 600,
       });
 
-      // Act - Load profile for main user
       await store.dispatch(loadUserProfile());
 
-      // Assert - Only main user's expenses are loaded
       const state = store.getState();
       const myExpenses = state.user.profile?.personalExpenses || [];
       expect(myExpenses).toHaveLength(1);
@@ -167,7 +140,6 @@ describe("Feature: Charger mes dépenses personnelles", () => {
       { count: 20, description: "beaucoup de dépenses" },
     ])("Charger $description", ({ count, description }) => {
       it(`Charge ${description} correctement`, async () => {
-        // Arrange
         for (let i = 0; i < count; i++) {
           await userGateway.addPersonalExpense(userId, {
             label: `Dépense ${i + 1}`,
@@ -175,10 +147,8 @@ describe("Feature: Charger mes dépenses personnelles", () => {
           });
         }
 
-        // Act
         await store.dispatch(loadUserProfile());
 
-        // Assert
         const state = store.getState();
         const expenses = state.user.profile?.personalExpenses || [];
         expect(expenses).toHaveLength(count);
@@ -192,16 +162,13 @@ describe("Feature: Charger mes dépenses personnelles", () => {
 
   describe("Edge cases", () => {
     it("Retourne liste vide pour utilisateur sans dépenses", async () => {
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.personalExpenses).toEqual([]);
     });
 
     it("Gère des montants variés", async () => {
-      // Arrange
       await userGateway.addPersonalExpense(userId, {
         label: "Petit",
         amount: 0.01,
@@ -215,10 +182,8 @@ describe("Feature: Charger mes dépenses personnelles", () => {
         amount: 99999.99,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       const expenses = state.user.profile?.personalExpenses || [];
       expect(expenses).toHaveLength(3);
@@ -228,7 +193,6 @@ describe("Feature: Charger mes dépenses personnelles", () => {
     });
 
     it("Gère des labels avec caractères spéciaux", async () => {
-      // Arrange
       await userGateway.addPersonalExpense(userId, {
         label: "Loyer & Charges",
         amount: 800,
@@ -242,10 +206,8 @@ describe("Feature: Charger mes dépenses personnelles", () => {
         amount: 5,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       const expenses = state.user.profile?.personalExpenses || [];
       expect(expenses).toHaveLength(3);
@@ -257,16 +219,13 @@ describe("Feature: Charger mes dépenses personnelles", () => {
 
   describe("Direct loadPersonalExpenses thunk", () => {
     it("can load expenses independently via loadPersonalExpenses thunk", async () => {
-      // Arrange
       await userGateway.addPersonalExpense(userId, {
         label: "Direct Load",
         amount: 500,
       });
 
-      // Act - Use the standalone loadPersonalExpenses thunk
       const result = await store.dispatch(loadPersonalExpenses());
 
-      // Assert - Thunk returns the expenses
       expect(result.payload).toHaveLength(1);
       expect(result.payload).toMatchObject([
         {

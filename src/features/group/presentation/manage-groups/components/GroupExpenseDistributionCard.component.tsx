@@ -15,7 +15,6 @@ export function GroupExpenseDistributionCard({
 }: GroupExpenseDistributionCardProps) {
   const theme = useTheme();
 
-  // Prepare data for donut chart using consistent color palette
   const pieData = expenseDistribution.map((expense, index) => ({
     value: expense.percentage,
     color: getExpenseColorByIndex(index),

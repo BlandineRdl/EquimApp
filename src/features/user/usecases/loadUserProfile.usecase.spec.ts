@@ -1,10 +1,3 @@
-/**
- * Feature: Charger mon profil utilisateur
- * En tant qu'utilisateur authentifié,
- * Je veux charger mon profil complet,
- * Afin d'afficher mes informations et ma capacité.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -27,7 +20,6 @@ describe("Feature: Charger mon profil utilisateur", () => {
     authGateway = new InMemoryAuthGateway();
     store = initReduxStore({ userGateway, authGateway });
 
-    // Setup authenticated user session using verifyOtp
     const session = await authGateway.verifyOtp(testEmail, "123456");
     userId = session.user.id;
     await store.dispatch(initSession());
@@ -35,7 +27,6 @@ describe("Feature: Charger mon profil utilisateur", () => {
 
   describe("Success scenarios", () => {
     it("Charge un profil existant sans dépenses", async () => {
-      // Arrange
       await userGateway.createProfile({
         id: userId,
         pseudo: "TestUser",
@@ -44,21 +35,18 @@ describe("Feature: Charger mon profil utilisateur", () => {
         shareRevenue: true,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile).toBeDefined();
       expect(state.user.profile?.id).toBe(userId);
       expect(state.user.profile?.pseudo).toBe("TestUser");
       expect(state.user.profile?.monthlyIncome).toBe(2000);
-      expect(state.user.profile?.capacity).toBe(2000); // No expenses
+      expect(state.user.profile?.capacity).toBe(2000);
       expect(state.user.profile?.personalExpenses).toEqual([]);
     });
 
     it("Charge un profil avec dépenses personnelles", async () => {
-      // Arrange
       await userGateway.createProfile({
         id: userId,
         pseudo: "TestUser",
@@ -77,18 +65,15 @@ describe("Feature: Charger mon profil utilisateur", () => {
         amount: 100,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile).toBeDefined();
       expect(state.user.profile?.personalExpenses).toHaveLength(2);
-      expect(state.user.profile?.capacity).toBe(1100); // 2000 - 800 - 100
+      expect(state.user.profile?.capacity).toBe(1100);
     });
 
     it("Charge les dépenses personnelles associées", async () => {
-      // Arrange
       await userGateway.createProfile({
         id: userId,
         pseudo: "TestUser",
@@ -102,10 +87,8 @@ describe("Feature: Charger mon profil utilisateur", () => {
         amount: 800,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       const expenses = state.user.profile?.personalExpenses || [];
       expect(expenses).toHaveLength(1);
@@ -116,7 +99,6 @@ describe("Feature: Charger mon profil utilisateur", () => {
     });
 
     it("Retourne une liste vide si aucune dépense", async () => {
-      // Arrange
       await userGateway.createProfile({
         id: userId,
         pseudo: "TestUser",
@@ -125,10 +107,8 @@ describe("Feature: Charger mon profil utilisateur", () => {
         shareRevenue: true,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.personalExpenses).toEqual([]);
     });
@@ -143,7 +123,6 @@ describe("Feature: Charger mon profil utilisateur", () => {
       { revenu: 0, depenses: [100], capacite: -100 },
     ])("Calcul de capacité", ({ revenu, depenses, capacite }) => {
       it(`Revenu ${revenu}€ - Dépenses ${depenses.join("+")}€ = Capacité ${capacite}€`, async () => {
-        // Arrange
         await userGateway.createProfile({
           id: userId,
           pseudo: "TestUser",
@@ -159,10 +138,8 @@ describe("Feature: Charger mon profil utilisateur", () => {
           });
         }
 
-        // Act
         await store.dispatch(loadUserProfile());
 
-        // Assert
         const state = store.getState();
         expect(state.user.profile?.capacity).toBe(capacite);
       });
@@ -171,10 +148,8 @@ describe("Feature: Charger mon profil utilisateur", () => {
 
   describe("Error scenarios", () => {
     it("Retourne null si profil inexistant", async () => {
-      // Act - No profile created, just try to load
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile).toBeNull();
     });
@@ -182,7 +157,6 @@ describe("Feature: Charger mon profil utilisateur", () => {
 
   describe("Edge cases", () => {
     it("Gère un profil avec revenu à 0", async () => {
-      // Arrange
       await userGateway.createProfile({
         id: userId,
         pseudo: "NoIncome",
@@ -191,17 +165,14 @@ describe("Feature: Charger mon profil utilisateur", () => {
         shareRevenue: false,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.monthlyIncome).toBe(0);
       expect(state.user.profile?.capacity).toBe(0);
     });
 
     it("Gère une capacité négative", async () => {
-      // Arrange
       await userGateway.createProfile({
         id: userId,
         pseudo: "Deficit",
@@ -215,16 +186,13 @@ describe("Feature: Charger mon profil utilisateur", () => {
         amount: 1500,
       });
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.capacity).toBe(-500);
     });
 
     it("Gère de très nombreuses dépenses", async () => {
-      // Arrange
       await userGateway.createProfile({
         id: userId,
         pseudo: "ManyExpenses",
@@ -233,7 +201,6 @@ describe("Feature: Charger mon profil utilisateur", () => {
         shareRevenue: true,
       });
 
-      // Add 50 expenses of 10€ each
       for (let i = 0; i < 50; i++) {
         await userGateway.addPersonalExpense(userId, {
           label: `Dépense ${i + 1}`,
@@ -241,14 +208,12 @@ describe("Feature: Charger mon profil utilisateur", () => {
         });
       }
 
-      // Act
       await store.dispatch(loadUserProfile());
 
-      // Assert
       const state = store.getState();
       const expenses = state.user.profile?.personalExpenses || [];
       expect(expenses).toHaveLength(50);
-      expect(state.user.profile?.capacity).toBe(2500); // 3000 - (50 * 10)
+      expect(state.user.profile?.capacity).toBe(2500);
     });
   });
 });

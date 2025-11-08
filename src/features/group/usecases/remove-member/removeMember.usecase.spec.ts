@@ -1,10 +1,3 @@
-/**
- * Feature: Remove member
- * En tant que créateur ou administrateur d'un groupe,
- * Je veux retirer un membre du groupe,
- * Afin de gérer les participants du groupe.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -33,11 +26,9 @@ describe("Feature: Remove member", () => {
 
   describe("Success scenarios", () => {
     it("should remove member from group successfully", async () => {
-      // Given un groupe avec plusieurs membres
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      // Add creator and member
       await groupGateway.addMember(groupId, creatorId);
       const phantomResult = await groupGateway.addPhantomMember(
         groupId,
@@ -48,7 +39,6 @@ describe("Feature: Remove member", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on retire le membre
       const result = await store.dispatch(
         removeMemberFromGroup({
           groupId,
@@ -56,7 +46,6 @@ describe("Feature: Remove member", () => {
         }),
       );
 
-      // Then le retrait réussit
       expect(result.type).toBe("groups/removeMember/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as {
@@ -69,7 +58,6 @@ describe("Feature: Remove member", () => {
         expect(response.shares).toBeDefined();
       }
 
-      // Verify member is removed from store
       const state = store.getState();
       const group = state.groups.entities[groupId];
       expect(
@@ -78,7 +66,6 @@ describe("Feature: Remove member", () => {
     });
 
     it("should recalculate shares after removing member", async () => {
-      // Given un groupe avec des membres
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
@@ -91,7 +78,6 @@ describe("Feature: Remove member", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on retire un membre
       const result = await store.dispatch(
         removeMemberFromGroup({
           groupId,
@@ -99,7 +85,6 @@ describe("Feature: Remove member", () => {
         }),
       );
 
-      // Then les parts sont recalculées
       expect(result.type).toBe("groups/removeMember/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as { shares: { shares: unknown[] } };
@@ -110,9 +95,6 @@ describe("Feature: Remove member", () => {
 
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
-      // Given un groupe qui n'existe pas
-
-      // When on essaie de retirer un membre
       const result = await store.dispatch(
         removeMemberFromGroup({
           groupId: "non-existent-group",
@@ -120,7 +102,6 @@ describe("Feature: Remove member", () => {
         }),
       );
 
-      // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -129,13 +110,11 @@ describe("Feature: Remove member", () => {
     });
 
     it("should reject when member does not exist", async () => {
-      // Given un groupe sans le membre spécifié
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie de retirer un membre inexistant
       const result = await store.dispatch(
         removeMemberFromGroup({
           groupId,
@@ -143,7 +122,6 @@ describe("Feature: Remove member", () => {
         }),
       );
 
-      // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -152,7 +130,6 @@ describe("Feature: Remove member", () => {
     });
 
     it("should reject removing the group creator", async () => {
-      // Given un groupe avec le créateur
       const createResult = await groupGateway.createGroup(
         "Test Group",
         "EUR",
@@ -164,7 +141,6 @@ describe("Feature: Remove member", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // Get the group from state
       const state = store.getState();
       const group = state.groups.entities[groupId];
 
@@ -172,7 +148,6 @@ describe("Feature: Remove member", () => {
         throw new Error("Group not found in store");
       }
 
-      // Find the actual member that has the creator's userId
       const creatorMemberInGroup = group.members.find(
         (m) => m.userId === creatorId,
       );
@@ -181,7 +156,6 @@ describe("Feature: Remove member", () => {
         throw new Error("Creator member not found in group");
       }
 
-      // When on essaie de retirer le créateur
       const result = await store.dispatch(
         removeMemberFromGroup({
           groupId,
@@ -189,7 +163,6 @@ describe("Feature: Remove member", () => {
         }),
       );
 
-      // Then le retrait échoue
       expect(result.type).toBe("groups/removeMember/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;

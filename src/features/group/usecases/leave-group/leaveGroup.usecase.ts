@@ -18,7 +18,6 @@ export const leaveGroup = createAsyncThunk<
     { groupId },
     { getState, extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Validate: group exists in state
     const state = getState();
     const group = state.groups.entities[groupId];
     if (!group) {
@@ -30,7 +29,6 @@ export const leaveGroup = createAsyncThunk<
     }
 
     try {
-      // Leave group via gateway
       const result = await groupGateway.leaveGroup(groupId);
 
       return {

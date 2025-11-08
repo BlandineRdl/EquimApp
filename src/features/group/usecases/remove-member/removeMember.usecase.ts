@@ -21,7 +21,6 @@ export const removeMemberFromGroup = createAsyncThunk<
     { groupId, memberId },
     { getState, extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Validate: group exists in state
     const state = getState();
     const group = state.groups.entities[groupId];
     if (!group) {
@@ -32,7 +31,6 @@ export const removeMemberFromGroup = createAsyncThunk<
       });
     }
 
-    // Validate: member exists
     const member = group.members.find((m) => m.id === memberId);
     if (!member) {
       return rejectWithValue({
@@ -42,7 +40,6 @@ export const removeMemberFromGroup = createAsyncThunk<
       });
     }
 
-    // Validate: cannot remove group creator
     if (member.userId === group.creatorId) {
       return rejectWithValue({
         code: "CANNOT_REMOVE_CREATOR",
@@ -52,7 +49,6 @@ export const removeMemberFromGroup = createAsyncThunk<
     }
 
     try {
-      // Remove member via gateway
       const result = await groupGateway.removeMember(groupId, memberId);
 
       return {

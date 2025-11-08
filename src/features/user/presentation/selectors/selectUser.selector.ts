@@ -1,10 +1,8 @@
-// src/features/user/presentation/selectors/selectUser.selector.ts
 import { createSelector } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
 
 const selectUserState = (state: AppState) => state.user;
 
-// Selectors de base
 export const selectUserProfile = createSelector(
   [selectUserState],
   (user) => user.profile,
@@ -20,7 +18,6 @@ export const selectUserError = createSelector(
   (user) => user.error,
 );
 
-// Selectors composés pour l'UI
 export const selectUserUI = createSelector(
   [selectUserProfile, selectUserLoading, selectUserError],
   (profile, loading, error) => ({

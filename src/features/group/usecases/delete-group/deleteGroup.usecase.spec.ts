@@ -1,10 +1,3 @@
-/**
- * Feature: Delete group
- * En tant que créateur d'un groupe,
- * Je veux supprimer mon groupe,
- * Afin de nettoyer les groupes que je n'utilise plus.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -40,7 +33,6 @@ describe("Feature: Delete group", () => {
 
   describe("Success scenarios", () => {
     it("should delete group when user is the creator", async () => {
-      // Given un créateur connecté avec un groupe
       await setupAuthSession(creatorUserId);
 
       const createResult = await groupGateway.createGroup(
@@ -50,20 +42,16 @@ describe("Feature: Delete group", () => {
       );
       const groupId = createResult.groupId;
 
-      // Load group into store
       await store.dispatch(loadGroupById(groupId));
 
-      // When on supprime le groupe
       const result = await store.dispatch(deleteGroup({ groupId }));
 
-      // Then la suppression réussit
       expect(result.type).toBe("groups/deleteGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const deleted = result.payload as { groupId: string };
         expect(deleted.groupId).toBe(groupId);
       }
 
-      // Verify group is removed from store
       const finalState = store.getState();
       expect(finalState.groups.entities[groupId]).toBeUndefined();
     });
@@ -71,15 +59,12 @@ describe("Feature: Delete group", () => {
 
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
-      // Given un groupe qui n'existe pas dans l'état
       await setupAuthSession(creatorUserId);
 
-      // When on essaie de supprimer le groupe
       const result = await store.dispatch(
         deleteGroup({ groupId: "non-existent-group" }),
       );
 
-      // Then la suppression échoue
       expect(result.type).toBe("groups/deleteGroup/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -88,7 +73,6 @@ describe("Feature: Delete group", () => {
     });
 
     it("should reject when user is not the creator", async () => {
-      // Given un utilisateur qui n'est pas le créateur
       await setupAuthSession(otherUserId);
 
       const createResult = await groupGateway.createGroup(
@@ -100,10 +84,8 @@ describe("Feature: Delete group", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie de supprimer le groupe
       const result = await store.dispatch(deleteGroup({ groupId }));
 
-      // Then la suppression échoue
       expect(result.type).toBe("groups/deleteGroup/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -112,7 +94,6 @@ describe("Feature: Delete group", () => {
     });
 
     it("should reject when user is not authenticated", async () => {
-      // Given un utilisateur non authentifié
       await authGateway.signOut();
       await store.dispatch(initSession());
 
@@ -125,10 +106,8 @@ describe("Feature: Delete group", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie de supprimer le groupe
       const result = await store.dispatch(deleteGroup({ groupId }));
 
-      // Then la suppression échoue
       expect(result.type).toBe("groups/deleteGroup/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -139,7 +118,6 @@ describe("Feature: Delete group", () => {
 
   describe("Business rules", () => {
     it("should only allow creator to delete group", async () => {
-      // Given deux utilisateurs et un groupe créé par le premier
       await setupAuthSession(creatorUserId);
 
       const createResult = await groupGateway.createGroup(
@@ -149,15 +127,12 @@ describe("Feature: Delete group", () => {
       );
       const groupId = createResult.groupId;
 
-      // Creator tries to delete
       await store.dispatch(loadGroupById(groupId));
 
       const creatorResult = await store.dispatch(deleteGroup({ groupId }));
 
-      // Then le créateur peut supprimer
       expect(creatorResult.type).toBe("groups/deleteGroup/fulfilled");
 
-      // Recreate group for other user test
       const createResult2 = await groupGateway.createGroup(
         "Test Group 2",
         "EUR",
@@ -165,7 +140,6 @@ describe("Feature: Delete group", () => {
       );
       const groupId2 = createResult2.groupId;
 
-      // Other user tries to delete
       await setupAuthSession(otherUserId);
       await store.dispatch(loadGroupById(groupId2));
 
@@ -173,7 +147,6 @@ describe("Feature: Delete group", () => {
         deleteGroup({ groupId: groupId2 }),
       );
 
-      // Then l'autre utilisateur ne peut pas supprimer
       expect(otherResult.type).toBe("groups/deleteGroup/rejected");
     });
   });

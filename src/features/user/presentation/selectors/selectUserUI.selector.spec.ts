@@ -1,8 +1,3 @@
-/**
- * View model generation for User UI
- * Tests the selectUserUI selector with Redux store
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ReduxStore } from "../../../../store/buildReduxStore";
 import { initReduxStore } from "../../../../store/buildReduxStore";
@@ -28,7 +23,6 @@ describe("View model generation for User UI", () => {
       userGateway,
     }) as ReduxStore;
 
-    // Simulate auth state
     store.dispatch({
       type: "auth/signIn/fulfilled",
       payload: { userId },
@@ -109,7 +103,6 @@ describe("View model generation for User UI", () => {
   });
 
   it("should update monthlyIncome optimistically", () => {
-    // First load profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -123,7 +116,6 @@ describe("View model generation for User UI", () => {
       },
     });
 
-    // Then update income (pending = optimistic update)
     store.dispatch({
       type: "user/updateIncome/pending",
       meta: {
@@ -141,7 +133,6 @@ describe("View model generation for User UI", () => {
   });
 
   it("should rollback income on update failure", () => {
-    // Load profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -155,7 +146,6 @@ describe("View model generation for User UI", () => {
       },
     });
 
-    // Optimistic update
     store.dispatch({
       type: "user/updateIncome/pending",
       meta: {
@@ -166,7 +156,6 @@ describe("View model generation for User UI", () => {
       },
     });
 
-    // Update fails - should rollback
     store.dispatch({
       type: "user/updateIncome/rejected",
       error: { message: "Failed to update" },
@@ -174,12 +163,11 @@ describe("View model generation for User UI", () => {
 
     const userUI = selectUserUI(store.getState());
 
-    expect(userUI.monthlyIncome).toBe(2000); // Rolled back
+    expect(userUI.monthlyIncome).toBe(2000);
     expect(userUI.error?.message).toBe("Failed to update");
   });
 
   it("should show profile after onboarding completion", () => {
-    // Step 1: Complete onboarding (creates profile but doesn't set it in state)
     store.dispatch({
       type: "onboarding/complete/fulfilled",
       payload: {
@@ -191,11 +179,9 @@ describe("View model generation for User UI", () => {
       },
     });
 
-    // At this point, profile is not yet loaded
     let userUI = selectUserUI(store.getState());
     expect(userUI.hasProfile).toBe(false);
 
-    // Step 2: Load the profile (as would happen in the app)
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -209,7 +195,6 @@ describe("View model generation for User UI", () => {
       },
     });
 
-    // Now the profile should be loaded
     userUI = selectUserUI(store.getState());
     expect(userUI.hasProfile).toBe(true);
     expect(userUI.pseudo).toBe("NewUser");
@@ -217,7 +202,6 @@ describe("View model generation for User UI", () => {
   });
 
   it("should clear profile on sign out", () => {
-    // Load profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -231,7 +215,6 @@ describe("View model generation for User UI", () => {
       },
     });
 
-    // Sign out
     store.dispatch({
       type: "auth/signOut/fulfilled",
     });

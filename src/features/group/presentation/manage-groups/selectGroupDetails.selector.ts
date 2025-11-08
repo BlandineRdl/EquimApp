@@ -6,14 +6,12 @@ import type { GroupMember as StoreGroupMember } from "../../domain/manage-group/
 import type { MemberShare } from "../../ports/GroupGateway";
 import { selectGroupById } from "./selectGroup.selector";
 
-// Interface pour un membre du groupe avec sa quote-part calculée
 export interface GroupMemberWithShare extends StoreGroupMember {
   sharePercentage: number;
   shareAmount: number;
-  remainingAfterShare: number; // Reste à vivre après contribution au groupe
+  remainingAfterShare: number;
 }
 
-// Selector pour obtenir les détails complets d'un groupe avec quotes-parts
 export const selectGroupDetails = createSelector(
   [
     (state: AppState, groupId: string) => selectGroupById(state, groupId),
@@ -25,16 +23,13 @@ export const selectGroupDetails = createSelector(
       return null;
     }
 
-    // Utiliser les membres du store
     const members = group.members || [];
 
-    // Calcul du total des revenus (incomeOrWeight)
     const totalIncome = members.reduce(
       (sum, member) => sum + (member.incomeOrWeight || 0),
       0,
     );
 
-    // Utiliser les shares depuis le backend (déjà calculés)
     const totalExpenses = group.shares?.totalExpenses || 0;
 
     const sharesByMemberId = new Map(
@@ -44,21 +39,16 @@ export const selectGroupDetails = createSelector(
       ]) || [],
     );
 
-    // Mapper les membres avec leurs shares
     const membersWithShares: GroupMemberWithShare[] = members.map((member) => {
       const share = sharesByMemberId.get(member.id);
       const shareAmount = share?.shareAmount || 0;
       const monthlyCapacity = member.monthlyCapacity || 0;
 
-      // Pour l'utilisateur connecté, utiliser le calcul centralisé (reste à vivre global)
-      // Pour les autres membres, calculer le reste à vivre local (juste pour ce groupe)
       let remainingAfterShare: number;
 
       if (member.userId === currentUserId && userRemainingCapacity) {
-        // Utilisateur connecté : reste à vivre après TOUS les groupes
         remainingAfterShare = userRemainingCapacity.remainingAfterAllGroups;
       } else {
-        // Autre membre : reste à vivre après CE groupe uniquement
         remainingAfterShare = monthlyCapacity - shareAmount;
       }
 
@@ -91,7 +81,6 @@ export const selectGroupDetails = createSelector(
   },
 );
 
-// Selector pour obtenir les statistiques d'un groupe
 export const selectGroupStats = createSelector(
   [selectGroupDetails],
   (groupDetails) => {
@@ -106,7 +95,6 @@ export const selectGroupStats = createSelector(
   },
 );
 
-// Selector pour la liste des dépenses du groupe
 export const selectGroupExpenses = createSelector(
   [selectGroupDetails],
   (groupDetails) => {
@@ -114,12 +102,11 @@ export const selectGroupExpenses = createSelector(
 
     return groupDetails.group.expenses.map((expense) => ({
       ...expense,
-      frequency: "Mensuel" as const, // Pour l'affichage
+      frequency: "Mensuel" as const,
     }));
   },
 );
 
-// Selector pour obtenir la quote-part maximale du groupe
 export const selectMaxShareAmount = createSelector(
   [selectGroupDetails],
   (groupDetails) => {
@@ -129,7 +116,6 @@ export const selectMaxShareAmount = createSelector(
   },
 );
 
-// Selector pour obtenir le pourcentage de quote-part maximal du groupe
 export const selectMaxSharePercentage = createSelector(
   [selectGroupDetails],
   (groupDetails) => {

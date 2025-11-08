@@ -1,7 +1,3 @@
-/**
- * Typography scale for consistent text styling
- */
-
 export const fontSize = {
   xs: 12,
   sm: 14,

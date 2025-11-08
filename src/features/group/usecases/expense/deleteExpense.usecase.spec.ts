@@ -1,10 +1,3 @@
-/**
- * Feature: Delete expense
- * En tant que membre d'un groupe,
- * Je veux supprimer une dépense,
- * Afin de corriger une erreur ou retirer une dépense obsolète.
- */
-
 import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -52,7 +45,6 @@ describe("Feature: Delete expense", () => {
 
   describe("Success scenarios", () => {
     it("should delete expense successfully", async () => {
-      // Given un groupe avec une dépense
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
@@ -68,12 +60,10 @@ describe("Feature: Delete expense", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on supprime la dépense
       const result = await store.dispatch(
         deleteExpense({ groupId, expenseId }),
       );
 
-      // Then la suppression réussit
       expect(result.type).toBe("groups/deleteExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const deleted = result.payload as {
@@ -84,14 +74,12 @@ describe("Feature: Delete expense", () => {
         expect(deleted.expenseId).toBe(expenseId);
       }
 
-      // Verify expense is removed from store
       const state = store.getState();
       const group = state.groups.entities[groupId];
       expect(group?.expenses.find((e) => e.id === expenseId)).toBeUndefined();
     });
 
     it("should recalculate shares after deleting expense", async () => {
-      // Given un groupe avec une dépense
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
@@ -107,12 +95,10 @@ describe("Feature: Delete expense", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on supprime la dépense
       const result = await store.dispatch(
         deleteExpense({ groupId, expenseId }),
       );
 
-      // Then les parts sont recalculées
       expect(result.type).toBe("groups/deleteExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const deleted = result.payload as { shares: { totalExpenses: number } };
@@ -124,9 +110,6 @@ describe("Feature: Delete expense", () => {
 
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
-      // Given un groupe qui n'existe pas
-
-      // When on essaie de supprimer une dépense
       const result = await store.dispatch(
         deleteExpense({
           groupId: "non-existent-group",
@@ -134,7 +117,6 @@ describe("Feature: Delete expense", () => {
         }),
       );
 
-      // Then la suppression échoue
       expect(result.type).toBe("groups/deleteExpense/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -143,13 +125,11 @@ describe("Feature: Delete expense", () => {
     });
 
     it("should reject when expense does not exist", async () => {
-      // Given un groupe sans la dépense spécifiée
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie de supprimer une dépense qui n'existe pas
       const result = await store.dispatch(
         deleteExpense({
           groupId,
@@ -157,7 +137,6 @@ describe("Feature: Delete expense", () => {
         }),
       );
 
-      // Then la suppression échoue
       expect(result.type).toBe("groups/deleteExpense/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -168,12 +147,10 @@ describe("Feature: Delete expense", () => {
 
   describe("Business rules", () => {
     it("should update group budget after deleting expense", async () => {
-      // Given un groupe avec plusieurs dépenses
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      // Create two expenses
       const expense1 = await groupGateway.createExpense({
         groupId,
         name: "Expense 1",
@@ -192,7 +169,6 @@ describe("Feature: Delete expense", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on supprime la première dépense
       const result = await store.dispatch(
         deleteExpense({
           groupId,
@@ -200,11 +176,9 @@ describe("Feature: Delete expense", () => {
         }),
       );
 
-      // Then le budget total est mis à jour
       expect(result.type).toBe("groups/deleteExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const deleted = result.payload as { shares: { totalExpenses: number } };
-        // After deleting 100€ expense, only 50€ should remain
         expect(deleted.shares.totalExpenses).toBe(50);
       }
     });

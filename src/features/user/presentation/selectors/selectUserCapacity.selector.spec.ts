@@ -1,8 +1,3 @@
-/**
- * View model generation for User Capacity
- * Tests capacity calculation through Redux store
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ReduxStore } from "../../../../store/buildReduxStore";
 import { initReduxStore } from "../../../../store/buildReduxStore";
@@ -30,7 +25,6 @@ describe("View model generation for User Capacity", () => {
       userGateway,
     }) as ReduxStore;
 
-    // Simulate auth state
     store.dispatch({
       type: "auth/signIn/fulfilled",
       payload: { userId },
@@ -63,7 +57,6 @@ describe("View model generation for User Capacity", () => {
   });
 
   it("should recalculate capacity when adding expense", () => {
-    // Load profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -77,7 +70,6 @@ describe("View model generation for User Capacity", () => {
       },
     });
 
-    // Add expense
     store.dispatch({
       type: "user/addPersonalExpense/fulfilled",
       payload: {
@@ -90,11 +82,10 @@ describe("View model generation for User Capacity", () => {
 
     const capacity = selectUserCapacity(store.getState());
 
-    expect(capacity).toBe(1200); // 2000 - 800
+    expect(capacity).toBe(1200);
   });
 
   it("should recalculate capacity when updating expense", () => {
-    // Load profile with expense
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -115,24 +106,22 @@ describe("View model generation for User Capacity", () => {
       },
     });
 
-    // Update expense amount
     store.dispatch({
       type: "user/updatePersonalExpense/fulfilled",
       payload: {
         id: "expense-1",
         userId,
         label: "Loyer",
-        amount: 900, // Increased by 100
+        amount: 900,
       },
     });
 
     const capacity = selectUserCapacity(store.getState());
 
-    expect(capacity).toBe(1100); // 2000 - 900
+    expect(capacity).toBe(1100);
   });
 
   it("should recalculate capacity when deleting expense", () => {
-    // Load profile with expenses
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -159,19 +148,17 @@ describe("View model generation for User Capacity", () => {
       },
     });
 
-    // Delete expense
     store.dispatch({
       type: "user/deletePersonalExpense/fulfilled",
-      payload: "expense-1", // Delete the 800€ expense
+      payload: "expense-1",
     });
 
     const capacity = selectUserCapacity(store.getState());
 
-    expect(capacity).toBe(1900); // 2000 - 100
+    expect(capacity).toBe(1900);
   });
 
   it("should update capacity when income changes", () => {
-    // Load profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -192,7 +179,6 @@ describe("View model generation for User Capacity", () => {
       },
     });
 
-    // Update income (optimistic update)
     store.dispatch({
       type: "user/updateIncome/pending",
       meta: {
@@ -205,11 +191,10 @@ describe("View model generation for User Capacity", () => {
 
     const capacity = selectUserCapacity(store.getState());
 
-    expect(capacity).toBe(1700); // 2500 - 800
+    expect(capacity).toBe(1700);
   });
 
   it("should handle negative capacity", () => {
-    // Load profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {

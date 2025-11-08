@@ -16,7 +16,6 @@ interface AddExpenseForm {
   amount: string;
 }
 
-// Type formulaire onboarding (amount en string pour les inputs)
 interface OnboardingExpense {
   id: string;
   label: string;

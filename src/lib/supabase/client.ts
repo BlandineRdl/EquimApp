@@ -4,7 +4,6 @@ import Constants from "expo-constants";
 import { ExpoSecureStoreAdapter } from "./storage";
 import type { Database } from "./types";
 
-// Get Supabase configuration from environment variables
 const supabaseUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey =
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -15,12 +14,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Create Supabase client with SecureStore for session persistence (Expo Go compatible)
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: ExpoSecureStoreAdapter,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false, // Deep linking handled manually
+    detectSessionInUrl: false,
   },
 });

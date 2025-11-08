@@ -62,7 +62,7 @@ export function ManagePersonalExpensesModal({
         style={{ flex: 1 }}
       >
         <YStack flex={1} backgroundColor="$background">
-          {/* Header */}
+          {}
           <XStack
             alignItems="center"
             justifyContent="space-between"
@@ -86,7 +86,7 @@ export function ManagePersonalExpensesModal({
             </Button>
           </XStack>
 
-          {/* Content */}
+          {}
           <YStack flex={1} padding="$base">
             <ExpenseManager
               expenses={expenses.map((exp) => ({

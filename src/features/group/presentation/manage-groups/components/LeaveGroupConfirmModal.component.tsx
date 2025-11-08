@@ -38,7 +38,6 @@ export const LeaveGroupConfirmModal: React.FC<LeaveGroupConfirmModalProps> = ({
       onClose();
       onLeaveSuccess();
     } catch (_error) {
-      // Error toast handled by listener
       setLoading(false);
     }
   };
@@ -64,7 +63,7 @@ export const LeaveGroupConfirmModal: React.FC<LeaveGroupConfirmModalProps> = ({
           borderRadius="$xl"
           padding="$xl"
         >
-          {/* Header */}
+          {}
           <XStack
             justifyContent="space-between"
             alignItems="center"
@@ -78,12 +77,12 @@ export const LeaveGroupConfirmModal: React.FC<LeaveGroupConfirmModalProps> = ({
             </Pressable>
           </XStack>
 
-          {/* Icon */}
+          {}
           <YStack alignItems="center" marginBottom="$lg">
             <AlertTriangle size={64} color={iconError} />
           </YStack>
 
-          {/* Content */}
+          {}
           <Text
             fontSize={16}
             color="$colorSecondary"
@@ -95,7 +94,7 @@ export const LeaveGroupConfirmModal: React.FC<LeaveGroupConfirmModalProps> = ({
             et devrez être réinvité pour y accéder à nouveau.
           </Text>
 
-          {/* Actions */}
+          {}
           <YStack gap="$md">
             <Button variant="error" onPress={handleConfirm} disabled={loading}>
               <Text fontSize={16} fontWeight="600" color="$white">

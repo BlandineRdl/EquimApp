@@ -42,7 +42,6 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
     setError(null);
 
     try {
-      // Extract token from link (equimapp://invite/TOKEN)
       const token = inviteLink.trim().split("/").pop();
 
       if (!token) {
@@ -51,7 +50,6 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
         return;
       }
 
-      // Accept invitation
       const result = await dispatch(
         acceptInvitation({
           token,
@@ -60,10 +58,8 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
         }),
       ).unwrap();
 
-      // Reload groups
       await dispatch(loadUserGroups()).unwrap();
 
-      // Reset and close
       setInviteLink("");
       setError(null);
       onSuccess(result.groupId);
@@ -140,7 +136,7 @@ export const JoinGroupModal: React.FC<JoinGroupModalProps> = ({
                 value={inviteLink}
                 onChangeText={(text) => {
                   setInviteLink(text);
-                  setError(null); // Clear error on input change
+                  setError(null);
                 }}
                 autoCapitalize="none"
                 autoCorrect={false}

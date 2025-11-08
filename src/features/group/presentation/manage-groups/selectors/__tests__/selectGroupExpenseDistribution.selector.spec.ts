@@ -1,8 +1,3 @@
-/**
- * View model generation for Group Expense Distribution
- * Tests expense distribution calculation through Redux store
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ReduxStore } from "../../../../../../store/buildReduxStore";
 import { initReduxStore } from "../../../../../../store/buildReduxStore";
@@ -34,7 +29,6 @@ describe("View model generation for Group Expense Distribution", () => {
       groupGateway,
     }) as ReduxStore;
 
-    // Simulate auth state
     store.dispatch({
       type: "auth/signIn/fulfilled",
       payload: { userId },
@@ -42,7 +36,6 @@ describe("View model generation for Group Expense Distribution", () => {
   });
 
   it("should return empty distribution when no expenses", () => {
-    // Load group with no expenses
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -71,7 +64,6 @@ describe("View model generation for Group Expense Distribution", () => {
   });
 
   it("should calculate distribution for single expense", () => {
-    // Load group with one expense
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -118,7 +110,6 @@ describe("View model generation for Group Expense Distribution", () => {
   });
 
   it("should calculate distribution for multiple expenses", () => {
-    // Load group with multiple expenses
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -179,23 +170,22 @@ describe("View model generation for Group Expense Distribution", () => {
       {
         name: "Loyer",
         amount: 1800,
-        percentage: 73, // (1800/2450)*100 = 73.46 rounded to 73
+        percentage: 73,
       },
       {
         name: "Courses",
         amount: 450,
-        percentage: 18, // (450/2450)*100 = 18.36 rounded to 18
+        percentage: 18,
       },
       {
         name: "Électricité",
         amount: 200,
-        percentage: 8, // (200/2450)*100 = 8.16 rounded to 8
+        percentage: 8,
       },
     ]);
   });
 
   it("should handle equal expenses", () => {
-    // Load group with equal expenses
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -256,7 +246,6 @@ describe("View model generation for Group Expense Distribution", () => {
   });
 
   it("should update distribution when expense is added", () => {
-    // Load group with initial expenses
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -287,7 +276,6 @@ describe("View model generation for Group Expense Distribution", () => {
       },
     });
 
-    // Add a new expense
     store.dispatch({
       type: "groups/addExpense/fulfilled",
       payload: {
@@ -316,13 +304,12 @@ describe("View model generation for Group Expense Distribution", () => {
     expect(result.expensesCount).toBe(2);
     expect(result.expenseDistribution).toHaveLength(2);
     expect(result.expenseDistribution[0].name).toBe("Loyer");
-    expect(result.expenseDistribution[0].percentage).toBe(73); // (1800/2450)*100
+    expect(result.expenseDistribution[0].percentage).toBe(73);
     expect(result.expenseDistribution[1].name).toBe("Courses");
-    expect(result.expenseDistribution[1].percentage).toBe(27); // (650/2450)*100
+    expect(result.expenseDistribution[1].percentage).toBe(27);
   });
 
   it("should update distribution when expense is deleted", () => {
-    // Load group with expenses
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -364,7 +351,6 @@ describe("View model generation for Group Expense Distribution", () => {
       },
     });
 
-    // Delete an expense
     store.dispatch({
       type: "groups/deleteExpense/fulfilled",
       payload: {

@@ -30,7 +30,6 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
   const iconSecondary =
     colorScheme === "light" ? theme.gray500.val : theme.gray400.val;
 
-  // Extract suffix after "Membre-"
   const initialSuffix = member.pseudo.startsWith("Membre-")
     ? member.pseudo.substring(7)
     : member.pseudo;
@@ -76,7 +75,6 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
 
       onClose();
     } catch (_error) {
-      // Error toast handled by listener
     } finally {
       setLoading(false);
     }
@@ -103,7 +101,7 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
           borderRadius="$xl"
           padding="$lg"
         >
-          {/* Header */}
+          {}
           <XStack
             justifyContent="space-between"
             alignItems="center"
@@ -117,7 +115,7 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
             </Pressable>
           </XStack>
 
-          {/* Pseudo */}
+          {}
           <YStack marginBottom="$lg">
             <Text
               fontSize={14}
@@ -153,7 +151,7 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
             </Text>
           </YStack>
 
-          {/* Revenu */}
+          {}
           <YStack marginBottom="$lg">
             <Text
               fontSize={14}
@@ -171,7 +169,7 @@ export const EditPhantomMemberModal: React.FC<EditPhantomMemberModalProps> = ({
             />
           </YStack>
 
-          {/* Actions */}
+          {}
           <XStack gap="$md">
             <Button variant="secondary" flex={1} onPress={onClose}>
               <Text fontSize={16} fontWeight="600" color="$colorSecondary">

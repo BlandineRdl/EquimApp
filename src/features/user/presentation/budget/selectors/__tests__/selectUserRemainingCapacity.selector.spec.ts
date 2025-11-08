@@ -1,8 +1,3 @@
-/**
- * Tests for selectUserRemainingCapacity selector
- * Verifies centralized calculation of user's remaining capacity after all group contributions
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ReduxStore } from "../../../../../../store/buildReduxStore";
 import { initReduxStore } from "../../../../../../store/buildReduxStore";
@@ -33,7 +28,6 @@ describe("selectUserRemainingCapacity", () => {
       groupGateway,
     }) as ReduxStore;
 
-    // Simulate auth state
     store.dispatch({
       type: "auth/signIn/fulfilled",
       payload: { userId },
@@ -41,7 +35,6 @@ describe("selectUserRemainingCapacity", () => {
   });
 
   it("should return null when user is not logged in", () => {
-    // Clear auth state
     store.dispatch({
       type: "auth/signOut/fulfilled",
       payload: undefined,
@@ -52,7 +45,6 @@ describe("selectUserRemainingCapacity", () => {
   });
 
   it("should calculate remaining capacity with no groups", () => {
-    // Load user profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -60,7 +52,7 @@ describe("selectUserRemainingCapacity", () => {
         pseudo: "TestUser",
         email: "test@example.com",
         monthlyIncome: 3000,
-        capacity: 2800, // After personal expenses
+        capacity: 2800,
         currency: "EUR",
         shareRevenue: true,
         hasCompletedOnboarding: true,
@@ -81,7 +73,6 @@ describe("selectUserRemainingCapacity", () => {
   it("should calculate remaining capacity with one group", () => {
     const groupId = "group-1";
 
-    // Load user profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -98,7 +89,6 @@ describe("selectUserRemainingCapacity", () => {
       },
     });
 
-    // Load group with user's share
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -116,7 +106,7 @@ describe("selectUserRemainingCapacity", () => {
               userId,
               pseudo: "TestUser",
               sharePercentage: 100,
-              shareAmount: 1000, // User pays 1000€
+              shareAmount: 1000,
             },
           ],
         },
@@ -138,7 +128,6 @@ describe("selectUserRemainingCapacity", () => {
     const group1Id = "group-1";
     const group2Id = "group-2";
 
-    // Load user profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -155,7 +144,6 @@ describe("selectUserRemainingCapacity", () => {
       },
     });
 
-    // Load first group
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -182,7 +170,6 @@ describe("selectUserRemainingCapacity", () => {
       },
     });
 
-    // Load second group
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -213,8 +200,8 @@ describe("selectUserRemainingCapacity", () => {
 
     expect(result).not.toBeNull();
     expect(result?.monthlyCapacity).toBe(2800);
-    expect(result?.totalGroupContributions).toBe(850); // 600 + 250
-    expect(result?.remainingAfterAllGroups).toBe(1950); // 2800 - 850
+    expect(result?.totalGroupContributions).toBe(850);
+    expect(result?.remainingAfterAllGroups).toBe(1950);
     expect(result?.isNegative).toBe(false);
   });
 
@@ -222,7 +209,6 @@ describe("selectUserRemainingCapacity", () => {
     const group1Id = "group-1";
     const group2Id = "group-2";
 
-    // Load user profile with low capacity
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -230,7 +216,7 @@ describe("selectUserRemainingCapacity", () => {
         pseudo: "TestUser",
         email: "test@example.com",
         monthlyIncome: 2000,
-        capacity: 1000, // Low capacity
+        capacity: 1000,
         currency: "EUR",
         shareRevenue: true,
         hasCompletedOnboarding: true,
@@ -239,7 +225,6 @@ describe("selectUserRemainingCapacity", () => {
       },
     });
 
-    // Load groups with high contributions
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -296,13 +281,12 @@ describe("selectUserRemainingCapacity", () => {
 
     expect(result).not.toBeNull();
     expect(result?.monthlyCapacity).toBe(1000);
-    expect(result?.totalGroupContributions).toBe(1400); // 800 + 600
-    expect(result?.remainingAfterAllGroups).toBe(-400); // 1000 - 1400
+    expect(result?.totalGroupContributions).toBe(1400);
+    expect(result?.remainingAfterAllGroups).toBe(-400);
     expect(result?.isNegative).toBe(true);
   });
 
   it("should handle user with zero capacity", () => {
-    // Load user profile with zero capacity
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -332,7 +316,6 @@ describe("selectUserRemainingCapacity", () => {
     const group1Id = "group-1";
     const group2Id = "group-2";
 
-    // Load user profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -349,7 +332,6 @@ describe("selectUserRemainingCapacity", () => {
       },
     });
 
-    // Load group where user is a member
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -376,7 +358,6 @@ describe("selectUserRemainingCapacity", () => {
       },
     });
 
-    // Load group where user is NOT a member
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -407,7 +388,7 @@ describe("selectUserRemainingCapacity", () => {
 
     expect(result).not.toBeNull();
     expect(result?.monthlyCapacity).toBe(2800);
-    expect(result?.totalGroupContributions).toBe(600); // Only group1, not group2
+    expect(result?.totalGroupContributions).toBe(600);
     expect(result?.remainingAfterAllGroups).toBe(2200);
     expect(result?.isNegative).toBe(false);
   });

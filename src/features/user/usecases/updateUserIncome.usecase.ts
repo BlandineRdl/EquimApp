@@ -8,11 +8,6 @@ export interface UpdateUserIncomeInput {
   newIncome: number;
 }
 
-/**
- * Update user's monthly income
- * Validates income before updating
- * Triggers recalculation of group shares via Supabase listeners
- */
 export const updateUserIncome = createAsyncThunk<
   { income: number },
   UpdateUserIncomeInput,
@@ -25,7 +20,6 @@ export const updateUserIncome = createAsyncThunk<
   ) => {
     logger.debug("updateUserIncome usecase started", { userId, newIncome });
 
-    // Validate income
     const validation = validateIncome(newIncome);
     if (!validation.isValid) {
       logger.error("Income validation failed", { errors: validation.errors });
@@ -37,7 +31,6 @@ export const updateUserIncome = createAsyncThunk<
     }
 
     try {
-      // Update profile in database
       await userGateway.updateProfile(userId, { monthlyIncome: newIncome });
 
       logger.info("Income updated successfully", { userId, newIncome });

@@ -7,7 +7,6 @@ import type {
   OnboardingGateway,
 } from "../ports/OnboardingGateway";
 
-// Type local pour le mapping des données de la RPC
 interface RpcMemberShare {
   member_id: string;
   user_id: string | null;
@@ -21,15 +20,12 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
     input: CompleteOnboardingInput,
   ): Promise<CompleteOnboardingResult> {
     try {
-      // Map domain (label) to RPC (name) + snake_case
       const expenses = input.expenses.map((e) => ({
-        name: e.label, // ✅ Infra maps domain → DB
+        name: e.label,
         amount: e.amount,
         is_predefined: e.isPredefined ?? false,
       }));
 
-      // Call complete_onboarding RPC (atomic transaction)
-      // groupName is optional - if not provided, no group will be created
       const { data, error } = await supabase.rpc("complete_onboarding", {
         p_pseudo: input.pseudo,
         p_income: input.income,
@@ -48,13 +44,10 @@ export class SupabaseOnboardingGateway implements OnboardingGateway {
 
       logger.debug("Raw data received", { dataType: typeof data, data });
 
-      // Parse JSON if it's a string
       const result = typeof data === "string" ? JSON.parse(data) : data;
 
       logger.debug("Parsed result", { result });
 
-      // Validate result structure
-      // profile_id is always required, but group_id and shares are optional (when no group created)
       if (!result.profile_id) {
         throw new Error(
           `Structure de réponse invalide: ${JSON.stringify(result)}`,

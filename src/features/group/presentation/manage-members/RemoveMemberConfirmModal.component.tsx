@@ -38,11 +38,8 @@ export const RemoveMemberConfirmModal: React.FC<
           memberId,
         }),
       ).unwrap();
-      // Success toast handled by listener
       onClose();
     } catch (_error) {
-      // Error toast handled by listener
-      // Keep modal open on error
     } finally {
       setLoading(false);
     }
@@ -69,7 +66,7 @@ export const RemoveMemberConfirmModal: React.FC<
           borderRadius="$xl"
           padding="$xl"
         >
-          {/* Header */}
+          {}
           <XStack
             justifyContent="space-between"
             alignItems="center"
@@ -83,12 +80,12 @@ export const RemoveMemberConfirmModal: React.FC<
             </Pressable>
           </XStack>
 
-          {/* Icon */}
+          {}
           <YStack alignItems="center" marginBottom="$lg">
             <AlertTriangle size={64} color={iconError} />
           </YStack>
 
-          {/* Content */}
+          {}
           <Text
             fontSize={18}
             fontWeight="600"
@@ -109,7 +106,7 @@ export const RemoveMemberConfirmModal: React.FC<
             automatiquement.
           </Text>
 
-          {/* Actions */}
+          {}
           <YStack gap="$md">
             <Button variant="error" onPress={handleConfirm} disabled={loading}>
               <Text fontSize={16} fontWeight="600" color="$white">

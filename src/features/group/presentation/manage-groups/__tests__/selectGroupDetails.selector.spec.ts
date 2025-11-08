@@ -1,8 +1,3 @@
-/**
- * Tests for selectGroupDetails selector
- * Verifies calculation of share amounts and remaining capacity after group contributions
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ReduxStore } from "../../../../../store/buildReduxStore";
 import { initReduxStore } from "../../../../../store/buildReduxStore";
@@ -34,7 +29,6 @@ describe("selectGroupDetails", () => {
       groupGateway,
     }) as ReduxStore;
 
-    // Simulate auth state
     store.dispatch({
       type: "auth/signIn/fulfilled",
       payload: { userId },
@@ -48,10 +42,9 @@ describe("selectGroupDetails", () => {
 
   it("should calculate remainingAfterShare correctly for a single member", () => {
     const memberId = "member-1";
-    const monthlyCapacity = 2500; // Income - personal expenses
-    const shareAmount = 800; // Member's contribution to group
+    const monthlyCapacity = 2500;
+    const shareAmount = 800;
 
-    // Load group with one member
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
       payload: {
@@ -117,11 +110,9 @@ describe("selectGroupDetails", () => {
     const member1Id = "member-1";
     const member2Id = "member-2";
 
-    // Member 1: High income, high capacity
     const member1Capacity = 3000;
     const member1Share = 600;
 
-    // Member 2: Lower income, lower capacity
     const member2Capacity = 1500;
     const member2Share = 400;
 
@@ -196,14 +187,12 @@ describe("selectGroupDetails", () => {
     expect(result).not.toBeNull();
     expect(result?.members).toHaveLength(2);
 
-    // Verify Member 1
     const resultMember1 = result?.members.find((m) => m.id === member1Id);
     expect(resultMember1?.remainingAfterShare).toBe(
       member1Capacity - member1Share,
     );
     expect(resultMember1?.remainingAfterShare).toBe(2400);
 
-    // Verify Member 2
     const resultMember2 = result?.members.find((m) => m.id === member2Id);
     expect(resultMember2?.remainingAfterShare).toBe(
       member2Capacity - member2Share,
@@ -213,8 +202,8 @@ describe("selectGroupDetails", () => {
 
   it("should handle negative remainingAfterShare when share exceeds capacity", () => {
     const memberId = "member-1";
-    const monthlyCapacity = 500; // Low capacity
-    const shareAmount = 800; // High share amount
+    const monthlyCapacity = 500;
+    const shareAmount = 800;
 
     store.dispatch({
       type: "groups/loadGroupById/fulfilled",
@@ -294,7 +283,7 @@ describe("selectGroupDetails", () => {
             pseudo: "Membre-Bob",
             shareRevenue: true,
             incomeOrWeight: phantomIncome,
-            monthlyCapacity: phantomIncome, // Phantoms have no personal expenses
+            monthlyCapacity: phantomIncome,
             joinedAt: "2024-01-01",
             isPhantom: true,
           },
@@ -448,7 +437,6 @@ describe("selectGroupDetails", () => {
 
     expect(result).not.toBeNull();
     expect(result?.members).toHaveLength(1);
-    // null capacity is treated as 0
     expect(result?.members[0].remainingAfterShare).toBe(0 - shareAmount);
     expect(result?.members[0].remainingAfterShare).toBe(-100);
   });

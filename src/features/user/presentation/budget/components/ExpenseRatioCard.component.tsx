@@ -13,7 +13,6 @@ export function ExpenseRatioCard({
 }: ExpenseRatioCardProps) {
   const theme = useTheme();
 
-  // Prepare data for donut chart using theme colors
   const pieData = [
     {
       value: expenseRatio,

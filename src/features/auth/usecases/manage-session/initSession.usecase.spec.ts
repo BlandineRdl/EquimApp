@@ -1,10 +1,3 @@
-/**
- * Feature: Initialize session
- * En tant qu'application,
- * Je veux restaurer la session au démarrage,
- * Afin de garder l'utilisateur connecté entre les lancements.
- */
-
 import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -25,13 +18,8 @@ describe("Feature: Initialize session", () => {
 
   describe("Success scenarios", () => {
     it("should return null when no session exists", async () => {
-      // Given aucune session n'existe
-      // (authGateway est vide)
-
-      // When on initialise la session
       await store.dispatch(initSession());
 
-      // Then null est retourné
       const state = store.getState();
       expect(state.auth.session).toBeNull();
       expect(state.auth.user).toBeNull();
@@ -43,7 +31,6 @@ describe("Feature: Initialize session", () => {
     });
 
     it("should restore existing session", async () => {
-      // Given une session existe
       const mockSession: Session = {
         access_token: "mock-token",
         refresh_token: "mock-refresh",
@@ -63,10 +50,8 @@ describe("Feature: Initialize session", () => {
 
       authGateway.setCurrentSession(mockSession);
 
-      // When on initialise la session
       await store.dispatch(initSession());
 
-      // Then la session est restaurée
       const state = store.getState();
       expect(state.auth.session).toEqual(mockSession);
       expect(state.auth.user).toEqual(mockSession.user);

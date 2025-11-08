@@ -48,7 +48,6 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Initialize with current income when modal opens
   useEffect(() => {
     if (isVisible && user) {
       setIncome(user.monthlyIncome.toString());
@@ -56,17 +55,14 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
     }
   }, [isVisible, user]);
 
-  // Validate on change
   const handleIncomeChange = (text: string) => {
     setIncome(text);
 
-    // Clear validation if empty
     if (!text.trim()) {
       setValidationError(null);
       return;
     }
 
-    // Parse and validate
     const numericValue = Number.parseFloat(text);
     if (Number.isNaN(numericValue)) {
       setValidationError(UPDATE_INCOME_LABELS.INVALID_VALUE);
@@ -96,7 +92,6 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
       return;
     }
 
-    // Validate
     const validation = validateIncome(numericIncome);
     if (!validation.isValid) {
       Toast.show(
@@ -108,19 +103,16 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
     setIsUpdating(true);
 
     try {
-      // Update income (capacity will be recalculated automatically in the reducer)
       await dispatch(
         updateUserIncome({ userId: user.id, newIncome: numericIncome }),
       ).unwrap();
 
-      // Success toast handled by listener
       onClose();
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (_error: unknown) {
-      // Error toast handled by listener
     } finally {
       setIsUpdating(false);
     }
@@ -150,7 +142,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
           backgroundColor="$background"
           borderRadius="$xl"
         >
-          {/* Header */}
+          {}
           <XStack
             alignItems="center"
             padding="$lg"
@@ -184,7 +176,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
             </Button>
           </XStack>
 
-          {/* Body */}
+          {}
           <YStack padding="$lg">
             <Text
               fontSize={14}
@@ -218,7 +210,7 @@ export const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({
             )}
           </YStack>
 
-          {/* Footer */}
+          {}
           <XStack
             padding="$lg"
             borderTopWidth={1}

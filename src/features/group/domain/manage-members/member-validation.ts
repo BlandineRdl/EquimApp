@@ -10,13 +10,9 @@ export interface ValidationResult {
   errors: string[];
 }
 
-/**
- * Validate member data for adding to group
- */
 export function validateMemberData(data: MemberData): ValidationResult {
   const errors: string[] = [];
 
-  // Validate pseudo
   const trimmedPseudo = data.pseudo.trim();
   if (!trimmedPseudo) {
     errors.push("Le pseudo ne peut pas être vide");
@@ -26,7 +22,6 @@ export function validateMemberData(data: MemberData): ValidationResult {
     );
   }
 
-  // Validate income
   if (data.monthlyIncome <= 0) {
     errors.push("Le revenu mensuel doit être positif");
   } else if (data.monthlyIncome < MIN_INCOME) {
@@ -39,9 +34,6 @@ export function validateMemberData(data: MemberData): ValidationResult {
   };
 }
 
-/**
- * Normalize member data (trim, etc.)
- */
 export function normalizeMemberData(data: MemberData): MemberData {
   return {
     pseudo: data.pseudo.trim(),

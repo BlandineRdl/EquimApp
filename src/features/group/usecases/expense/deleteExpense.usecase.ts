@@ -21,7 +21,6 @@ export const deleteExpense = createAsyncThunk<
     { groupId, expenseId },
     { getState, extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Validate: group exists in state
     const state = getState();
     const group = state.groups.entities[groupId];
     if (!group) {
@@ -32,7 +31,6 @@ export const deleteExpense = createAsyncThunk<
       });
     }
 
-    // Validate: expense exists
     const expense = group.expenses?.find((e) => e.id === expenseId);
     if (!expense) {
       return rejectWithValue({
@@ -43,7 +41,6 @@ export const deleteExpense = createAsyncThunk<
     }
 
     try {
-      // Delete expense via gateway
       const result = await groupGateway.deleteExpense({
         expenseId,
         groupId,

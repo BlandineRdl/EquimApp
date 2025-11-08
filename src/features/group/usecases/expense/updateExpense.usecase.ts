@@ -25,7 +25,6 @@ export const updateExpense = createAsyncThunk<
     { groupId, expenseId, name, amount },
     { getState, extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Validate: group exists in state
     const state = getState();
     const group = state.groups.entities[groupId];
     if (!group) {
@@ -36,7 +35,6 @@ export const updateExpense = createAsyncThunk<
       });
     }
 
-    // Validate: expense exists
     const expense = group.expenses.find((exp) => exp.id === expenseId);
     if (!expense) {
       return rejectWithValue({
@@ -46,7 +44,6 @@ export const updateExpense = createAsyncThunk<
       });
     }
 
-    // Validate input
     if (!name.trim()) {
       return rejectWithValue({
         code: "EMPTY_EXPENSE_NAME",
@@ -64,7 +61,6 @@ export const updateExpense = createAsyncThunk<
     }
 
     try {
-      // Update expense via gateway
       const result = await groupGateway.updateExpense({
         groupId,
         expenseId,

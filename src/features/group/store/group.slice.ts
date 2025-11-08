@@ -75,7 +75,6 @@ export const groupSlice = createSlice({
   name: "groups",
   initialState,
   reducers: {
-    // Actions pour gérer le formulaire d'ajout de membre
     openAddMemberForm: (state, action) => {
       state.addMemberForm = {
         groupId: action.payload,
@@ -94,7 +93,6 @@ export const groupSlice = createSlice({
       state.addMemberForm = null;
     },
 
-    // Actions pour gérer le formulaire d'ajout de dépense
     openAddExpenseForm: (state, action) => {
       state.addExpenseForm = {
         groupId: action.payload,
@@ -115,9 +113,6 @@ export const groupSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // completeOnboarding returns groupId only, not the full group object
-      // Groups will be loaded separately via loadUserGroups
-      // Charger les groupes utilisateur
       .addCase(loadUserGroups.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -134,7 +129,6 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors du chargement des groupes",
         };
       })
-      // Ajouter un membre au groupe
       .addCase(addMemberToGroup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -143,18 +137,13 @@ export const groupSlice = createSlice({
         state.loading = false;
         const { groupId, newMember, shares } = action.payload;
 
-        // Mettre à jour le groupe existant
         const group = state.entities[groupId];
         if (group) {
-          // Ajouter le nouveau membre
           group.members.push(newMember);
-          // Mettre à jour les shares
           group.shares = shares;
-          // Mettre à jour le budget total
           group.totalMonthlyBudget = shares.totalExpenses;
         }
 
-        // Fermer le formulaire
         state.addMemberForm = null;
       })
       .addCase(addMemberToGroup.rejected, (state, action) => {
@@ -164,7 +153,6 @@ export const groupSlice = createSlice({
           message: action.error?.message ?? "Erreur lors de l'ajout du membre",
         };
       })
-      // Generate invite link
       .addCase(generateInviteLink.pending, (state) => {
         state.invitation.generateLink.loading = true;
         state.invitation.generateLink.error = null;
@@ -181,7 +169,6 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors de la génération du lien",
         };
       })
-      // Get invitation details
       .addCase(getInvitationDetails.pending, (state) => {
         state.invitation.details.loading = true;
         state.invitation.details.error = null;
@@ -199,14 +186,12 @@ export const groupSlice = createSlice({
             "Erreur lors de la récupération des détails",
         };
       })
-      // Accept invitation
       .addCase(acceptInvitation.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(acceptInvitation.fulfilled, (state) => {
         state.loading = false;
-        // Group will be loaded separately via loadUserGroups
       })
       .addCase(acceptInvitation.rejected, (state, action) => {
         state.loading = false;
@@ -217,7 +202,6 @@ export const groupSlice = createSlice({
             "Erreur lors de l'acceptation de l'invitation",
         };
       })
-      // Remove member from group
       .addCase(removeMemberFromGroup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -228,9 +212,7 @@ export const groupSlice = createSlice({
 
         const group = state.entities[groupId];
         if (group) {
-          // Remove member from the list using member.id
           group.members = group.members.filter((m) => m.id !== memberId);
-          // Update shares
           group.shares = shares;
           group.totalMonthlyBudget = shares.totalExpenses;
         }
@@ -243,7 +225,6 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors de la suppression du membre",
         };
       })
-      // Update phantom member
       .addCase(updatePhantomMember.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -254,14 +235,12 @@ export const groupSlice = createSlice({
 
         const group = state.entities[groupId];
         if (group) {
-          // Find and update the phantom member
           const member = group.members.find((m) => m.id === memberId);
           if (member?.isPhantom) {
             member.pseudo = pseudo;
             member.incomeOrWeight = income;
             member.monthlyCapacity = income;
           }
-          // Update shares
           group.shares = shares;
           group.totalMonthlyBudget = shares.totalExpenses;
         }
@@ -274,7 +253,6 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors de la modification du membre",
         };
       })
-      // Add expense to group
       .addCase(addExpenseToGroup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -285,14 +263,10 @@ export const groupSlice = createSlice({
 
         const group = state.entities[groupId];
         if (group) {
-          // Add new expense to the list
           group.expenses.push(expense);
-          // Update shares
           group.shares = shares;
           group.totalMonthlyBudget = shares.totalExpenses;
         }
-
-        // Ne pas fermer le formulaire pour permettre l'ajout de plusieurs dépenses
       })
       .addCase(addExpenseToGroup.rejected, (state, action) => {
         state.loading = false;
@@ -302,7 +276,6 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors de l'ajout de la dépense",
         };
       })
-      // Delete expense from group
       .addCase(deleteExpense.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -313,9 +286,7 @@ export const groupSlice = createSlice({
 
         const group = state.entities[groupId];
         if (group) {
-          // Remove expense from the list
           group.expenses = group.expenses.filter((e) => e.id !== expenseId);
-          // Update shares
           group.shares = shares;
           group.totalMonthlyBudget = shares.totalExpenses;
         }
@@ -329,7 +300,6 @@ export const groupSlice = createSlice({
             "Erreur lors de la suppression de la dépense",
         };
       })
-      // Update expense in group
       .addCase(updateExpense.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -340,13 +310,11 @@ export const groupSlice = createSlice({
 
         const group = state.entities[groupId];
         if (group) {
-          // Find and update the expense
           const expense = group.expenses.find((e) => e.id === expenseId);
           if (expense) {
             expense.name = name;
             expense.amount = amount;
           }
-          // Update shares
           group.shares = shares;
           group.totalMonthlyBudget = shares.totalExpenses;
         }
@@ -360,7 +328,6 @@ export const groupSlice = createSlice({
             "Erreur lors de la modification de la dépense",
         };
       })
-      // Load single group by ID (for refresh)
       .addCase(loadGroupById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -377,7 +344,6 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors du rechargement du groupe",
         };
       })
-      // Leave group (self-removal)
       .addCase(leaveGroup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -386,7 +352,6 @@ export const groupSlice = createSlice({
         state.loading = false;
         const { groupId } = action.payload;
 
-        // Remove group from entities
         groupsAdapter.removeOne(state, groupId);
       })
       .addCase(leaveGroup.rejected, (state, action) => {
@@ -397,7 +362,6 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors de la sortie du groupe",
         };
       })
-      // Delete group (creator only)
       .addCase(deleteGroup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -406,7 +370,6 @@ export const groupSlice = createSlice({
         state.loading = false;
         const { groupId } = action.payload;
 
-        // Remove group from entities
         groupsAdapter.removeOne(state, groupId);
       })
       .addCase(deleteGroup.rejected, (state, action) => {
@@ -417,14 +380,12 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors de la suppression du groupe",
         };
       })
-      // Create group
       .addCase(createGroup.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createGroup.fulfilled, (state, _action) => {
         state.loading = false;
-        // Group will be loaded via loadUserGroups or loadGroupById
       })
       .addCase(createGroup.rejected, (state, action) => {
         state.loading = false;
@@ -434,7 +395,6 @@ export const groupSlice = createSlice({
             action.error?.message ?? "Erreur lors de la création du groupe",
         };
       })
-      // Clean up state on sign out
       .addCase(signOut.fulfilled, (state) => {
         groupsAdapter.removeAll(state);
         state.loading = false;

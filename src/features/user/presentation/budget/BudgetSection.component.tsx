@@ -9,7 +9,6 @@ import { selectUserBudgetSummary } from "./selectors/selectUserBudgetSummary.sel
 export function BudgetSection() {
   const budgetSummary = useSelector(selectUserBudgetSummary);
 
-  // Don't render if user data not available
   if (!budgetSummary) {
     return null;
   }

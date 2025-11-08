@@ -34,7 +34,6 @@ export const GroupMembersSection = ({
 }: GroupMembersSectionProps) => {
   const [showAllMembers, setShowAllMembers] = useState(false);
 
-  // Get initials from pseudo
   const getInitials = (pseudo: string) => {
     return pseudo
       .split(" ")
@@ -44,7 +43,6 @@ export const GroupMembersSection = ({
       .slice(0, 2);
   };
 
-  // Show only 2 members by default if there are 3 or more
   const shouldShowToggle = members.length >= 3;
   const displayedMembers =
     shouldShowToggle && !showAllMembers ? members.slice(0, 2) : members;
@@ -78,7 +76,7 @@ export const GroupMembersSection = ({
         />
       </XStack>
 
-      {/* Member Cards */}
+      {}
       <YStack gap="$sm">
         {displayedMembers.map((member) => {
           const isMaxShare = member.sharePercentage === maxSharePercentage;
@@ -95,7 +93,7 @@ export const GroupMembersSection = ({
               alignItems="center"
               gap="$sm"
             >
-              {/* Avatar/Initials */}
+              {}
               <YStack
                 width={44}
                 height={44}
@@ -114,7 +112,7 @@ export const GroupMembersSection = ({
                 </Text>
               </YStack>
 
-              {/* Center: Name + Info */}
+              {}
               <YStack flex={1} gap="$2">
                 <XStack alignItems="center" gap="$xs">
                   <Text fontSize={15} fontWeight="600" color="$color">
@@ -134,7 +132,7 @@ export const GroupMembersSection = ({
                   )}
                 </XStack>
 
-                {/* Info Grid */}
+                {}
                 <YStack gap="$1">
                   <XStack alignItems="center" gap="$xs">
                     <Text fontSize={11} color="$colorSecondary" width={90}>
@@ -185,7 +183,7 @@ export const GroupMembersSection = ({
                 </YStack>
               </YStack>
 
-              {/* Actions (Edit/Delete) */}
+              {}
               {isCreator &&
                 (member.isPhantom || member.userId !== groupCreatorId) && (
                   <YStack gap="$xs">
@@ -214,7 +212,7 @@ export const GroupMembersSection = ({
         })}
       </YStack>
 
-      {/* Toggle button for showing more/less members */}
+      {}
       {shouldShowToggle && !showAllMembers && (
         <Pressable onPress={() => setShowAllMembers(true)}>
           <YStack
@@ -247,7 +245,7 @@ export const GroupMembersSection = ({
         </Pressable>
       )}
 
-      {/* Explication du calcul */}
+      {}
       <XStack
         alignItems="flex-start"
         marginTop="$base"

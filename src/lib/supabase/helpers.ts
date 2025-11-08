@@ -1,16 +1,9 @@
-/**
- * Helper functions to work around Supabase type limitations
- */
-
 import type { PostgrestError } from "@supabase/supabase-js";
 import type { Database } from "../../types/database.types";
 import { supabase } from "./client";
 
 type TableName = keyof Database["public"]["Tables"];
 
-/**
- * Call RPC function with typed parameters
- */
 export async function callRpc<T>(
   functionName: string,
   params?: Record<string, unknown>,
@@ -19,9 +12,6 @@ export async function callRpc<T>(
   return await supabase.rpc(functionName, params);
 }
 
-/**
- * Insert into table with typed data
- */
 export async function insertInto<T>(
   tableName: TableName,
   data: Record<string, unknown> | Record<string, unknown>[],
@@ -30,9 +20,6 @@ export async function insertInto<T>(
   return await supabase.from(tableName).insert(data).select().single();
 }
 
-/**
- * Update table with typed data
- */
 export async function updateTable<T = unknown>(
   tableName: TableName,
   data: Record<string, unknown>,

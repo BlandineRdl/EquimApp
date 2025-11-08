@@ -1,13 +1,3 @@
-/**
- * Structured logging utility with environment-based filtering
- *
- * Usage:
- *   logger.debug('User action', { userId: '123' });
- *   logger.info('Payment processed', { amount: 100 });
- *   logger.warn('Low memory', { available: 50 });
- *   logger.error('API failed', error);
- */
-
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
@@ -76,11 +66,6 @@ class Logger {
     };
 
     console.error(this.formatMessage("error", message, errorContext));
-
-    // TODO: Send to remote logging service (Sentry, LogRocket, etc.)
-    // if (this.remoteLogger) {
-    //   this.remoteLogger.captureException(error, { extra: context });
-    // }
   }
 }
 

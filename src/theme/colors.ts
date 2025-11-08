@@ -1,10 +1,4 @@
-/**
- * Color palette for the application
- * Follow a consistent naming convention for better maintainability
- */
-
 export const colors = {
-  // Primary colors
   primary: {
     50: "#f0f9ff",
     100: "#e0f2fe",
@@ -18,7 +12,6 @@ export const colors = {
     900: "#0c4a6e",
   },
 
-  // Success colors
   success: {
     50: "#f0fdf4",
     100: "#dcfce7",
@@ -32,7 +25,6 @@ export const colors = {
     900: "#14532d",
   },
 
-  // Warning colors
   warning: {
     50: "#fffbeb",
     100: "#fef3c7",
@@ -46,7 +38,6 @@ export const colors = {
     900: "#78350f",
   },
 
-  // Error colors
   error: {
     50: "#fef2f2",
     100: "#fee2e2",
@@ -60,7 +51,6 @@ export const colors = {
     900: "#7f1d1d",
   },
 
-  // Neutral/Gray colors
   gray: {
     50: "#f9fafb",
     100: "#f3f4f6",
@@ -74,7 +64,6 @@ export const colors = {
     900: "#111827",
   },
 
-  // Semantic colors
   background: {
     primary: "#ffffff",
     secondary: "#f9fafb",
@@ -94,13 +83,11 @@ export const colors = {
     dark: "#9ca3af",
   },
 
-  // Common colors
   white: "#ffffff",
   black: "#000000",
   transparent: "transparent",
 } as const;
 
-// Type for color keys
 export type ColorKey = keyof typeof colors;
 export type ColorShade =
   | 50

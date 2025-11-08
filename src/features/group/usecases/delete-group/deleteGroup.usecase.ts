@@ -17,7 +17,6 @@ export const deleteGroup = createAsyncThunk<
     { groupId },
     { getState, extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Validate: group exists in state
     const state = getState();
     const group = state.groups.entities[groupId];
     if (!group) {
@@ -28,7 +27,6 @@ export const deleteGroup = createAsyncThunk<
       });
     }
 
-    // Validate: current user is the creator
     const currentUserId = state.auth.user?.id;
     if (group.creatorId !== currentUserId) {
       return rejectWithValue({
@@ -39,7 +37,6 @@ export const deleteGroup = createAsyncThunk<
     }
 
     try {
-      // Delete group via gateway
       await groupGateway.deleteGroup(groupId);
 
       return {

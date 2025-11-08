@@ -1,4 +1,3 @@
-// src/features/user/store/user.slice.ts
 import { createSlice } from "@reduxjs/toolkit";
 import { logger } from "../../../lib/logger";
 import type { AppError } from "../../../types/thunk.types";
@@ -16,7 +15,7 @@ interface UserState {
   profile: User | null;
   loading: boolean;
   error: AppError | null;
-  previousIncome: number | null; // For optimistic update rollback
+  previousIncome: number | null;
 }
 
 const initialState: UserState = {
@@ -26,7 +25,6 @@ const initialState: UserState = {
   previousIncome: null,
 };
 
-// Helper to recalculate capacity locally
 const recalculateCapacity = (state: UserState) => {
   if (state.profile) {
     const totalExpenses =
@@ -74,7 +72,6 @@ export const userSlice = createSlice({
         });
         state.loading = false;
         if (action.payload) {
-          // Gateway already returns a complete User entity
           state.profile = action.payload;
           logger.info("[UserSlice] Profile set in state", {
             pseudo: state.profile.pseudo,
@@ -99,25 +96,19 @@ export const userSlice = createSlice({
           message: action.error?.message ?? "Failed to load profile",
         };
       })
-      // Listen to completeOnboarding - profile will be loaded separately
       .addCase(completeOnboarding.fulfilled, (state, action) => {
         logger.debug("completeOnboarding.fulfilled received in user slice", {
           profileId: action.payload.profileId,
         });
-        // Note: The actual profile will be loaded via loadUserProfile
-        // We don't set state.profile here because we need the complete User entity
         state.loading = false;
       })
-      // Update income with optimistic update (don't set loading to avoid layout re-render)
       .addCase(updateUserIncome.pending, (state, action) => {
         state.error = null;
 
-        // Optimistic update: save previous income and update immediately
         if (state.profile) {
           state.previousIncome = state.profile.monthlyIncome;
           state.profile.monthlyIncome = action.meta.arg.newIncome;
 
-          // Recalculate capacity (income - personal expenses)
           const totalExpenses = (state.profile.personalExpenses || []).reduce(
             (sum, exp) => sum + exp.amount,
             0,
@@ -132,7 +123,7 @@ export const userSlice = createSlice({
         }
       })
       .addCase(updateUserIncome.fulfilled, (state) => {
-        state.previousIncome = null; // Clear rollback data
+        state.previousIncome = null;
         logger.info("Income update confirmed");
       })
       .addCase(updateUserIncome.rejected, (state, action) => {
@@ -141,7 +132,6 @@ export const userSlice = createSlice({
           message: action.error?.message ?? "Failed to update income",
         };
 
-        // Rollback optimistic update
         if (state.profile && state.previousIncome !== null) {
           logger.warn("Rolling back income update", {
             failed: state.profile.monthlyIncome,
@@ -151,12 +141,10 @@ export const userSlice = createSlice({
           state.previousIncome = null;
         }
       })
-      // Personal expenses (don't set loading to avoid re-renders that close modals)
       .addCase(addPersonalExpense.pending, (state) => {
         state.error = null;
       })
       .addCase(addPersonalExpense.fulfilled, (state, action) => {
-        // Add the new expense to state (action.payload is the created expense)
         if (state.profile) {
           if (!state.profile.personalExpenses) {
             state.profile.personalExpenses = [];
@@ -165,7 +153,6 @@ export const userSlice = createSlice({
           logger.debug("[UserSlice] Added expense to state", {
             expense: action.payload,
           });
-          // Recalculate capacity locally
           recalculateCapacity(state);
         }
       })
@@ -179,7 +166,6 @@ export const userSlice = createSlice({
         state.error = null;
       })
       .addCase(updatePersonalExpense.fulfilled, (state, action) => {
-        // Update the expense in state (action.payload is the updated expense)
         if (state.profile?.personalExpenses) {
           const index = state.profile.personalExpenses.findIndex(
             (expense) => expense.id === action.payload.id,
@@ -189,7 +175,6 @@ export const userSlice = createSlice({
             logger.debug("[UserSlice] Updated expense in state", {
               expense: action.payload,
             });
-            // Recalculate capacity locally
             recalculateCapacity(state);
           }
         }
@@ -204,7 +189,6 @@ export const userSlice = createSlice({
         state.error = null;
       })
       .addCase(deletePersonalExpense.fulfilled, (state, action) => {
-        // Remove the expense from state (action.payload is the expenseId)
         if (state.profile?.personalExpenses) {
           state.profile.personalExpenses =
             state.profile.personalExpenses.filter(
@@ -213,7 +197,6 @@ export const userSlice = createSlice({
           logger.debug("[UserSlice] Removed expense from state", {
             expenseId: action.payload,
           });
-          // Recalculate capacity locally
           recalculateCapacity(state);
         }
       })
@@ -223,7 +206,6 @@ export const userSlice = createSlice({
           message: action.error?.message ?? "Failed to delete personal expense",
         };
       })
-      // Clean up state on sign out
       .addCase(signOut.fulfilled, (state) => {
         logger.debug("[UserSlice] Cleaning up user state on sign out");
         state.profile = null;

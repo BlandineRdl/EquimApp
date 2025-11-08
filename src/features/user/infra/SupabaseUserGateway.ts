@@ -17,7 +17,7 @@ export class SupabaseUserGateway implements UserGateway {
       const { error } = await supabase.from("profiles").insert({
         id: input.id,
         pseudo: input.pseudo,
-        income_or_weight: input.monthlyIncome, // ✅ Map domain → DB
+        income_or_weight: input.monthlyIncome,
         currency_code: input.currency,
         share_revenue: input.shareRevenue,
       });
@@ -42,7 +42,6 @@ export class SupabaseUserGateway implements UserGateway {
         .single();
 
       if (error) {
-        // Not found is not an error, return null
         if (error.code === "PGRST116") {
           logger.info("Profile not found - user needs onboarding");
           return null;
@@ -58,16 +57,15 @@ export class SupabaseUserGateway implements UserGateway {
 
       logger.info("Profile loaded successfully");
 
-      // Map database fields to domain model
       return {
         id: data.id,
         pseudo: data.pseudo || "",
         monthlyIncome: Number(
           data.income_or_weight || data.weight_override || 0,
-        ), // ✅ Map DB → domain
+        ),
         shareRevenue: data.share_revenue,
         currency: data.currency_code,
-        personalExpenses: undefined, // Will be loaded separately if needed
+        personalExpenses: undefined,
         capacity: data.monthly_capacity
           ? Number(data.monthly_capacity)
           : undefined,
@@ -80,15 +78,13 @@ export class SupabaseUserGateway implements UserGateway {
 
   async updateProfile(id: string, patch: UpdateProfileInput): Promise<void> {
     try {
-      // Build update object based on provided fields
       const updates: Record<string, unknown> = {};
 
       if (patch.pseudo !== undefined) {
         updates.pseudo = patch.pseudo;
       }
       if (patch.monthlyIncome !== undefined) {
-        // ✅ Use domain vocabulary
-        updates.income_or_weight = patch.monthlyIncome; // ✅ Map domain → DB
+        updates.income_or_weight = patch.monthlyIncome;
       }
       if (patch.shareRevenue !== undefined) {
         updates.share_revenue = patch.shareRevenue;
@@ -260,7 +256,6 @@ export class SupabaseUserGateway implements UserGateway {
         throw createUserFriendlyError(error);
       }
 
-      // capacity can be null in database, which is valid (means no expenses or no income)
       const capacityValue = data?.monthly_capacity;
       const capacity =
         capacityValue !== null && capacityValue !== undefined
@@ -272,8 +267,6 @@ export class SupabaseUserGateway implements UserGateway {
     } catch (error) {
       logger.error("[SupabaseUserGateway] Exception in getUserCapacity", error);
 
-      // Don't throw - just return undefined and let the app continue
-      // This prevents the modal from closing due to an error
       return undefined;
     }
   }

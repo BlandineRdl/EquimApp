@@ -1,10 +1,3 @@
-/**
- * Feature: Load group details
- * En tant que membre d'un groupe,
- * Je veux charger les détails complets d'un groupe,
- * Afin de voir les membres, dépenses et parts.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -30,15 +23,12 @@ describe("Feature: Load group details", () => {
 
   describe("Success scenarios", () => {
     it("should load group details by ID", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Ma Coloc", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, "user-123");
 
-      // When on charge les détails du groupe
       const result = await store.dispatch(loadGroupById(groupId));
 
-      // Then les détails sont chargés
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
       if ("payload" in result && result.payload) {
         const group = result.payload as {
@@ -53,23 +43,19 @@ describe("Feature: Load group details", () => {
         expect(group.members).toBeDefined();
       }
 
-      // Verify group is stored in state
       const state = store.getState();
       expect(state.groups.entities[groupId]).toBeDefined();
       expect(state.groups.entities[groupId]?.name).toBe("Ma Coloc");
     });
 
     it("should include members in group details", async () => {
-      // Given un groupe avec plusieurs membres
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, "user-1");
       await groupGateway.addMember(groupId, "user-2");
 
-      // When on charge le groupe
       const result = await store.dispatch(loadGroupById(groupId));
 
-      // Then les membres sont inclus
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
       if ("payload" in result && result.payload) {
         const group = result.payload as { members: unknown[] };
@@ -79,7 +65,6 @@ describe("Feature: Load group details", () => {
     });
 
     it("should include expenses in group details", async () => {
-      // Given un groupe avec des dépenses
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, "user-123");
@@ -91,10 +76,8 @@ describe("Feature: Load group details", () => {
         isPredefined: false,
       });
 
-      // When on charge le groupe
       const result = await store.dispatch(loadGroupById(groupId));
 
-      // Then les dépenses sont incluses
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
       if ("payload" in result && result.payload) {
         const group = result.payload as { expenses: unknown[] };
@@ -104,7 +87,6 @@ describe("Feature: Load group details", () => {
     });
 
     it("should include shares in group details", async () => {
-      // Given un groupe avec des membres et dépenses
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, "user-123");
@@ -116,10 +98,8 @@ describe("Feature: Load group details", () => {
         isPredefined: false,
       });
 
-      // When on charge le groupe
       const result = await store.dispatch(loadGroupById(groupId));
 
-      // Then les parts sont incluses
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
       if ("payload" in result && result.payload) {
         const group = result.payload as {
@@ -133,14 +113,11 @@ describe("Feature: Load group details", () => {
     });
 
     it("should include timestamps in group details", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
-      // When on charge le groupe
       const result = await store.dispatch(loadGroupById(groupId));
 
-      // Then les timestamps sont présents
       expect(result.type).toBe("groups/loadGroupById/fulfilled");
       if ("payload" in result && result.payload) {
         const group = result.payload as {
@@ -155,13 +132,10 @@ describe("Feature: Load group details", () => {
 
   describe("Error scenarios", () => {
     it("should reject when group does not exist", async () => {
-      // Given un ID de groupe qui n'existe pas
       const nonExistentId = "non-existent-group-id";
 
-      // When on essaie de charger ce groupe
       const result = await store.dispatch(loadGroupById(nonExistentId));
 
-      // Then le chargement échoue
       expect(result.type).toBe("groups/loadGroupById/rejected");
     });
   });

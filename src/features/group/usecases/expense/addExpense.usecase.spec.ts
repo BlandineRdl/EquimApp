@@ -1,10 +1,3 @@
-/**
- * Feature: Add expense
- * En tant que membre d'un groupe,
- * Je veux ajouter une dépense partagée,
- * Afin de suivre les dépenses communes du groupe.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -32,21 +25,18 @@ describe("Feature: Add expense", () => {
     userGateway = new InMemoryUserGateway();
     store = initReduxStore({ groupGateway, authGateway, userGateway });
 
-    // Setup auth session using verifyOtp and initSession
     await authGateway.verifyOtp(userEmail, "123456");
     await store.dispatch(initSession());
   });
 
   describe("Success scenarios", () => {
     it("should add expense with valid name and amount", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute une dépense
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -55,7 +45,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then la dépense est ajoutée
       expect(result.type).toBe("groups/addExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const payload = result.payload as {
@@ -68,21 +57,18 @@ describe("Feature: Add expense", () => {
         expect(payload.expense.id).toBeDefined();
       }
 
-      // Verify store state
       const state = store.getState();
       const group = state.groups.entities[groupId];
       expect(group?.expenses.length).toBeGreaterThan(0);
     });
 
     it("should trim whitespace from expense name", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute une dépense avec des espaces
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -91,7 +77,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then la dépense est ajoutée avec le nom trimmed
       expect(result.type).toBe("groups/addExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const payload = result.payload as { expense: { name: string } };
@@ -100,14 +85,12 @@ describe("Feature: Add expense", () => {
     });
 
     it("should use group currency for expense", async () => {
-      // Given un groupe avec une devise USD
       const createResult = await groupGateway.createGroup("US Group", "USD");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute une dépense
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -116,7 +99,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then la devise du groupe est utilisée
       expect(result.type).toBe("groups/addExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const payload = result.payload as { expense: { currency: string } };
@@ -125,14 +107,12 @@ describe("Feature: Add expense", () => {
     });
 
     it("should recalculate shares after adding expense", async () => {
-      // Given un groupe avec des membres
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute une dépense
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -141,7 +121,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then les parts sont recalculées
       expect(result.type).toBe("groups/addExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const payload = result.payload as { shares: { totalExpenses: number } };
@@ -153,9 +132,6 @@ describe("Feature: Add expense", () => {
 
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
-      // Given un groupe qui n'existe pas
-
-      // When on essaie d'ajouter une dépense
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId: "non-existent-group",
@@ -164,7 +140,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -173,13 +148,11 @@ describe("Feature: Add expense", () => {
     });
 
     it("should reject empty expense name", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter une dépense avec un nom vide
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -188,7 +161,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -197,13 +169,11 @@ describe("Feature: Add expense", () => {
     });
 
     it("should reject whitespace-only expense name", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter une dépense avec seulement des espaces
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -212,7 +182,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -221,13 +190,11 @@ describe("Feature: Add expense", () => {
     });
 
     it("should reject zero amount", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter une dépense de 0€
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -236,7 +203,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -245,13 +211,11 @@ describe("Feature: Add expense", () => {
     });
 
     it("should reject negative amount", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter une dépense négative
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -260,7 +224,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addExpense/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -271,14 +234,12 @@ describe("Feature: Add expense", () => {
 
   describe("Business rules", () => {
     it("should mark expense as not predefined by default", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute une dépense manuelle
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -287,7 +248,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then la dépense n'est pas prédéfinie
       expect(result.type).toBe("groups/addExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const payload = result.payload as {
@@ -298,14 +258,12 @@ describe("Feature: Add expense", () => {
     });
 
     it("should set createdBy to current user", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute une dépense
       const result = await store.dispatch(
         addExpenseToGroup({
           groupId,
@@ -314,7 +272,6 @@ describe("Feature: Add expense", () => {
         }),
       );
 
-      // Then le créateur est l'utilisateur courant
       expect(result.type).toBe("groups/addExpense/fulfilled");
       if ("payload" in result && result.payload) {
         const payload = result.payload as { expense: { createdBy: string } };

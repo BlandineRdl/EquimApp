@@ -62,12 +62,10 @@ export const GroupDetailsScreen = () => {
   const dispatch = useAppDispatch();
   const { theme } = useThemeControl();
 
-  // Theme-aware colors for icons
   const iconColor = getTextColor(theme);
   const iconSuccess = SEMANTIC_COLORS.SUCCESS;
   const iconError = SEMANTIC_COLORS.ERROR;
 
-  // Select data from store
   const currentUserId = useSelector((state: AppState) => state.auth.user?.id);
   const groupDetails = useSelector((state: AppState) =>
     selectGroupDetails(state, groupId || ""),
@@ -87,11 +85,9 @@ export const GroupDetailsScreen = () => {
     selectGroupExpenseDistribution(state, groupId || ""),
   );
 
-  // Computed values
   const isLoading = !groupDetails || !groupStats;
   const isCreator = groupDetails?.group.creatorId === currentUserId;
 
-  // Load group on mount
   useEffect(() => {
     if (groupId) {
       logger.debug("[GroupDetails] Loading group", { groupId });
@@ -99,7 +95,6 @@ export const GroupDetailsScreen = () => {
     }
   }, [groupId, dispatch]);
 
-  // Loading state
   if (isLoading || !groupDetails || !groupStats) {
     return (
       <SafeAreaView style={{ flex: 1 }}>
@@ -117,7 +112,6 @@ export const GroupDetailsScreen = () => {
 
   const { group, members } = groupDetails;
 
-  // Fonctions pour gérer les modales
   const openMemberTypeChoice = () => {
     setShowMemberTypeChoice(true);
   };
@@ -153,12 +147,10 @@ export const GroupDetailsScreen = () => {
   };
 
   const handleLeaveSuccess = () => {
-    // Navigate to home after successfully leaving
     router.replace("/home");
   };
 
   const handleDeleteSuccess = () => {
-    // Navigate to home after successfully deleting
     router.replace("/home");
   };
 
@@ -170,12 +162,10 @@ export const GroupDetailsScreen = () => {
     setShowDeleteConfirm(false);
   };
 
-  // Navigation handlers
   const handleBackToHome = () => {
     router.back();
   };
 
-  // Toggle handlers
   const handleShowAllExpenses = () => {
     setShowAllExpenses(true);
   };
@@ -184,7 +174,6 @@ export const GroupDetailsScreen = () => {
     setShowAllExpenses(false);
   };
 
-  // Member management handlers
   const handleEditMemberClick = (member: GroupMember) => {
     setEditingMember(member);
   };
@@ -205,7 +194,6 @@ export const GroupDetailsScreen = () => {
     }
   };
 
-  // Fonctions pour gérer la modal d'ajout de dépense
   const openExpenseModal = () => {
     dispatch(openAddExpenseForm(groupId));
   };
@@ -252,7 +240,7 @@ export const GroupDetailsScreen = () => {
       edges={["top"]}
     >
       <YStack flex={1} backgroundColor="$background">
-        {/* Header */}
+        {}
         <GroupDetailsHeader
           groupName={group.name}
           isCreator={isCreator}
@@ -271,7 +259,7 @@ export const GroupDetailsScreen = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          {/* Cartes de répartition et total des dépenses */}
+          {}
           <YStack gap="$base" marginTop="$base" marginBottom="$lg">
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <GroupExpenseDistributionCard
@@ -284,7 +272,7 @@ export const GroupDetailsScreen = () => {
             </ScrollView>
           </YStack>
 
-          {/* Dépenses configurées */}
+          {}
           <GroupExpensesSection
             expenses={expenses}
             expensesCount={groupStats.expensesCount}
@@ -294,7 +282,7 @@ export const GroupDetailsScreen = () => {
             onShowLess={handleHideExpenses}
           />
 
-          {/* Membres et quotes-parts */}
+          {}
           <GroupMembersSection
             members={members}
             groupCreatorId={group.creatorId}
@@ -309,14 +297,14 @@ export const GroupDetailsScreen = () => {
             onRemoveMember={handleRemoveMemberClick}
           />
 
-          {/* Bottom spacing */}
+          {}
           <YStack height="$3xl" />
         </ScrollView>
 
-        {/* Modal d'ajout de membre */}
+        {}
         <AddMemberModal visible={addMemberUI.isOpen} form={addMemberUI.form} />
 
-        {/* Modal d'ajout de dépense */}
+        {}
         <AddExpenseModal
           visible={addExpenseUI.isOpen}
           onClose={closeAddExpenseModal}
@@ -326,7 +314,7 @@ export const GroupDetailsScreen = () => {
           onDelete={handleDeleteExpense}
         />
 
-        {/* Modal de confirmation de suppression du groupe */}
+        {}
         {groupId && (
           <DeleteGroupConfirmModal
             visible={showDeleteConfirm}
@@ -336,7 +324,7 @@ export const GroupDetailsScreen = () => {
           />
         )}
 
-        {/* Modal de choix du type de membre */}
+        {}
         <MemberTypeChoiceModal
           visible={showMemberTypeChoice}
           onClose={() => setShowMemberTypeChoice(false)}
@@ -344,7 +332,7 @@ export const GroupDetailsScreen = () => {
           onSelectPhantom={handleSelectPhantom}
         />
 
-        {/* Modal d'invitation */}
+        {}
         {groupId && (
           <InviteModal
             isVisible={showInviteModal}
@@ -353,7 +341,7 @@ export const GroupDetailsScreen = () => {
           />
         )}
 
-        {/* Modal de modification de membre fantôme */}
+        {}
         {editingMember && groupId && (
           <EditPhantomMemberModal
             visible={editingMember !== null}
@@ -363,7 +351,7 @@ export const GroupDetailsScreen = () => {
           />
         )}
 
-        {/* Modal de confirmation de suppression de membre */}
+        {}
         {memberToRemove && groupId && (
           <RemoveMemberConfirmModal
             visible={memberToRemove !== null}
@@ -374,7 +362,7 @@ export const GroupDetailsScreen = () => {
           />
         )}
 
-        {/* Modal de confirmation pour quitter le groupe */}
+        {}
         {groupId && (
           <LeaveGroupConfirmModal
             visible={showLeaveConfirm}

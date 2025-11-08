@@ -1,10 +1,3 @@
-/**
- * Feature: Generate invitation link
- * En tant que membre d'un groupe,
- * Je veux générer un lien d'invitation,
- * Afin d'inviter d'autres personnes à rejoindre mon groupe.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -32,16 +25,13 @@ describe("Feature: Generate invitation link", () => {
 
   describe("Success scenarios", () => {
     it("should generate invitation link for existing group", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on génère un lien d'invitation
       const result = await store.dispatch(generateInviteLink({ groupId }));
 
-      // Then le lien est généré
       expect(result.type).toBe("groups/generateInviteLink/fulfilled");
       if ("payload" in result && result.payload) {
         const link = result.payload as string;
@@ -50,23 +40,19 @@ describe("Feature: Generate invitation link", () => {
         expect(link.length).toBeGreaterThan(0);
       }
 
-      // Verify link is stored in state
       const state = store.getState();
       expect(state.groups.invitation.generateLink.link).toBeDefined();
     });
 
     it("should generate unique links for same group", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on génère deux liens d'invitation
       const result1 = await store.dispatch(generateInviteLink({ groupId }));
       const result2 = await store.dispatch(generateInviteLink({ groupId }));
 
-      // Then les liens sont différents
       expect(result1.type).toBe("groups/generateInviteLink/fulfilled");
       expect(result2.type).toBe("groups/generateInviteLink/fulfilled");
 
@@ -80,14 +66,10 @@ describe("Feature: Generate invitation link", () => {
 
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
-      // Given un groupe qui n'existe pas dans l'état
-
-      // When on essaie de générer un lien
       const result = await store.dispatch(
         generateInviteLink({ groupId: "non-existent-group" }),
       );
 
-      // Then la génération échoue
       expect(result.type).toBe("groups/generateInviteLink/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;

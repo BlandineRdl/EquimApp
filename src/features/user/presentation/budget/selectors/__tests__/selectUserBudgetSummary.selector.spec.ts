@@ -1,8 +1,3 @@
-/**
- * View model generation for User Budget Summary
- * Tests budget calculation through Redux store
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ReduxStore } from "../../../../../../store/buildReduxStore";
 import { initReduxStore } from "../../../../../../store/buildReduxStore";
@@ -33,7 +28,6 @@ describe("View model generation for User Budget Summary", () => {
       groupGateway,
     }) as ReduxStore;
 
-    // Simulate auth state
     store.dispatch({
       type: "auth/signIn/fulfilled",
       payload: { userId },
@@ -47,7 +41,6 @@ describe("View model generation for User Budget Summary", () => {
   });
 
   it("should return budget summary with no groups", () => {
-    // Load user profile with capacity
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -77,7 +70,6 @@ describe("View model generation for User Budget Summary", () => {
   });
 
   it("should calculate budget summary with one group", () => {
-    // Load user profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -91,7 +83,6 @@ describe("View model generation for User Budget Summary", () => {
       },
     });
 
-    // Load group with user's share
     store.dispatch({
       type: "groups/loadUserGroups/fulfilled",
       payload: [
@@ -136,7 +127,7 @@ describe("View model generation for User Budget Summary", () => {
       ],
       totalGroupContributions: 1000,
       remainingBudget: 700,
-      expenseRatio: 59, // (1000/1700)*100 = 58.82 rounded to 59
+      expenseRatio: 59,
       isHealthy: true,
       hasGroups: true,
       hasValidCapacity: true,
@@ -144,7 +135,6 @@ describe("View model generation for User Budget Summary", () => {
   });
 
   it("should calculate budget summary with multiple groups", () => {
-    // Load user profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -158,7 +148,6 @@ describe("View model generation for User Budget Summary", () => {
       },
     });
 
-    // Load multiple groups
     store.dispatch({
       type: "groups/loadUserGroups/fulfilled",
       payload: [
@@ -232,7 +221,7 @@ describe("View model generation for User Budget Summary", () => {
       ],
       totalGroupContributions: 1300,
       remainingBudget: 700,
-      expenseRatio: 65, // (1300/2000)*100 = 65
+      expenseRatio: 65,
       isHealthy: true,
       hasGroups: true,
       hasValidCapacity: true,
@@ -240,7 +229,6 @@ describe("View model generation for User Budget Summary", () => {
   });
 
   it("should handle negative remaining budget (unhealthy)", () => {
-    // Load user profile with low capacity
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -254,7 +242,6 @@ describe("View model generation for User Budget Summary", () => {
       },
     });
 
-    // Load group with high contribution
     store.dispatch({
       type: "groups/loadUserGroups/fulfilled",
       payload: [
@@ -288,11 +275,10 @@ describe("View model generation for User Budget Summary", () => {
 
     expect(result?.isHealthy).toBe(false);
     expect(result?.remainingBudget).toBe(-500);
-    expect(result?.expenseRatio).toBe(150); // (1500/1000)*100
+    expect(result?.expenseRatio).toBe(150);
   });
 
   it("should handle capacity = 0 (invalid capacity)", () => {
-    // Load user profile with zero capacity
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -314,7 +300,7 @@ describe("View model generation for User Budget Summary", () => {
       groupShares: [],
       totalGroupContributions: 0,
       remainingBudget: 0,
-      expenseRatio: 0, // Division by zero handled
+      expenseRatio: 0,
       isHealthy: true,
       hasGroups: false,
       hasValidCapacity: false,
@@ -322,7 +308,6 @@ describe("View model generation for User Budget Summary", () => {
   });
 
   it("should skip groups without user shares", () => {
-    // Load user profile
     store.dispatch({
       type: "user/loadProfile/fulfilled",
       payload: {
@@ -336,7 +321,6 @@ describe("View model generation for User Budget Summary", () => {
       },
     });
 
-    // Load group where user has no share
     store.dispatch({
       type: "groups/loadUserGroups/fulfilled",
       payload: [

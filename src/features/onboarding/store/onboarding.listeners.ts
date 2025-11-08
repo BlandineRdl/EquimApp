@@ -5,7 +5,6 @@ import { completeOnboarding } from "../usecases/complete-onboarding/completeOnbo
 
 export const onboardingListeners = createListenerMiddleware<AppState>();
 
-// Show warning toast when some personal expenses failed during onboarding
 onboardingListeners.startListening({
   actionCreator: completeOnboarding.fulfilled,
   effect: async (action) => {

@@ -18,7 +18,6 @@ export const createGroup = createAsyncThunk<
     { name, currency = "EUR" },
     { extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Validate group name
     const trimmedName = name.trim();
     if (!trimmedName) {
       return rejectWithValue({
@@ -43,7 +42,6 @@ export const createGroup = createAsyncThunk<
       });
     }
 
-    // Create group via gateway
     try {
       const result = await groupGateway.createGroup(trimmedName, currency);
 

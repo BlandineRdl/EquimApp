@@ -8,19 +8,17 @@ import { initSession } from "../usecases/manage-session/initSession.usecase";
 import { signOut } from "../usecases/manage-session/signOut.usecase";
 import { resetAccount } from "../usecases/reset-account/resetAccount.usecase";
 
-// State interface
 export interface AuthState {
   user: User | null;
   userId: string | null;
   session: Session | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  hydrated: boolean; // True once initial session check is complete
+  hydrated: boolean;
   profileDeleted: boolean;
   error: AppError | null;
 }
 
-// Initial state
 const initialState: AuthState = {
   user: null,
   userId: null,
@@ -32,12 +30,10 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    // Update session from auth state change listener
     setSession: (state, action) => {
       const session = action.payload as Session | null;
       state.session = session;
@@ -46,18 +42,15 @@ const authSlice = createSlice({
       state.isAuthenticated = !!session;
     },
 
-    // Reset error
     clearError: (state) => {
       state.error = null;
     },
 
-    // Mark profile as deleted (for handling soft-deleted users)
     setProfileDeleted: (state, action) => {
       state.profileDeleted = action.payload;
     },
   },
   extraReducers: (builder) => {
-    // Sign in
     builder
       .addCase(signInWithEmail.pending, (state) => {
         state.isLoading = true;
@@ -65,7 +58,6 @@ const authSlice = createSlice({
       })
       .addCase(signInWithEmail.fulfilled, (state) => {
         state.isLoading = false;
-        // Magic link sent successfully
       })
       .addCase(signInWithEmail.rejected, (state, action) => {
         state.isLoading = false;
@@ -75,7 +67,6 @@ const authSlice = createSlice({
         };
       });
 
-    // Sign out
     builder
       .addCase(signOut.pending, (state) => {
         state.isLoading = true;
@@ -97,7 +88,6 @@ const authSlice = createSlice({
         };
       });
 
-    // Delete account
     builder
       .addCase(deleteAccount.pending, (state) => {
         state.isLoading = true;
@@ -119,14 +109,12 @@ const authSlice = createSlice({
         };
       });
 
-    // Reset account
     builder
       .addCase(resetAccount.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(resetAccount.fulfilled, (state) => {
-        // Reset all auth state
         state.user = null;
         state.userId = null;
         state.session = null;
@@ -145,7 +133,6 @@ const authSlice = createSlice({
         };
       });
 
-    // Init session
     builder
       .addCase(initSession.pending, (state) => {
         state.isLoading = true;
@@ -157,7 +144,7 @@ const authSlice = createSlice({
         state.user = action.payload?.user || null;
         state.userId = action.payload?.user?.id || null;
         state.isAuthenticated = !!action.payload;
-        state.hydrated = true; // Mark as hydrated after initial session check
+        state.hydrated = true;
       })
       .addCase(initSession.rejected, (state, action) => {
         state.isLoading = false;
@@ -165,10 +152,9 @@ const authSlice = createSlice({
           code: "INIT_SESSION_FAILED",
           message: action.error?.message ?? "Failed to initialize session",
         };
-        state.hydrated = true; // Mark as hydrated even on error
+        state.hydrated = true;
       });
 
-    // Verify OTP
     builder
       .addCase(verifyOtp.pending, (state) => {
         state.isLoading = true;
@@ -176,7 +162,6 @@ const authSlice = createSlice({
       })
       .addCase(verifyOtp.fulfilled, (state, _action) => {
         state.isLoading = false;
-        // Session will be set by onAuthStateChange listener
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.isLoading = false;

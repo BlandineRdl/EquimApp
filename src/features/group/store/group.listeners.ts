@@ -7,16 +7,13 @@ import { loadGroupById } from "../usecases/load-group/loadGroup.usecase";
 export const createGroupListeners = (groupGateway: GroupGateway) => {
   const groupListeners = createListenerMiddleware<AppState>();
 
-  // Map to store unsubscribe functions by groupId
   const subscriptions = new Map<string, () => void>();
 
-  // Subscribe to realtime updates when a group is loaded
   groupListeners.startListening({
     actionCreator: loadGroupById.fulfilled,
     effect: async (action, { dispatch }) => {
       const groupId = action.meta.arg;
 
-      // Unsubscribe from previous subscription if exists
       if (subscriptions.has(groupId)) {
         logger.debug("[GroupListeners] Replacing existing subscription", {
           groupId,
@@ -52,13 +49,9 @@ export const createGroupListeners = (groupGateway: GroupGateway) => {
         },
       });
 
-      // Store unsubscribe function
       subscriptions.set(groupId, unsubscribe);
     },
   });
 
   return groupListeners;
 };
-
-// Cleanup: unsubscribe when leaving a group (optional)
-// You can add a cleanup action and listener here if needed

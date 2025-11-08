@@ -11,7 +11,6 @@ import {
   selectGroupMembersCount,
 } from "./selectGroupMembers.selector";
 
-// Skeleton loader with pulse animation
 function GroupCardSkeleton() {
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
@@ -133,7 +132,6 @@ function GroupCardSkeleton() {
   );
 }
 
-// Empty state when no groups
 function EmptyGroupState({
   onCreateGroup,
   onJoinGroup,
@@ -253,12 +251,10 @@ export const GroupsHome = ({
   const groups = useSelector(selectAllGroups);
   const isLoading = useSelector((state: AppState) => state.groups.loading);
 
-  // Show skeleton while loading
   if (isLoading) {
     return <GroupCardSkeleton />;
   }
 
-  // Show empty state if no groups
   if (groups.length === 0) {
     return (
       <EmptyGroupState
@@ -268,7 +264,6 @@ export const GroupsHome = ({
     );
   }
 
-  // Show group cards
   return (
     <>
       {groups.map((group) => (
@@ -281,7 +276,7 @@ export const GroupsHome = ({
           borderColor="$success600"
           marginBottom="$lg"
         >
-          {/* Group Header */}
+          {}
           <XStack alignItems="center" marginBottom="$xs">
             <YStack
               backgroundColor="$primary100"
@@ -298,7 +293,7 @@ export const GroupsHome = ({
 
           <MembersDisplay groupId={group.id} />
 
-          {/* Budget Section */}
+          {}
           <YStack marginBottom="$base">
             <Text fontSize={14} color="$colorSecondary" marginBottom="$1">
               Total des dépenses
@@ -322,7 +317,7 @@ export const GroupsHome = ({
             </Text>
           </YStack>
 
-          {/* View Button */}
+          {}
           <Pressable onPress={() => onNavigateToGroupDetails(group.id)}>
             <XStack
               alignItems="center"
@@ -346,7 +341,7 @@ export const GroupsHome = ({
             </XStack>
           </Pressable>
 
-          {/* Invite Section */}
+          {}
           <XStack
             justifyContent="space-between"
             alignItems="center"
