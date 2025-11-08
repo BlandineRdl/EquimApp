@@ -38,9 +38,11 @@ export const RemoveMemberConfirmModal: React.FC<
           memberId,
         }),
       ).unwrap();
+      // Success toast handled by listener
       onClose();
     } catch (_error) {
       // Error toast handled by listener
+      // Keep modal open on error
     } finally {
       setLoading(false);
     }

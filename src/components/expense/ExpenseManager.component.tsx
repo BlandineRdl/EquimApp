@@ -1,14 +1,21 @@
-import { AlertTriangle, Check, Edit3, Plus, Trash2, X } from "lucide-react-native";
+import {
+  AlertTriangle,
+  Check,
+  Edit3,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react-native";
 import { useState } from "react";
 import { Modal, Pressable } from "react-native";
 import Toast from "react-native-toast-message";
 import { ScrollView, Text, useTheme, XStack, YStack } from "tamagui";
+import { SEMANTIC_COLORS } from "../../constants/theme.constants";
 import {
   MAX_EXPENSE_AMOUNT,
   MAX_LABEL_LENGTH,
   MIN_EXPENSE_AMOUNT,
 } from "../../features/user/domain/manage-personal-expenses/personal-expense.constants";
-import { SEMANTIC_COLORS } from "../../constants/theme.constants";
 import { Button } from "../Button";
 import { IconButton } from "../IconButton";
 import { Input } from "../Input";
@@ -97,7 +104,11 @@ export function ExpenseManager({
     }
   };
 
-  const handleDeleteExpense = async (expenseId: string, label: string, amount: number) => {
+  const handleDeleteExpense = async (
+    expenseId: string,
+    label: string,
+    amount: number,
+  ) => {
     if (!onDelete) return;
 
     if (expenses.length <= minExpenses) {
@@ -134,9 +145,11 @@ export function ExpenseManager({
     try {
       await onDelete(expenseToDelete.id);
       // Success toast handled by listener
+      // Close modal after success
       setExpenseToDelete(null);
     } catch (_error) {
       // Error toast handled by listener
+      // Keep modal open on error so user can see the toast
     } finally {
       setIsSubmitting(false);
     }
@@ -379,7 +392,11 @@ export function ExpenseManager({
                       icon={Trash2}
                       variant="error"
                       onPress={() =>
-                        handleDeleteExpense(expense.id, expense.label, expense.amount)
+                        handleDeleteExpense(
+                          expense.id,
+                          expense.label,
+                          expense.amount,
+                        )
                       }
                       disabled={isSubmitting || isAtMinimum}
                     />
