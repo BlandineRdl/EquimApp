@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 import { Pressable } from "react-native";
 import { Text, XStack, YStack } from "tamagui";
 import { ColorIndicator } from "../../../../../components/ColorIndicator";
@@ -16,7 +16,6 @@ interface GroupExpensesSectionProps {
   expensesCount: number;
   showAllExpenses: boolean;
   onAddExpense: () => void;
-  onDeleteExpense: (expenseId: string) => void;
   onShowAll: () => void;
   onShowLess: () => void;
 }
@@ -26,7 +25,6 @@ export const GroupExpensesSection = ({
   expensesCount,
   showAllExpenses,
   onAddExpense,
-  onDeleteExpense,
   onShowAll,
   onShowLess,
 }: GroupExpensesSectionProps) => {
@@ -78,22 +76,13 @@ export const GroupExpensesSection = ({
                   {expense.name}
                 </Text>
               </XStack>
-              <XStack alignItems="center" gap="$xs">
-                <Text fontSize={16} fontWeight="600" color="$color">
-                  {expense.amount.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </Text>
-                <IconButton
-                  icon={Trash2}
-                  variant="error"
-                  size={28}
-                  iconSize={14}
-                  onPress={() => onDeleteExpense(expense.id)}
-                />
-              </XStack>
+              <Text fontSize={16} fontWeight="600" color="$color">
+                {expense.amount.toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                €
+              </Text>
             </XStack>
           </YStack>
         );

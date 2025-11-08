@@ -66,6 +66,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             minExpenses={0}
             title="Dépenses du groupe"
             addSectionTitle="Ajouter une dépense"
+            requireConfirmation={true}
+            confirmationMessage="Cette dépense sera définitivement supprimée. Les quotes-parts seront recalculées automatiquement pour tous les membres du groupe."
           />
         </YStack>
       </YStack>

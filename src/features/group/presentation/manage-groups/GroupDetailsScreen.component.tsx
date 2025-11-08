@@ -144,15 +144,6 @@ export const GroupDetailsScreen = () => {
     }
   };
 
-  const handleDeleteExpense = async (expenseId: string) => {
-    if (!groupId) return;
-    try {
-      await dispatch(deleteExpense({ groupId, expenseId })).unwrap();
-    } catch (error: unknown) {
-      logger.error("Error deleting expense", error);
-    }
-  };
-
   const openLeaveConfirmModal = () => {
     setShowLeaveConfirm(true);
   };
@@ -198,8 +189,13 @@ export const GroupDetailsScreen = () => {
     setEditingMember(member);
   };
 
-  const handleDeleteExpenseClick = (expenseId: string) => {
-    handleDeleteExpense(expenseId);
+  const handleDeleteExpense = async (expenseId: string) => {
+    if (!groupId) return;
+    try {
+      await dispatch(deleteExpense({ groupId, expenseId })).unwrap();
+    } catch (error: unknown) {
+      logger.error("Error deleting expense", error);
+    }
   };
 
   const handleRemoveMemberClick = (memberId: string) => {
@@ -294,7 +290,6 @@ export const GroupDetailsScreen = () => {
             expensesCount={groupStats.expensesCount}
             showAllExpenses={showAllExpenses}
             onAddExpense={openExpenseModal}
-            onDeleteExpense={handleDeleteExpenseClick}
             onShowAll={handleShowAllExpenses}
             onShowLess={handleHideExpenses}
           />

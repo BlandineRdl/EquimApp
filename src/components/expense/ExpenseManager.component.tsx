@@ -1,7 +1,16 @@
-import { Check, Edit3, Plus, Trash2, X } from "lucide-react-native";
+import {
+  AlertTriangle,
+  Check,
+  Edit3,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react-native";
 import { useState } from "react";
+import { Modal, Pressable } from "react-native";
 import Toast from "react-native-toast-message";
 import { ScrollView, Text, useTheme, XStack, YStack } from "tamagui";
+import { SEMANTIC_COLORS } from "../../constants/theme.constants";
 import {
   MAX_EXPENSE_AMOUNT,
   MAX_LABEL_LENGTH,
@@ -25,6 +34,8 @@ interface ExpenseManagerProps {
   minExpenses?: number;
   title?: string;
   addSectionTitle?: string;
+  requireConfirmation?: boolean;
+  confirmationMessage?: string;
 }
 
 export function ExpenseManager({
@@ -35,6 +46,8 @@ export function ExpenseManager({
   minExpenses = 0,
   title = "Mes dépenses",
   addSectionTitle = "Ajouter une dépense",
+  requireConfirmation = false,
+  confirmationMessage,
 }: ExpenseManagerProps) {
   const theme = useTheme();
   const [newLabel, setNewLabel] = useState("");
@@ -45,6 +58,13 @@ export function ExpenseManager({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [editAmount, setEditAmount] = useState("");
+
+  // Confirmation modal state
+  const [expenseToDelete, setExpenseToDelete] = useState<{
+    id: string;
+    label: string;
+    amount: number;
+  } | null>(null);
 
   const handleAddExpense = async () => {
     if (!newLabel.trim() || !newAmount.trim()) {
@@ -84,7 +104,11 @@ export function ExpenseManager({
     }
   };
 
-  const handleDeleteExpense = async (expenseId: string, _label: string) => {
+  const handleDeleteExpense = async (
+    expenseId: string,
+    label: string,
+    amount: number,
+  ) => {
     if (!onDelete) return;
 
     if (expenses.length <= minExpenses) {
@@ -96,12 +120,36 @@ export function ExpenseManager({
       return;
     }
 
+    // Show confirmation modal if required
+    if (requireConfirmation) {
+      setExpenseToDelete({ id: expenseId, label, amount });
+      return;
+    }
+
+    // Direct deletion without confirmation
     setIsSubmitting(true);
     try {
       await onDelete(expenseId);
       // Success toast handled by listener
     } catch (_error) {
       // Error toast handled by listener
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const confirmDeleteExpense = async () => {
+    if (!expenseToDelete || !onDelete) return;
+
+    setIsSubmitting(true);
+    try {
+      await onDelete(expenseToDelete.id);
+      // Success toast handled by listener
+      // Close modal after success
+      setExpenseToDelete(null);
+    } catch (_error) {
+      // Error toast handled by listener
+      // Keep modal open on error so user can see the toast
     } finally {
       setIsSubmitting(false);
     }
@@ -344,7 +392,11 @@ export function ExpenseManager({
                       icon={Trash2}
                       variant="error"
                       onPress={() =>
-                        handleDeleteExpense(expense.id, expense.label)
+                        handleDeleteExpense(
+                          expense.id,
+                          expense.label,
+                          expense.amount,
+                        )
                       }
                       disabled={isSubmitting || isAtMinimum}
                     />
@@ -355,6 +407,103 @@ export function ExpenseManager({
           })
         )}
       </YStack>
+
+      {/* Modal de confirmation de suppression */}
+      {requireConfirmation && expenseToDelete && (
+        <Modal
+          visible={expenseToDelete !== null}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setExpenseToDelete(null)}
+        >
+          <YStack
+            flex={1}
+            backgroundColor="rgba(0, 0, 0, 0.5)"
+            justifyContent="center"
+            alignItems="center"
+            padding="$lg"
+          >
+            <YStack
+              width="100%"
+              maxWidth={400}
+              backgroundColor="$background"
+              borderRadius="$xl"
+              padding="$xl"
+            >
+              {/* Header */}
+              <XStack
+                justifyContent="space-between"
+                alignItems="center"
+                marginBottom="$lg"
+              >
+                <Text fontSize={18} fontWeight="600" color="$color">
+                  Supprimer cette dépense ?
+                </Text>
+                <Pressable
+                  onPress={() => setExpenseToDelete(null)}
+                  style={{ padding: 4 }}
+                >
+                  <X size={20} color={theme.color.val} />
+                </Pressable>
+              </XStack>
+
+              {/* Icon */}
+              <YStack alignItems="center" marginBottom="$lg">
+                <AlertTriangle size={64} color={SEMANTIC_COLORS.ERROR} />
+              </YStack>
+
+              {/* Content */}
+              <Text
+                fontSize={18}
+                fontWeight="600"
+                color="$color"
+                textAlign="center"
+                marginBottom="$sm"
+              >
+                {expenseToDelete.label} -{" "}
+                {expenseToDelete.amount.toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                €
+              </Text>
+              <Text
+                fontSize={16}
+                color="$colorSecondary"
+                textAlign="center"
+                marginBottom="$xl"
+                lineHeight={24}
+              >
+                {confirmationMessage ||
+                  "Cette dépense sera définitivement supprimée."}
+              </Text>
+
+              {/* Actions */}
+              <YStack gap="$md">
+                <Button
+                  variant="error"
+                  onPress={confirmDeleteExpense}
+                  disabled={isSubmitting}
+                >
+                  <Text fontSize={16} fontWeight="600" color="$white">
+                    {isSubmitting ? "Suppression..." : "Supprimer la dépense"}
+                  </Text>
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  onPress={() => setExpenseToDelete(null)}
+                  disabled={isSubmitting}
+                >
+                  <Text fontSize={16} fontWeight="600" color="$colorSecondary">
+                    Annuler
+                  </Text>
+                </Button>
+              </YStack>
+            </YStack>
+          </YStack>
+        </Modal>
+      )}
     </ScrollView>
   );
 }
