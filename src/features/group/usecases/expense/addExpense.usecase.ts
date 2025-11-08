@@ -32,7 +32,6 @@ export const addExpenseToGroup = createAsyncThunk<
     { groupId, name, amount },
     { getState, extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Validate: group exists in state
     const state = getState();
     const group = state.groups.entities[groupId];
     if (!group) {
@@ -43,7 +42,6 @@ export const addExpenseToGroup = createAsyncThunk<
       });
     }
 
-    // Validate input
     if (!name.trim()) {
       return rejectWithValue({
         code: "EMPTY_EXPENSE_NAME",
@@ -61,7 +59,6 @@ export const addExpenseToGroup = createAsyncThunk<
     }
 
     try {
-      // Create expense via gateway
       const result = await groupGateway.createExpense({
         groupId,
         name: name.trim(),
@@ -70,7 +67,6 @@ export const addExpenseToGroup = createAsyncThunk<
         isPredefined: false,
       });
 
-      // Get current user ID (assuming it's stored in auth state)
       const currentUserId = state.auth.user?.id || "";
 
       return {

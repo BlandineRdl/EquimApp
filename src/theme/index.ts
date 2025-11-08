@@ -1,8 +1,3 @@
-/**
- * Theme system for consistent styling across the application
- * Import this file to access all theme tokens
- */
-
 export * from "./colors";
 export * from "./spacing";
 export * from "./typography";
@@ -18,7 +13,6 @@ export const theme = {
   fontWeight,
   lineHeight,
 
-  // Common border radius values
   borderRadius: {
     none: 0,
     sm: 4,
@@ -29,7 +23,6 @@ export const theme = {
     full: 9999,
   },
 
-  // Common shadow values
   shadow: {
     sm: {
       shadowColor: "#000",

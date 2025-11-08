@@ -95,7 +95,6 @@ export const AcceptInvitationScreen = () => {
   };
 
   const handleRefuse = () => {
-    // Simply go back - invitations expire naturally if not accepted
     Alert.alert(
       INVITATION_MESSAGES.REFUSE_CONFIRMATION.title,
       INVITATION_MESSAGES.REFUSE_CONFIRMATION.message,

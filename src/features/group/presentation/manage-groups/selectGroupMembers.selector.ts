@@ -2,12 +2,10 @@ import { createSelector } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
 import { groupsAdapter } from "../../store/group.slice";
 
-// Selectors générés par l'adapter
 const adapterSelectors = groupsAdapter.getSelectors<AppState>(
   (state) => state.groups,
 );
 
-// Sélecteurs pour les membres d'un groupe spécifique
 export const selectGroupMembersCount = (groupId: string) =>
   createSelector(
     [(state: AppState) => adapterSelectors.selectById(state, groupId)],

@@ -1,12 +1,10 @@
-import { type ButtonProps, Button as TamaguiButton, useTheme } from "tamagui";
+import { type ButtonProps, Button as TamaguiButton } from "tamagui";
 
 interface AppButtonProps extends Omit<ButtonProps, "variant"> {
   variant?: "primary" | "secondary" | "success" | "error";
 }
 
 export function Button({ variant = "primary", ...props }: AppButtonProps) {
-  const _theme = useTheme();
-
   const getVariantProps = () => {
     switch (variant) {
       case "primary":

@@ -1,11 +1,9 @@
-// src/features/group/store/selectGroup.selector.ts
 import { createSelector } from "@reduxjs/toolkit";
 import type { AppState } from "../../../../store/appState";
 import { groupsAdapter } from "../../store/group.slice";
 
 const selectGroupsState = (state: AppState) => state.groups;
 
-// Selectors de base générés par l'adapter
 const groupSelectors = groupsAdapter.getSelectors();
 
 export const selectAllGroups = createSelector(
@@ -18,7 +16,6 @@ export const selectGroupById = createSelector(
   (groupsState, groupId) => groupSelectors.selectById(groupsState, groupId),
 );
 
-// Selectors pour l'état de chargement
 export const selectGroupsLoading = createSelector(
   [selectGroupsState],
   (groupsState) => groupsState.loading,
@@ -29,13 +26,11 @@ export const selectGroupsError = createSelector(
   (groupsState) => groupsState.error,
 );
 
-// Selectors composés utiles
 export const selectGroupsCount = createSelector(
   [selectAllGroups],
   (groups) => groups.length,
 );
 
-// Selector pour l'UI de l'écran d'accueil
 export const selectGroupsUI = createSelector(
   [selectAllGroups, selectGroupsLoading, selectGroupsError, selectGroupsCount],
   (groups, loading, error, count) => ({

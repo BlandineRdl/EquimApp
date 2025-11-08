@@ -26,18 +26,18 @@ describe("expenseColors.utils", () => {
     it("should return the correct color for index 0", () => {
       const color = getExpenseColorByIndex(0);
 
-      expect(color).toBe("#0ea5e9"); // Blue
+      expect(color).toBe("#0ea5e9");
     });
 
     it("should return the correct color for index 1", () => {
       const color = getExpenseColorByIndex(1);
 
-      expect(color).toBe("#22c55e"); // Green
+      expect(color).toBe("#22c55e");
     });
 
     it("should cycle through colors when index exceeds palette length", () => {
       const firstColor = getExpenseColorByIndex(0);
-      const cycleLater = getExpenseColorByIndex(20); // Should wrap to index 0
+      const cycleLater = getExpenseColorByIndex(20);
 
       expect(cycleLater).toBe(firstColor);
     });
@@ -46,7 +46,7 @@ describe("expenseColors.utils", () => {
       const color40 = getExpenseColorByIndex(40);
       const color0 = getExpenseColorByIndex(0);
 
-      expect(color40).toBe(color0); // 40 % 20 = 0
+      expect(color40).toBe(color0);
     });
 
     it("should return different colors for consecutive indices", () => {

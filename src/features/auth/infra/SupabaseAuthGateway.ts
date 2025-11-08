@@ -12,7 +12,6 @@ export class SupabaseAuthGateway implements AuthGateway {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          // Don't send magic link, just send OTP code
           shouldCreateUser: true,
         },
       });
@@ -92,7 +91,6 @@ export class SupabaseAuthGateway implements AuthGateway {
 
   async deleteAccount(): Promise<void> {
     try {
-      // Get current user ID
       const {
         data: { user },
         error: userError,
@@ -102,7 +100,6 @@ export class SupabaseAuthGateway implements AuthGateway {
         throw createUserFriendlyError(userError || new Error("User not found"));
       }
 
-      // Soft delete: set deleted_at and remove pseudo
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
@@ -115,7 +112,6 @@ export class SupabaseAuthGateway implements AuthGateway {
         throw createUserFriendlyError(updateError);
       }
 
-      // Sign out after soft delete
       await this.signOut();
     } catch (error) {
       throw createUserFriendlyError(error);
@@ -124,7 +120,6 @@ export class SupabaseAuthGateway implements AuthGateway {
 
   async resetAccount(): Promise<void> {
     try {
-      // Get current user ID
       const {
         data: { user },
         error: userError,
@@ -138,12 +133,6 @@ export class SupabaseAuthGateway implements AuthGateway {
         userId: user.id,
       });
 
-      // Delete the profile - all related data will cascade automatically:
-      // - groups (where user is creator) → group_members, expenses, invitations
-      // - group_members (where user is member)
-      // - user_personal_expenses
-      // - invitations (created_by)
-      // - auth.users (via profiles.id foreign key)
       const { error: deleteError } = await supabase
         .from("profiles")
         .delete()
@@ -154,7 +143,6 @@ export class SupabaseAuthGateway implements AuthGateway {
         throw createUserFriendlyError(deleteError);
       }
 
-      // Sign out
       await this.signOut();
 
       logger.info(

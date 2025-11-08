@@ -1,8 +1,3 @@
-/**
- * In-Memory Auth Gateway
- * Test implementation of AuthGateway for testing purposes
- */
-
 import type { Session } from "@supabase/supabase-js";
 import type { AuthGateway } from "../ports/AuthGateway";
 
@@ -12,12 +7,10 @@ export class InMemoryAuthGateway implements AuthGateway {
   private authStateListeners: ((session: Session | null) => void)[] = [];
 
   async signInWithEmail(email: string): Promise<void> {
-    // Simulate sending OTP - no-op in memory
     console.log(`[InMemory] OTP sent to ${email}`);
   }
 
   async verifyOtp(email: string, _token: string): Promise<Session> {
-    // Create a mock session
     const session: Session = {
       access_token: `mock-token-${email}`,
       refresh_token: `mock-refresh-${email}`,
@@ -38,7 +31,6 @@ export class InMemoryAuthGateway implements AuthGateway {
     this.currentSession = session;
     this.sessions.set(email, session);
 
-    // Notify listeners
     this.notifyAuthStateChange(session);
 
     return session;
@@ -81,10 +73,8 @@ export class InMemoryAuthGateway implements AuthGateway {
 
     console.log(`[InMemory] RESET account for user ${session.user.id}`);
 
-    // Clear session
     this.currentSession = null;
 
-    // Notify listeners
     for (const listener of this.authStateListeners) {
       listener(null);
     }
@@ -96,7 +86,6 @@ export class InMemoryAuthGateway implements AuthGateway {
     }
   }
 
-  // Test helpers
   setCurrentSession(session: Session | null): void {
     this.currentSession = session;
   }

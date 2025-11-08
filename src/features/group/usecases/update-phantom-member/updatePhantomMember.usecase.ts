@@ -25,7 +25,6 @@ export const updatePhantomMember = createAsyncThunk<
     { memberId, groupId, newPseudo, newIncome },
     { extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Validate format: must start with "Membre-"
     if (!newPseudo.startsWith("Membre-")) {
       return rejectWithValue({
         code: "INVALID_PSEUDO_FORMAT",
@@ -34,7 +33,6 @@ export const updatePhantomMember = createAsyncThunk<
       });
     }
 
-    // Extract and validate suffix
     const suffix = newPseudo.substring(7);
     if (suffix.length < 1 || suffix.length > 50) {
       return rejectWithValue({
@@ -44,7 +42,6 @@ export const updatePhantomMember = createAsyncThunk<
       });
     }
 
-    // Validate characters (letters, digits, hyphens, spaces)
     if (!/^[a-zA-Z0-9\s-]+$/.test(suffix)) {
       return rejectWithValue({
         code: "INVALID_PSEUDO_CHARACTERS",
@@ -54,7 +51,6 @@ export const updatePhantomMember = createAsyncThunk<
       });
     }
 
-    // Validate income if provided
     if (newIncome !== undefined && newIncome < 0) {
       return rejectWithValue({
         code: "NEGATIVE_INCOME",
@@ -64,7 +60,6 @@ export const updatePhantomMember = createAsyncThunk<
     }
 
     try {
-      // Call gateway
       const result = await groupGateway.updatePhantomMember(
         memberId,
         newPseudo,

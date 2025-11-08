@@ -8,10 +8,8 @@ export const signInWithEmail = createAsyncThunk<
   AppThunkApiConfig
 >("auth/signIn", async (email, { extra: { authGateway }, rejectWithValue }) => {
   try {
-    // Validate and normalize email
     const normalizedEmail = validateEmail(email);
 
-    // Send magic link
     await authGateway.signInWithEmail(normalizedEmail);
   } catch (error) {
     return rejectWithValue({

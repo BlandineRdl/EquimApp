@@ -31,7 +31,6 @@ import type {
   Unsubscribe,
 } from "../ports/GroupGateway";
 
-// Type definitions for database query results
 interface GroupMembershipQueryResult {
   group_id: string;
   groups: {
@@ -42,7 +41,6 @@ interface GroupMembershipQueryResult {
   };
 }
 
-// Type definitions for realtime payloads
 type ExpenseRealtimePayload = RealtimePostgresChangesPayload<
   Database["public"]["Tables"]["expenses"]["Row"]
 >;
@@ -78,7 +76,6 @@ export class SupabaseGroupGateway implements GroupGateway {
     try {
       logger.debug("Fetching groups for user", { userId });
 
-      // Get all groups where user is a member
       const { data: groupMembers, error: membersError } = await supabase
         .from("group_members")
         .select(
@@ -108,18 +105,15 @@ export class SupabaseGroupGateway implements GroupGateway {
         return [];
       }
 
-      // For each group, get member count and total expenses
       const summaries: GroupSummary[] = await Promise.all(
         groupMembers.map(async (gm: GroupMembershipQueryResult) => {
           const groupId = gm.groups.id;
 
-          // Count members
           const { count: memberCount } = await supabase
             .from("group_members")
             .select("*", { count: "exact", head: true })
             .eq("group_id", groupId);
 
-          // Sum expenses
           const { data: expenses } = await supabase
             .from("expenses")
             .select("amount")
@@ -147,7 +141,6 @@ export class SupabaseGroupGateway implements GroupGateway {
 
   async getGroupById(id: string): Promise<GroupFull> {
     try {
-      // Get group basic info
       const { data: group, error: groupError } = await supabase
         .from("groups")
         .select("*")
@@ -158,7 +151,6 @@ export class SupabaseGroupGateway implements GroupGateway {
         throw createUserFriendlyError(groupError);
       }
 
-      // Get members via RPC (bypasses RLS for pseudos)
       const { data: membersData, error: membersError } = await supabase.rpc(
         "get_group_members",
         {
@@ -183,7 +175,6 @@ export class SupabaseGroupGateway implements GroupGateway {
         isPhantom: m.is_phantom || false,
       }));
 
-      // Get expenses
       const { data: expensesData, error: expensesError } = await supabase
         .from("expenses")
         .select("*")
@@ -208,7 +199,6 @@ export class SupabaseGroupGateway implements GroupGateway {
         }),
       );
 
-      // Compute shares
       const shares = await this.refreshGroupShares(id);
 
       return {
@@ -235,13 +225,11 @@ export class SupabaseGroupGateway implements GroupGateway {
     isPredefined: boolean;
   }): Promise<{ expenseId: string; shares: Shares }> {
     try {
-      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Insert expense
       const { data: expense, error } = await supabase
         .from("expenses")
         .insert({
@@ -259,7 +247,6 @@ export class SupabaseGroupGateway implements GroupGateway {
         throw createUserFriendlyError(error);
       }
 
-      // Compute updated shares
       const shares = await this.refreshGroupShares(input.groupId);
 
       return { expenseId: expense.id, shares: shares.shares };
@@ -288,7 +275,6 @@ export class SupabaseGroupGateway implements GroupGateway {
         throw createUserFriendlyError(error);
       }
 
-      // Compute updated shares
       const shares = await this.refreshGroupShares(input.groupId);
 
       return { shares: shares.shares };
@@ -310,7 +296,6 @@ export class SupabaseGroupGateway implements GroupGateway {
         throw createUserFriendlyError(error);
       }
 
-      // Compute updated shares
       const shares = await this.refreshGroupShares(input.groupId);
 
       return { shares: shares.shares };
@@ -323,7 +308,6 @@ export class SupabaseGroupGateway implements GroupGateway {
     groupId: string,
   ): Promise<{ token: string; link: string }> {
     try {
-      // Call RPC to generate secure token server-side
       const { data, error } = await supabase.rpc("generate_invitation", {
         p_group_id: groupId,
       });
@@ -413,7 +397,6 @@ export class SupabaseGroupGateway implements GroupGateway {
     userId: string,
   ): Promise<{ shares: Shares }> {
     try {
-      // Add member
       const { error } = await supabase
         .from("group_members")
         .insert({ group_id: groupId, user_id: userId });
@@ -422,7 +405,6 @@ export class SupabaseGroupGateway implements GroupGateway {
         throw createUserFriendlyError(error);
       }
 
-      // Compute updated shares
       const shares = await this.refreshGroupShares(groupId);
 
       return { shares: shares.shares };
@@ -611,7 +593,6 @@ export class SupabaseGroupGateway implements GroupGateway {
   subscribe(groupId: string, callbacks: RealtimeCallbacks): Unsubscribe {
     const channelName = `group:${groupId}`;
 
-    // Create channel
     const channel = supabase
       .channel(channelName)
       .on(
@@ -698,7 +679,6 @@ export class SupabaseGroupGateway implements GroupGateway {
         async (payload: GroupMemberRealtimePayload) => {
           if (callbacks.onMemberAdded && payload.new && "id" in payload.new) {
             const member = payload.new;
-            // Handle phantom members
             if (member.is_phantom) {
               const phantomPseudo = member.phantom_pseudo as string;
               const phantomIncome = member.phantom_income as number;
@@ -708,7 +688,7 @@ export class SupabaseGroupGateway implements GroupGateway {
                 pseudo: phantomPseudo,
                 shareRevenue: true,
                 incomeOrWeight: phantomIncome,
-                monthlyCapacity: phantomIncome, // Phantom members have no personal expenses
+                monthlyCapacity: phantomIncome,
                 joinedAt: member.joined_at,
                 isPhantom: true,
               });
@@ -758,10 +738,8 @@ export class SupabaseGroupGateway implements GroupGateway {
       )
       .subscribe();
 
-    // Store channel reference
     this.realtimeChannels.set(channelName, channel);
 
-    // Return unsubscribe function
     return () => {
       channel.unsubscribe();
       this.realtimeChannels.delete(channelName);

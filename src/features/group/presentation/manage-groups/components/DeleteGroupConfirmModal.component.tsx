@@ -35,7 +35,6 @@ export const DeleteGroupConfirmModal: React.FC<
       onClose();
       onDeleteSuccess();
     } catch (_error) {
-      // Error toast handled by listener
       setLoading(false);
     }
   };
@@ -61,7 +60,7 @@ export const DeleteGroupConfirmModal: React.FC<
           borderRadius="$xl"
           padding="$xl"
         >
-          {/* Header */}
+          {}
           <XStack
             justifyContent="space-between"
             alignItems="center"
@@ -75,12 +74,12 @@ export const DeleteGroupConfirmModal: React.FC<
             </Pressable>
           </XStack>
 
-          {/* Icon */}
+          {}
           <YStack alignItems="center" marginBottom="$lg">
             <AlertTriangle size={64} color={iconError} />
           </YStack>
 
-          {/* Content */}
+          {}
           <Text
             fontSize={16}
             color="$colorSecondary"
@@ -92,7 +91,7 @@ export const DeleteGroupConfirmModal: React.FC<
             du groupe seront définitivement supprimés.
           </Text>
 
-          {/* Actions */}
+          {}
           <YStack gap="$md">
             <Button variant="error" onPress={handleConfirm} disabled={loading}>
               <Text fontSize={16} fontWeight="600" color="$white">

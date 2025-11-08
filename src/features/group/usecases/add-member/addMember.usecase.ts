@@ -3,8 +3,8 @@ import type { AppThunkApiConfig } from "../../../../types/thunk.types";
 import type { GroupMember, Shares } from "../../ports/GroupGateway";
 
 export interface AddMemberData {
-  pseudo: string; // Required custom name (backend will prepend "Membre-")
-  monthlyIncome?: number; // Optional, defaults to 0
+  pseudo: string;
+  monthlyIncome?: number;
 }
 
 export const addMemberToGroup = createAsyncThunk<
@@ -21,7 +21,6 @@ export const addMemberToGroup = createAsyncThunk<
     { groupId, memberData },
     { getState, extra: { groupGateway }, rejectWithValue },
   ) => {
-    // Vérifier que le groupe existe (logique métier)
     const state = getState();
     const groupExists = state.groups.entities[groupId];
     if (!groupExists) {
@@ -32,7 +31,6 @@ export const addMemberToGroup = createAsyncThunk<
       });
     }
 
-    // Validate income
     const income = memberData.monthlyIncome ?? 0;
     if (income < 0) {
       return rejectWithValue({
@@ -42,7 +40,6 @@ export const addMemberToGroup = createAsyncThunk<
       });
     }
 
-    // Validate pseudo (required)
     const trimmedPseudo = memberData.pseudo.trim();
     if (trimmedPseudo.length < 1 || trimmedPseudo.length > 50) {
       return rejectWithValue({
@@ -61,21 +58,19 @@ export const addMemberToGroup = createAsyncThunk<
     }
 
     try {
-      // Add phantom member via gateway with custom pseudo
       const result = await groupGateway.addPhantomMember(
         groupId,
         trimmedPseudo,
         income,
       );
 
-      // Create the new member object with the generated pseudo
       const newMember: GroupMember = {
         id: result.memberId,
         userId: null,
-        pseudo: result.pseudo, // Membre-{suffix}
+        pseudo: result.pseudo,
         shareRevenue: true,
         incomeOrWeight: income,
-        monthlyCapacity: income, // Phantom members have no personal expenses
+        monthlyCapacity: income,
         joinedAt: new Date().toISOString(),
         isPhantom: true,
       };

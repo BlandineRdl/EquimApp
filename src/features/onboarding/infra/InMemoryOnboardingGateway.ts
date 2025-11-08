@@ -19,35 +19,29 @@ export class InMemoryOnboardingGateway implements OnboardingGateway {
 
     const profileId = "user-1";
 
-    // Group creation is optional
     if (!input.groupName) {
-      // No group - return only profile info
       return {
         profileId,
       };
     }
 
-    // Create group
     const { groupId } = await this.groupGateway.createGroup(
       input.groupName,
       "EUR",
     );
 
-    // Add member (current user)
     await this.groupGateway.addMember(groupId, profileId);
 
-    // Create expenses (map domain label → group expense name)
     for (const expense of input.expenses) {
       await this.groupGateway.createExpense({
         groupId,
-        name: expense.label, // ✅ Infra maps domain → group
+        name: expense.label,
         amount: expense.amount,
         currency: "EUR",
         isPredefined: expense.isPredefined ?? false,
       });
     }
 
-    // Get shares
     const { shares } = await this.groupGateway.refreshGroupShares(groupId);
 
     const result: CompleteOnboardingResult = {

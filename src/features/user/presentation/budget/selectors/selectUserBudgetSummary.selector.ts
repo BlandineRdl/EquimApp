@@ -22,11 +22,6 @@ export interface UserBudgetSummary {
   hasValidCapacity: boolean;
 }
 
-/**
- * Selector that aggregates user budget data from profile and groups
- * Calculates total contributions, remaining budget, and expense ratio
- * Uses the centralized selectUserRemainingCapacity for consistent calculations
- */
 export const selectUserBudgetSummary = createSelector(
   [selectUserProfile, selectAllGroups, selectUserRemainingCapacity],
   (user, groups, remainingCapacity): UserBudgetSummary | null => {
@@ -38,13 +33,10 @@ export const selectUserBudgetSummary = createSelector(
     const capacity = remainingCapacity.monthlyCapacity;
     const userId = user.id;
 
-    // Handle edge case: capacity is 0 or negative
     const hasValidCapacity = capacity > 0;
 
-    // Calculate group shares for this user
     const groupShares: GroupShareInfo[] = groups
       .map((group) => {
-        // Find user's share in this group
         const userShare = group.shares?.shares.find(
           (share) => share.userId === userId,
         );
@@ -62,17 +54,13 @@ export const selectUserBudgetSummary = createSelector(
       })
       .filter((share): share is GroupShareInfo => share !== null);
 
-    // Use centralized calculation for total contributions and remaining budget
     const totalGroupContributions = remainingCapacity.totalGroupContributions;
     const remainingBudget = remainingCapacity.remainingAfterAllGroups;
 
-    // Calculate expense ratio (percentage of capacity used)
-    // Handle division by zero
     const expenseRatio = hasValidCapacity
       ? Math.round((totalGroupContributions / capacity) * 100)
       : 0;
 
-    // Determine if budget is healthy (not negative)
     const isHealthy = !remainingCapacity.isNegative;
 
     return {

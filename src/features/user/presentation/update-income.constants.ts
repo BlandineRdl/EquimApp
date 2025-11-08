@@ -1,8 +1,3 @@
-/**
- * Update Income Modal Constants
- * Messages and labels for income update functionality
- */
-
 export const UPDATE_INCOME_MESSAGES = {
   EMPTY_INCOME: {
     type: "error" as const,

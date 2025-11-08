@@ -1,4 +1,3 @@
-// src/features/onboarding/usecases/completeOnboarding.usecase.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { logger } from "../../../../lib/logger";
 import type { AppThunkApiConfig } from "../../../../types/thunk.types";
@@ -24,8 +23,6 @@ export const completeOnboarding = createAsyncThunk<
       (expense) => parseFloat(expense.amount) > 0,
     );
 
-    // Prepare input using domain vocabulary
-    // Group creation is optional based on skipGroupCreation flag
     const onboardingInput = {
       pseudo: onboarding.pseudo.trim(),
       income: parseFloat(onboarding.monthlyIncome) || 0,
@@ -35,7 +32,7 @@ export const completeOnboarding = createAsyncThunk<
       expenses: onboarding.skipGroupCreation
         ? []
         : filteredExpenses.map((expense) => ({
-            label: expense.label, // ✅ Domain vocabulary
+            label: expense.label,
             amount: parseFloat(expense.amount),
             isPredefined: !expense.isCustom,
           })),
@@ -45,7 +42,6 @@ export const completeOnboarding = createAsyncThunk<
       const result =
         await onboardingGateway.completeOnboarding(onboardingInput);
 
-      // Create personal expenses if any were added during onboarding
       logger.debug("[completeOnboarding] Personal expenses to create", {
         count: onboarding.personalExpenses.length,
         expenses: onboarding.personalExpenses,
@@ -84,7 +80,6 @@ export const completeOnboarding = createAsyncThunk<
           },
         );
 
-        // Return failed count so listener can show appropriate toast
         if (failedExpenses > 0) {
           return {
             ...result,
@@ -97,7 +92,6 @@ export const completeOnboarding = createAsyncThunk<
         }
       }
 
-      // Add profile data to the result for the user slice
       return {
         ...result,
         profile: {

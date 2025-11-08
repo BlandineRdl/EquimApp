@@ -20,16 +20,13 @@ export const loadUserGroups = createAsyncThunk<
 
   logger.debug("Loading groups for user", { userId: user.id });
 
-  // First, get group summaries
   const groupSummaries = await groupGateway.getGroupsByUserId(user.id);
   logger.debug("Found groups", { count: groupSummaries.length });
 
-  // Then, load full details for each group (to get members and expenses)
   const fullGroups = await Promise.all(
     groupSummaries.map(async (summary) => {
       logger.debug("Loading details for group", { name: summary.name });
       const fullGroup = await groupGateway.getGroupById(summary.id);
-      // Convert GroupFull to Group by adding computed totalMonthlyBudget
       const group: Group = {
         ...fullGroup,
         totalMonthlyBudget: fullGroup.shares.totalExpenses,

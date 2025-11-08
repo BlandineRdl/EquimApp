@@ -1,10 +1,3 @@
-/**
- * Feature: Add member to group
- * En tant que membre d'un groupe,
- * Je veux ajouter un membre fantôme,
- * Afin de partager les dépenses avec une personne qui n'a pas l'app.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -33,15 +26,12 @@ describe("Feature: Add member to group", () => {
 
   describe("Success scenarios", () => {
     it("should add phantom member with valid data", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
-      // Load group into store
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute un membre fantôme
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -52,7 +42,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout réussit
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as {
@@ -73,7 +62,6 @@ describe("Feature: Add member to group", () => {
         expect(response.shares).toBeDefined();
       }
 
-      // Verify store state
       const state = store.getState();
       const group = state.groups.entities[groupId];
       expect(group).toBeDefined();
@@ -81,14 +69,12 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should trim whitespace from pseudo", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute un membre avec des espaces
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -99,7 +85,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then le pseudo est trimmed
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as { newMember: { pseudo: string } };
@@ -108,7 +93,6 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should recalculate shares after adding member", async () => {
-      // Given un groupe avec des dépenses
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
@@ -122,7 +106,6 @@ describe("Feature: Add member to group", () => {
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute un membre
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -133,7 +116,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then les parts sont recalculées
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as {
@@ -146,13 +128,11 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should set phantom member capacity equal to income", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute un membre fantôme
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -163,7 +143,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then la capacité égale le revenu (pas de dépenses personnelles)
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as {
@@ -177,9 +156,6 @@ describe("Feature: Add member to group", () => {
 
   describe("Validation failures", () => {
     it("should reject when group does not exist in state", async () => {
-      // Given un groupe qui n'existe pas
-
-      // When on essaie d'ajouter un membre
       const result = await store.dispatch(
         addMemberToGroup({
           groupId: "non-existent-group",
@@ -190,7 +166,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -199,13 +174,11 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should reject empty pseudo", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter un membre avec un pseudo vide
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -216,7 +189,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -225,13 +197,11 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should reject whitespace-only pseudo", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter un membre avec seulement des espaces
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -242,7 +212,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -251,13 +220,11 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should allow single character pseudo", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute un membre avec un pseudo d'un seul caractère
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -268,7 +235,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout réussit (1 caractère est autorisé)
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as { newMember: { pseudo: string } };
@@ -277,13 +243,11 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should allow zero monthly income", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute un membre avec un revenu de 0
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -294,7 +258,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout réussit (0 est autorisé pour les membres fantômes)
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as {
@@ -305,13 +268,11 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should reject negative monthly income", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on essaie d'ajouter un membre avec un revenu négatif
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -322,7 +283,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then l'ajout échoue
       expect(result.type).toBe("groups/addMemberToGroup/rejected");
       if ("payload" in result) {
         const error = result.payload as AppError | undefined;
@@ -333,13 +293,11 @@ describe("Feature: Add member to group", () => {
 
   describe("Business rules", () => {
     it("should mark member as phantom", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute un membre
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -350,7 +308,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then le membre est marqué comme fantôme
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as {
@@ -362,13 +319,11 @@ describe("Feature: Add member to group", () => {
     });
 
     it("should set shareRevenue to true for phantom members", async () => {
-      // Given un groupe existant
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
 
       await store.dispatch(loadGroupById(groupId));
 
-      // When on ajoute un membre
       const result = await store.dispatch(
         addMemberToGroup({
           groupId,
@@ -379,7 +334,6 @@ describe("Feature: Add member to group", () => {
         }),
       );
 
-      // Then shareRevenue est true
       expect(result.type).toBe("groups/addMemberToGroup/fulfilled");
       if ("payload" in result && result.payload) {
         const response = result.payload as {

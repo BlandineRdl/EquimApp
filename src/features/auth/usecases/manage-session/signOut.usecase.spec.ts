@@ -1,10 +1,3 @@
-/**
- * Feature: Sign out
- * En tant qu'utilisateur connecté,
- * Je veux me déconnecter,
- * Afin de sécuriser mon compte.
- */
-
 import type { Session } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -25,7 +18,6 @@ describe("Feature: Sign out", () => {
 
   describe("Success scenarios", () => {
     it("should sign out successfully", async () => {
-      // Given un utilisateur connecté
       const mockSession: Session = {
         access_token: "mock-token",
         refresh_token: "mock-refresh",
@@ -45,10 +37,8 @@ describe("Feature: Sign out", () => {
 
       authGateway.setCurrentSession(mockSession);
 
-      // When on se déconnecte
       await store.dispatch(signOut());
 
-      // Then la déconnexion réussit
       const state = store.getState();
       expect(state.auth.isLoading).toBe(false);
       expect(state.auth.user).toBeNull();
@@ -58,19 +48,13 @@ describe("Feature: Sign out", () => {
       expect(state.auth.profileDeleted).toBe(false);
       expect(state.auth.error).toBeNull();
 
-      // And la session est supprimée
       const currentSession = await authGateway.getSession();
       expect(currentSession).toBeNull();
     });
 
     it("should work even when no session exists", async () => {
-      // Given aucune session n'existe
-      // (authGateway est vide)
-
-      // When on se déconnecte
       await store.dispatch(signOut());
 
-      // Then la déconnexion réussit quand même
       const state = store.getState();
       expect(state.auth.isLoading).toBe(false);
       expect(state.auth.user).toBeNull();

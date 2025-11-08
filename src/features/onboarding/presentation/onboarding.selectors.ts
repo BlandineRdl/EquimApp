@@ -10,7 +10,6 @@ export const selectOnboardingUI = createSelector(
 
     const trimmedPseudo = pseudo.trim();
 
-    // Validation
     let validationError = null;
     if (!trimmedPseudo) {
       validationError = "Le pseudo ne peut pas être vide";
@@ -87,13 +86,11 @@ export const selectExpensesUI = createSelector(
   (onboarding) => {
     const { expenses, groupName } = onboarding;
 
-    // Calcul du total
     const totalAmount = expenses.reduce((sum, expense) => {
       const amount = parseFloat(expense.amount) || 0;
       return sum + amount;
     }, 0);
 
-    // Vérification si au moins une dépense est remplie
     const hasAnyExpense = expenses.some(
       (expense) => expense.amount.trim() !== "",
     );
@@ -103,8 +100,8 @@ export const selectExpensesUI = createSelector(
       groupName,
       totalAmount,
       hasAnyExpense,
-      canContinue: hasAnyExpense, // Au moins une dépense pour continuer
-      canSkip: true, // Toujours possible de passer cette étape
+      canContinue: hasAnyExpense,
+      canSkip: true,
     };
   },
 );
@@ -115,20 +112,16 @@ export const selectOnboardingSummary = createSelector(
     const { pseudo, monthlyIncome, groupName, expenses, skipGroupCreation } =
       onboarding;
 
-    // Calculer le total des dépenses
     const totalExpenses = expenses.reduce((sum, expense) => {
       const amount = parseFloat(expense.amount) || 0;
       return sum + amount;
     }, 0);
 
-    // Compter les dépenses configurées (avec un montant > 0)
     const expensesCount = expenses.filter((expense) => {
       const amount = parseFloat(expense.amount);
       return !Number.isNaN(amount) && amount > 0;
     }).length;
 
-    // Vérifier si tout est prêt pour la création
-    // Group name is only required if user didn't skip group creation
     const isComplete =
       pseudo.trim() !== "" &&
       parseFloat(monthlyIncome) > 0 &&
@@ -153,7 +146,6 @@ export const selectOnboardingSummary = createSelector(
 export const selectOnboardingProgressByRoute = createSelector(
   [(_, currentPath) => currentPath],
   (currentPath) => {
-    // Définition centralisée des étapes (ordre = progression)
     const steps = [
       { path: "/", label: "pseudo" },
       { path: "/onboarding/income", label: "income" },
@@ -164,10 +156,8 @@ export const selectOnboardingProgressByRoute = createSelector(
       { path: "/onboarding/summary", label: "summary" },
     ];
 
-    // Trouver l'index exact de l'étape courante
     let currentStepIndex = steps.findIndex((step) => step.path === currentPath);
 
-    // Si aucun match → fallback sur la première étape
     if (currentStepIndex === -1) {
       currentStepIndex = 0;
     }
@@ -177,13 +167,12 @@ export const selectOnboardingProgressByRoute = createSelector(
       ((currentStepIndex + 1) / totalSteps) * 100,
     );
 
-    // UX : éviter 0%, on commence par ex. à 20% dès la première étape
     if (currentStepIndex === 0 && progressPercentage < 20) {
       progressPercentage = 20;
     }
 
     return {
-      currentStep: currentStepIndex + 1, // en base 1
+      currentStep: currentStepIndex + 1,
       totalSteps,
       progressPercentage,
       currentLabel: steps[currentStepIndex].label,

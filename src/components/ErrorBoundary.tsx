@@ -13,11 +13,6 @@ interface State {
   error: Error | null;
 }
 
-/**
- * Error Boundary Component
- * Catches JavaScript errors anywhere in the child component tree,
- * logs those errors, and displays a fallback UI.
- */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -35,11 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log error
     logger.error("ErrorBoundary caught an error", error, { errorInfo });
-
-    // TODO: Log to error reporting service (e.g., Sentry)
-    // logErrorToService(error, errorInfo);
   }
 
   resetError = (): void => {
@@ -51,12 +42,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     if (this.state.hasError && this.state.error) {
-      // Custom fallback UI
       if (this.props.fallback) {
         return this.props.fallback(this.state.error, this.resetError);
       }
 
-      // Default fallback UI
       return (
         <YStack
           flex={1}

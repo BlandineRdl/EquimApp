@@ -1,10 +1,3 @@
-/**
- * Feature: Load user groups
- * En tant qu'utilisateur,
- * Je veux charger tous mes groupes,
- * Afin de voir la liste de mes groupes avec leurs détails.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -30,23 +23,19 @@ describe("Feature: Load user groups", () => {
     userGateway = new InMemoryUserGateway();
     store = initReduxStore({ groupGateway, authGateway, userGateway });
 
-    // Setup auth session using verifyOtp and initSession
     await authGateway.verifyOtp(userEmail, "123456");
     await store.dispatch(initSession());
   });
 
   describe("Success scenarios", () => {
     it("should load all user groups", async () => {
-      // Given plusieurs groupes pour l'utilisateur
       const group1 = await groupGateway.createGroup("Group 1", "EUR");
       const group2 = await groupGateway.createGroup("Group 2", "USD");
       await groupGateway.addMember(group1.groupId, userId);
       await groupGateway.addMember(group2.groupId, userId);
 
-      // When on charge tous les groupes
       const result = await store.dispatch(loadUserGroups());
 
-      // Then tous les groupes sont chargés
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
       if ("payload" in result && result.payload) {
         const groups = result.payload as unknown[];
@@ -54,18 +43,13 @@ describe("Feature: Load user groups", () => {
         expect(groups.length).toBeGreaterThan(0);
       }
 
-      // Verify groups are stored in state
       const state = store.getState();
       expect(Object.keys(state.groups.entities).length).toBeGreaterThan(0);
     });
 
     it("should return empty array when user has no groups", async () => {
-      // Given un utilisateur sans groupes
-
-      // When on charge les groupes
       const result = await store.dispatch(loadUserGroups());
 
-      // Then un tableau vide est retourné
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
       if ("payload" in result && result.payload) {
         const groups = result.payload as unknown[];
@@ -74,7 +58,6 @@ describe("Feature: Load user groups", () => {
     });
 
     it("should include full group details for each group", async () => {
-      // Given un groupe avec membres et dépenses
       const createResult = await groupGateway.createGroup("Ma Coloc", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
@@ -87,10 +70,8 @@ describe("Feature: Load user groups", () => {
         isPredefined: false,
       });
 
-      // When on charge les groupes
       const result = await store.dispatch(loadUserGroups());
 
-      // Then les détails complets sont inclus
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
       if ("payload" in result && result.payload) {
         const groups = result.payload as Array<{
@@ -111,7 +92,6 @@ describe("Feature: Load user groups", () => {
     });
 
     it("should calculate totalMonthlyBudget from shares", async () => {
-      // Given un groupe avec des dépenses
       const createResult = await groupGateway.createGroup("Test Group", "EUR");
       const groupId = createResult.groupId;
       await groupGateway.addMember(groupId, userId);
@@ -130,10 +110,8 @@ describe("Feature: Load user groups", () => {
         isPredefined: false,
       });
 
-      // When on charge les groupes
       const result = await store.dispatch(loadUserGroups());
 
-      // Then le budget mensuel total est calculé
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
       if ("payload" in result && result.payload) {
         const groups = result.payload as Array<{
@@ -150,14 +128,11 @@ describe("Feature: Load user groups", () => {
 
   describe("Error scenarios", () => {
     it("should reject when user is not authenticated", async () => {
-      // Given un utilisateur non authentifié
       await authGateway.signOut();
-      await store.dispatch(initSession()); // Update Redux state after signOut
+      await store.dispatch(initSession());
 
-      // When on essaie de charger les groupes
       const result = await store.dispatch(loadUserGroups());
 
-      // Then le chargement échoue
       expect(result.type).toBe("groups/loadUserGroups/rejected");
       if ("error" in result) {
         expect(result.error.message).toContain("authenticated");
@@ -167,7 +142,6 @@ describe("Feature: Load user groups", () => {
 
   describe("Business rules", () => {
     it("should load each group with all its data", async () => {
-      // Given plusieurs groupes avec différentes données
       const group1 = await groupGateway.createGroup("Group 1", "EUR");
       const group2 = await groupGateway.createGroup("Group 2", "USD");
 
@@ -182,10 +156,8 @@ describe("Feature: Load user groups", () => {
         isPredefined: false,
       });
 
-      // When on charge tous les groupes
       const result = await store.dispatch(loadUserGroups());
 
-      // Then chaque groupe a toutes ses données
       expect(result.type).toBe("groups/loadUserGroups/fulfilled");
       if ("payload" in result && result.payload) {
         const groups = result.payload as Array<{
@@ -197,13 +169,11 @@ describe("Feature: Load user groups", () => {
         }>;
         expect(groups.length).toBe(2);
 
-        // Group 1 should have expense
         const loadedGroup1 = groups.find((g) => g.name === "Group 1");
         expect(loadedGroup1).toBeDefined();
         expect(loadedGroup1?.expenses.length).toBe(1);
         expect(loadedGroup1?.currency).toBe("EUR");
 
-        // Group 2 should have no expenses
         const loadedGroup2 = groups.find((g) => g.name === "Group 2");
         expect(loadedGroup2).toBeDefined();
         expect(loadedGroup2?.expenses.length).toBe(0);

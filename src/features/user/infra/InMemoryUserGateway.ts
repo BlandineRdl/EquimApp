@@ -46,7 +46,6 @@ export class InMemoryUserGateway implements UserGateway {
       }),
     });
 
-    // Recalculate capacity if income changed
     if (patch.monthlyIncome !== undefined) {
       await this.recalculateCapacity(id);
     }
@@ -132,7 +131,6 @@ export class InMemoryUserGateway implements UserGateway {
     return profile?.capacity;
   }
 
-  // Helper for tests
   reset(): void {
     this.profiles.clear();
     this.expenses.clear();

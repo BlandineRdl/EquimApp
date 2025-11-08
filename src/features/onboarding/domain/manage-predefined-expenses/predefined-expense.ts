@@ -5,13 +5,10 @@ export enum PredefinedExpenseType {
   INTERNET = "internet",
 }
 
-/**
- * Expense - Entité métier représentant une dépense lors de l'onboarding
- */
 export interface Expense {
   id: string;
   label: string;
-  amount: number; // ✅ Fixé: number au lieu de string
+  amount: number;
   isCustom: boolean;
   type?: PredefinedExpenseType;
 }

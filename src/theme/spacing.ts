@@ -1,8 +1,3 @@
-/**
- * Spacing scale for consistent layout
- * Based on 4px base unit
- */
-
 export const spacing = {
   xs: 4,
   sm: 8,

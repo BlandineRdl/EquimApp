@@ -1,8 +1,3 @@
-/**
- * Invitation Feature Constants
- * Messages and labels for invitation-related screens
- */
-
 export const INVITATION_MESSAGES = {
   INVALID_TOKEN: {
     title: "Erreur",

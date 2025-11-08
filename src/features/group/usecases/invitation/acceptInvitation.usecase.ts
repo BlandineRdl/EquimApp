@@ -25,7 +25,6 @@ export const acceptInvitation = createAsyncThunk<
       income: monthlyIncome,
     });
 
-    // Validate token
     if (!token || !token.trim()) {
       logger.error("[acceptInvitation] Invalid token");
       return rejectWithValue({
@@ -35,7 +34,6 @@ export const acceptInvitation = createAsyncThunk<
       });
     }
 
-    // Validate member data
     if (!pseudo.trim()) {
       logger.error("[acceptInvitation] Invalid pseudo");
       return rejectWithValue({
@@ -62,7 +60,6 @@ export const acceptInvitation = createAsyncThunk<
     }
 
     try {
-      // Get current user session
       const session = await authGateway.getSession();
       if (!session?.user) {
         return rejectWithValue({
@@ -73,12 +70,9 @@ export const acceptInvitation = createAsyncThunk<
 
       const userId = session.user.id;
 
-      // Update or create user profile first
-      // Check if profile exists
       const existingProfile = await userGateway.getProfileById(userId);
 
       if (existingProfile) {
-        // Update existing profile
         await userGateway.updateProfile(userId, {
           pseudo: pseudo.trim(),
           monthlyIncome,
@@ -86,8 +80,6 @@ export const acceptInvitation = createAsyncThunk<
         });
         logger.debug("[acceptInvitation] Updated existing profile", { userId });
       } else {
-        // Create new profile
-        // Note: We need to provide currency, defaulting to EUR
         await userGateway.createProfile({
           id: userId,
           pseudo: pseudo.trim(),
@@ -98,7 +90,6 @@ export const acceptInvitation = createAsyncThunk<
         logger.debug("[acceptInvitation] Created new profile", { userId });
       }
 
-      // Now accept invitation
       logger.debug("[acceptInvitation] Calling gateway.acceptInvitation", {
         token,
       });

@@ -1,10 +1,3 @@
-/**
- * Feature: Mettre à jour mon revenu mensuel
- * En tant qu'utilisateur authentifié,
- * Je veux modifier mon revenu mensuel,
- * Afin de refléter mes changements financiers.
- */
-
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   initReduxStore,
@@ -28,12 +21,10 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
     authGateway = new InMemoryAuthGateway();
     store = initReduxStore({ userGateway, authGateway });
 
-    // Setup authenticated user session using verifyOtp
     const session = await authGateway.verifyOtp(testEmail, "123456");
     userId = session.user.id;
     await store.dispatch(initSession());
 
-    // Setup initial profile data
     await userGateway.createProfile({
       id: userId,
       pseudo: "TestUser",
@@ -42,13 +33,11 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
       shareRevenue: true,
     });
 
-    // Load the profile into Redux state
     await store.dispatch(loadUserProfile());
   });
 
   describe("Success scenarios", () => {
     it("Met à jour le revenu mensuel", async () => {
-      // Act
       await store.dispatch(
         updateUserIncome({
           userId,
@@ -56,20 +45,17 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
         }),
       );
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.monthlyIncome).toBe(2500);
     });
 
     it("Recalcule la capacité après mise à jour du revenu", async () => {
-      // Arrange - Add expense via gateway then reload
       await userGateway.addPersonalExpense(userId, {
         label: "Loyer",
         amount: 800,
       });
       await store.dispatch(loadUserProfile());
 
-      // Act - Update income
       await store.dispatch(
         updateUserIncome({
           userId,
@@ -77,13 +63,11 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
         }),
       );
 
-      // Assert - Capacity should be 3000 - 800 = 2200
       const state = store.getState();
       expect(state.user.profile?.capacity).toBe(2200);
     });
 
     it("Peut augmenter le revenu", async () => {
-      // Act
       await store.dispatch(
         updateUserIncome({
           userId,
@@ -91,14 +75,12 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
         }),
       );
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.monthlyIncome).toBe(2500);
       expect(state.user.profile?.capacity).toBe(2500);
     });
 
     it("Peut diminuer le revenu", async () => {
-      // Act
       await store.dispatch(
         updateUserIncome({
           userId,
@@ -106,7 +88,6 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
         }),
       );
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.monthlyIncome).toBe(1500);
       expect(state.user.profile?.capacity).toBe(1500);
@@ -123,17 +104,14 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
       "Capacité après changement de revenu",
       ({ revenu, nouveauRevenu, depense, capacite }) => {
         it(`Revenu ${revenu}€ → ${nouveauRevenu}€ avec dépense ${depense}€ = Capacité ${capacite}€`, async () => {
-          // Arrange
           if (depense > 0) {
             await userGateway.addPersonalExpense(userId, {
               label: "Dépense test",
               amount: depense,
             });
-            // Reload profile to get the expense in state
             await store.dispatch(loadUserProfile());
           }
 
-          // Act
           await store.dispatch(
             updateUserIncome({
               userId,
@@ -141,7 +119,6 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
             }),
           );
 
-          // Assert
           const state = store.getState();
           expect(state.user.profile?.capacity).toBe(capacite);
         });
@@ -151,7 +128,6 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
 
   describe("Edge cases", () => {
     it("Rejette un revenu à 0 (en dessous du minimum)", async () => {
-      // Act
       const result = await store.dispatch(
         updateUserIncome({
           userId,
@@ -159,23 +135,19 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
         }),
       );
 
-      // Assert - Income update should be rejected
       expect(result.type).toContain("rejected");
 
-      // State should remain unchanged (optimistic update rolled back)
       const state = store.getState();
-      expect(state.user.profile?.monthlyIncome).toBe(2000); // Original value
+      expect(state.user.profile?.monthlyIncome).toBe(2000);
     });
 
     it("Capacité négative si dépenses > revenu", async () => {
-      // Arrange
       await userGateway.addPersonalExpense(userId, {
         label: "Loyer",
         amount: 1500,
       });
       await store.dispatch(loadUserProfile());
 
-      // Act
       await store.dispatch(
         updateUserIncome({
           userId,
@@ -183,7 +155,6 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
         }),
       );
 
-      // Assert
       const state = store.getState();
       expect(state.user.profile?.capacity).toBe(-500);
     });
@@ -191,7 +162,6 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
 
   describe("Error scenarios", () => {
     it("Erreur si utilisateur inexistant", async () => {
-      // Act & Assert
       const result = await store.dispatch(
         updateUserIncome({
           userId: "non-existent-user",
@@ -199,7 +169,6 @@ describe("Feature: Mettre à jour mon revenu mensuel", () => {
         }),
       );
 
-      // Assert - Check that the action was rejected
       expect(result.type).toContain("rejected");
     });
   });

@@ -37,26 +37,21 @@ describe("Feature: Compléter l'onboarding", () => {
       groupGateway,
     }) as ReduxStore;
 
-    // Setup authenticated user session using verifyOtp
     await authGateway.verifyOtp(testEmail, "123456");
     await store.dispatch(initSession());
   });
 
   describe("Scénario: Création complète d'un compte avec profil et groupe", () => {
     it("should complete onboarding with profile, group, and expenses", async () => {
-      // Given un utilisateur qui remplit le formulaire d'onboarding
       store.dispatch(setPseudo("Alice"));
       store.dispatch(setMonthlyIncome("3000"));
       store.dispatch(setGroupName("Famille Alice"));
 
-      // Et qu'il ajoute des montants aux dépenses prédéfinies
       store.dispatch(updateExpenseAmount({ id: "rent", amount: "800" }));
       store.dispatch(updateExpenseAmount({ id: "groceries", amount: "400" }));
 
-      // When il complète l'onboarding
       const result = await store.dispatch(completeOnboarding());
 
-      // Then l'onboarding est réussi
       expect(result.type).toBe("onboarding/complete/fulfilled");
       if (result.type !== "onboarding/complete/fulfilled") {
         throw new Error("Expected fulfilled action");
@@ -70,7 +65,6 @@ describe("Feature: Compléter l'onboarding", () => {
         },
       });
 
-      // Et le state onboarding indique la complétion
       const onboardingState = store.getState().onboarding;
       expect(onboardingState.completed).toBe(true);
       expect(onboardingState.completing).toBe(false);
@@ -78,68 +72,51 @@ describe("Feature: Compléter l'onboarding", () => {
     });
 
     it("should filter out expenses with zero amount", async () => {
-      // Given un utilisateur qui remplit le formulaire
       store.dispatch(setPseudo("Bob"));
       store.dispatch(setMonthlyIncome("2500"));
       store.dispatch(setGroupName("Maison Bob"));
 
-      // Et qu'il ne remplit que certaines dépenses
       store.dispatch(updateExpenseAmount({ id: "rent", amount: "750" }));
-      // groceries reste à 0
       store.dispatch(updateExpenseAmount({ id: "electricity", amount: "100" }));
 
-      // When il complète l'onboarding
       const result = await store.dispatch(completeOnboarding());
 
-      // Then seules les dépenses avec montant > 0 sont créées
       expect(result.type).toBe("onboarding/complete/fulfilled");
-      // La validation se fait via le gateway qui reçoit seulement les expenses > 0
     });
 
     it("should set completing state during onboarding process", async () => {
-      // Given un formulaire rempli
       store.dispatch(setPseudo("Charlie"));
       store.dispatch(setMonthlyIncome("4000"));
       store.dispatch(setGroupName("Charlie's Home"));
 
-      // When l'onboarding démarre
       const promise = store.dispatch(completeOnboarding());
 
-      // Then le state indique "completing"
       expect(store.getState().onboarding.completing).toBe(true);
       expect(store.getState().onboarding.error).toBeNull();
 
       await promise;
 
-      // Et après complétion, completing est false
       expect(store.getState().onboarding.completing).toBe(false);
       expect(store.getState().onboarding.completed).toBe(true);
     });
 
     it("should handle onboarding failure gracefully", async () => {
-      // Given un formulaire invalide (income invalide)
       store.dispatch(setPseudo("Dave"));
-      store.dispatch(setMonthlyIncome("invalid")); // NaN
+      store.dispatch(setMonthlyIncome("invalid"));
       store.dispatch(setGroupName("Dave's Place"));
 
-      // When l'onboarding échoue (income = 0)
       const result = await store.dispatch(completeOnboarding());
 
-      // Then le state indique l'échec
-      // Note: Le usecase accepte income = 0, donc ça passera
-      // Pour un vrai test d'échec, il faudrait mocker le gateway pour throw
       expect(result.type).toBe("onboarding/complete/fulfilled");
     });
   });
 
   describe("Scénario: Création avec dépenses personnelles", () => {
     it("should create personal expenses after profile creation", async () => {
-      // Given un utilisateur avec des dépenses personnelles
       store.dispatch(setPseudo("Emma"));
       store.dispatch(setMonthlyIncome("3500"));
       store.dispatch(setGroupName("Emma's Home"));
 
-      // Et des dépenses personnelles stockées
       store.dispatch({
         type: "onboarding/setPersonalExpenses",
         payload: [
@@ -148,10 +125,8 @@ describe("Feature: Compléter l'onboarding", () => {
         ],
       });
 
-      // When l'onboarding est complété
       await store.dispatch(completeOnboarding());
 
-      // Then les dépenses personnelles sont créées
       const userExpenses = await userGateway.loadPersonalExpenses("user-1");
       expect(userExpenses).toHaveLength(2);
       expect(userExpenses).toEqual(
@@ -163,7 +138,6 @@ describe("Feature: Compléter l'onboarding", () => {
     });
 
     it("should complete onboarding even if personal expenses creation fails", async () => {
-      // Given un utilisateur avec dépenses personnelles
       store.dispatch(setPseudo("Frank"));
       store.dispatch(setMonthlyIncome("2800"));
       store.dispatch(setGroupName("Frank's Family"));
@@ -173,10 +147,8 @@ describe("Feature: Compléter l'onboarding", () => {
         payload: [{ label: "Test", amount: 100 }],
       });
 
-      // When l'onboarding est complété
       const result = await store.dispatch(completeOnboarding());
 
-      // Then l'onboarding réussit malgré tout
       expect(result.type).toBe("onboarding/complete/fulfilled");
       expect(store.getState().onboarding.completed).toBe(true);
     });
@@ -184,15 +156,12 @@ describe("Feature: Compléter l'onboarding", () => {
 
   describe("Scénario: Validation des données d'entrée", () => {
     it("should trim whitespace from pseudo and group name", async () => {
-      // Given des inputs avec des espaces
       store.dispatch(setPseudo("  Alice  "));
       store.dispatch(setMonthlyIncome("3000"));
       store.dispatch(setGroupName("  Ma Famille  "));
 
-      // When l'onboarding est complété
       const result = await store.dispatch(completeOnboarding());
 
-      // Then les espaces sont supprimés
       if (result.type !== "onboarding/complete/fulfilled") {
         throw new Error("Expected fulfilled action");
       }
@@ -205,15 +174,12 @@ describe("Feature: Compléter l'onboarding", () => {
     });
 
     it("should convert string income to number", async () => {
-      // Given un income en string
       store.dispatch(setPseudo("Grace"));
       store.dispatch(setMonthlyIncome("4500.50"));
       store.dispatch(setGroupName("Grace's Home"));
 
-      // When l'onboarding est complété
       const result = await store.dispatch(completeOnboarding());
 
-      // Then l'income est converti en number
       if (result.type !== "onboarding/complete/fulfilled") {
         throw new Error("Expected fulfilled action");
       }
@@ -225,21 +191,17 @@ describe("Feature: Compléter l'onboarding", () => {
 
   describe("Scénario: Création de compte sans groupe (optionnel)", () => {
     it("should complete onboarding without creating a group when skipped", async () => {
-      // Given un utilisateur qui choisit de sauter la création de groupe
       store.dispatch(setPseudo("Helen"));
       store.dispatch(setMonthlyIncome("3200"));
       store.dispatch(setSkipGroupCreation(true));
 
-      // When il complète l'onboarding
       const result = await store.dispatch(completeOnboarding());
 
-      // Then l'onboarding est réussi
       expect(result.type).toBe("onboarding/complete/fulfilled");
       if (result.type !== "onboarding/complete/fulfilled") {
         throw new Error("Expected fulfilled action");
       }
 
-      // Et le profil est créé
       expect(result.payload).toMatchObject({
         profileId: expect.any(String),
         profile: {
@@ -248,14 +210,12 @@ describe("Feature: Compléter l'onboarding", () => {
         },
       });
 
-      // Mais aucun groupe n'est créé
       const payload = result.payload as CompleteOnboardingResult & {
         profile: { pseudo: string; income: number };
       };
       expect(payload.groupId).toBeUndefined();
       expect(payload.shares).toBeUndefined();
 
-      // Et le state onboarding indique la complétion
       const onboardingState = store.getState().onboarding;
       expect(onboardingState.completed).toBe(true);
       expect(onboardingState.completing).toBe(false);
@@ -263,12 +223,10 @@ describe("Feature: Compléter l'onboarding", () => {
     });
 
     it("should create profile with personal expenses but no group when skipped", async () => {
-      // Given un utilisateur qui saute la création de groupe mais a des dépenses personnelles
       store.dispatch(setPseudo("Ivan"));
       store.dispatch(setMonthlyIncome("2900"));
       store.dispatch(setSkipGroupCreation(true));
 
-      // Et des dépenses personnelles stockées
       store.dispatch({
         type: "onboarding/setPersonalExpenses",
         payload: [
@@ -277,13 +235,10 @@ describe("Feature: Compléter l'onboarding", () => {
         ],
       });
 
-      // When l'onboarding est complété
       const result = await store.dispatch(completeOnboarding());
 
-      // Then l'onboarding réussit
       expect(result.type).toBe("onboarding/complete/fulfilled");
 
-      // Et les dépenses personnelles sont créées
       const userExpenses = await userGateway.loadPersonalExpenses("user-1");
       expect(userExpenses).toHaveLength(2);
       expect(userExpenses).toEqual(
@@ -293,7 +248,6 @@ describe("Feature: Compléter l'onboarding", () => {
         ]),
       );
 
-      // Mais aucun groupe n'est créé
       if (result.type === "onboarding/complete/fulfilled") {
         const payload = result.payload as CompleteOnboardingResult & {
           profile: { pseudo: string; income: number };

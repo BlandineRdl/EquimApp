@@ -33,7 +33,6 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
     const pseudo = form.pseudo?.trim() || "";
     const income = form.monthlyIncome ? parseFloat(form.monthlyIncome) : 0;
 
-    // Validate pseudo is not empty
     if (!pseudo) {
       Toast.show({
         type: "error",
@@ -43,7 +42,6 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
       return;
     }
 
-    // Toast notifications (success and error) are handled by listener
     await dispatch(
       addMemberToGroup({
         groupId: form.groupId,

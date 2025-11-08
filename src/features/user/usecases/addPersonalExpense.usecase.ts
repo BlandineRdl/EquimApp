@@ -5,17 +5,15 @@ import { validateExpense } from "../domain/manage-personal-expenses/validate-exp
 import type { NewPersonalExpense } from "../ports/UserGateway";
 
 export const addPersonalExpense = createAsyncThunk<
-  PersonalExpense, // Return the created expense
+  PersonalExpense,
   NewPersonalExpense,
   AppThunkApiConfig
 >(
   "user/addPersonalExpense",
   async (expense, { rejectWithValue, extra, getState }) => {
     try {
-      // Validate expense
       validateExpense(expense.label, expense.amount);
 
-      // Get current user ID
       const state = getState();
       const userId = state.auth?.user?.id;
 
@@ -26,13 +24,11 @@ export const addPersonalExpense = createAsyncThunk<
         });
       }
 
-      // Add expense via gateway
       const createdExpense = await extra.userGateway.addPersonalExpense(
         userId,
         expense,
       );
 
-      // Return the created expense so the reducer can add it to state
       return createdExpense;
     } catch (error) {
       return rejectWithValue({

@@ -54,12 +54,10 @@ export function ExpenseManager({
   const [newAmount, setNewAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Edit mode state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [editAmount, setEditAmount] = useState("");
 
-  // Confirmation modal state
   const [expenseToDelete, setExpenseToDelete] = useState<{
     id: string;
     label: string;
@@ -93,12 +91,10 @@ export function ExpenseManager({
     setIsSubmitting(true);
     try {
       await onAdd(newLabel.trim(), amount);
-      // Success toast handled by listener
 
       setNewLabel("");
       setNewAmount("");
     } catch (_error) {
-      // Error toast handled by listener
     } finally {
       setIsSubmitting(false);
     }
@@ -120,19 +116,15 @@ export function ExpenseManager({
       return;
     }
 
-    // Show confirmation modal if required
     if (requireConfirmation) {
       setExpenseToDelete({ id: expenseId, label, amount });
       return;
     }
 
-    // Direct deletion without confirmation
     setIsSubmitting(true);
     try {
       await onDelete(expenseId);
-      // Success toast handled by listener
     } catch (_error) {
-      // Error toast handled by listener
     } finally {
       setIsSubmitting(false);
     }
@@ -144,12 +136,8 @@ export function ExpenseManager({
     setIsSubmitting(true);
     try {
       await onDelete(expenseToDelete.id);
-      // Success toast handled by listener
-      // Close modal after success
       setExpenseToDelete(null);
     } catch (_error) {
-      // Error toast handled by listener
-      // Keep modal open on error so user can see the toast
     } finally {
       setIsSubmitting(false);
     }
@@ -200,11 +188,9 @@ export function ExpenseManager({
     setIsSubmitting(true);
     try {
       await onEdit(expenseId, editLabel.trim(), amount);
-      // Success toast handled by listener
 
       handleCancelEdit();
     } catch (_error) {
-      // Error toast handled by listener
     } finally {
       setIsSubmitting(false);
     }
@@ -212,7 +198,7 @@ export function ExpenseManager({
 
   return (
     <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-      {/* Add New Expense Form */}
+      {}
       <YStack
         backgroundColor="$backgroundSecondary"
         borderRadius="$md"
@@ -270,7 +256,7 @@ export function ExpenseManager({
         </Button>
       </YStack>
 
-      {/* Existing Expenses List */}
+      {}
       <YStack flex={1}>
         <Text fontSize={16} fontWeight="600" color="$color" marginBottom="$sm">
           {title} ({expenses.length})
@@ -291,7 +277,6 @@ export function ExpenseManager({
             const isEditing = editingId === expense.id;
 
             if (isEditing) {
-              // Edit mode - show inline form
               return (
                 <XStack
                   key={expense.id}
@@ -346,7 +331,6 @@ export function ExpenseManager({
               );
             }
 
-            // Read mode - show expense details
             return (
               <XStack
                 key={expense.id}
@@ -408,7 +392,7 @@ export function ExpenseManager({
         )}
       </YStack>
 
-      {/* Modal de confirmation de suppression */}
+      {}
       {requireConfirmation && expenseToDelete && (
         <Modal
           visible={expenseToDelete !== null}
@@ -430,7 +414,7 @@ export function ExpenseManager({
               borderRadius="$xl"
               padding="$xl"
             >
-              {/* Header */}
+              {}
               <XStack
                 justifyContent="space-between"
                 alignItems="center"
@@ -447,12 +431,12 @@ export function ExpenseManager({
                 </Pressable>
               </XStack>
 
-              {/* Icon */}
+              {}
               <YStack alignItems="center" marginBottom="$lg">
                 <AlertTriangle size={64} color={SEMANTIC_COLORS.ERROR} />
               </YStack>
 
-              {/* Content */}
+              {}
               <Text
                 fontSize={18}
                 fontWeight="600"
@@ -478,7 +462,7 @@ export function ExpenseManager({
                   "Cette dépense sera définitivement supprimée."}
               </Text>
 
-              {/* Actions */}
+              {}
               <YStack gap="$md">
                 <Button
                   variant="error"

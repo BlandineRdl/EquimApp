@@ -1,4 +1,3 @@
-// src/features/notification/store/notification.slice.ts
 import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 import type {
   Notification,

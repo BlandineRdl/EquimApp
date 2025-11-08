@@ -1,8 +1,5 @@
 import { type Expense, PredefinedExpenseType } from "./predefined-expense";
 
-/**
- * Dépenses prédéfinies proposées lors de l'onboarding
- */
 export const PREDEFINED_EXPENSES: Readonly<Expense[]> = [
   {
     id: PredefinedExpenseType.RENT,

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-// Helper function to simulate useAppTheme logic
 function getThemeInfo(theme: "light" | "dark") {
   return {
     colorScheme: theme,
@@ -41,12 +40,10 @@ describe("useAppTheme", () => {
       const lightResult = getThemeInfo("light");
       const darkResult = getThemeInfo("dark");
 
-      // Light theme
       expect(lightResult.isDark !== lightResult.isLight).toBe(true);
       expect(lightResult.isDark).toBe(false);
       expect(lightResult.isLight).toBe(true);
 
-      // Dark theme
       expect(darkResult.isDark !== darkResult.isLight).toBe(true);
       expect(darkResult.isDark).toBe(true);
       expect(darkResult.isLight).toBe(false);
@@ -73,7 +70,6 @@ describe("useAppTheme", () => {
       const isDark = invalidTheme === "dark";
       const isLight = invalidTheme === "light";
 
-      // Both should be false for invalid theme
       expect(isDark).toBe(false);
       expect(isLight).toBe(false);
     });
@@ -124,7 +120,7 @@ describe("useAppTheme", () => {
   describe("Return Value Structure", () => {
     it("should have colorScheme matching theme value", () => {
       const theme = "light";
-      const colorScheme = theme; // In actual hook, this comes from useThemeControl
+      const colorScheme = theme;
 
       expect(colorScheme).toBe(theme);
     });

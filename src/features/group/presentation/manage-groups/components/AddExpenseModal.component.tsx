@@ -35,7 +35,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       onRequestClose={onClose}
     >
       <YStack flex={1} backgroundColor="$background">
-        {/* Header */}
+        {}
         <XStack
           alignItems="center"
           justifyContent="space-between"
@@ -52,7 +52,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           </Pressable>
         </XStack>
 
-        {/* Content */}
+        {}
         <YStack flex={1} padding="$base">
           <ExpenseManager
             expenses={expenses.map((exp) => ({

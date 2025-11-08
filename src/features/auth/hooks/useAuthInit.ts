@@ -9,13 +9,6 @@ import { loadUserProfile } from "../../user/usecases/loadUserProfile.usecase";
 import { setSession } from "../store/authSlice";
 import { initSession } from "../usecases/manage-session/initSession.usecase";
 
-/**
- * Hook to initialize auth on app startup
- * - Restores session from AsyncStorage
- * - Listens for auth state changes
- * - Handles deep linking for magic links
- * - Loads user profile when authenticated
- */
 export function useAuthInit() {
   const dispatch = useAppDispatch();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -26,27 +19,22 @@ export function useAuthInit() {
   );
 
   useEffect(() => {
-    // Initialize session
     dispatch(initSession());
 
-    // Setup deep linking for magic link authentication
     const removeDeepLinkListener = setupAuthDeepLinking();
 
-    // Listen for auth state changes
     const { unsubscribe } = dispatch((_, _getState, { authGateway }) => {
       return authGateway.onAuthStateChange((session) => {
         dispatch(setSession(session));
       });
     });
 
-    // Cleanup
     return () => {
       removeDeepLinkListener();
       unsubscribe();
     };
   }, [dispatch]);
 
-  // Load user profile when authenticated
   useEffect(() => {
     logger.debug("Auth status changed", { isAuthenticated });
     if (isAuthenticated) {
@@ -55,7 +43,6 @@ export function useAuthInit() {
     }
   }, [isAuthenticated, dispatch]);
 
-  // Mark initial load as complete once both auth and profile have finished loading for the first time
   useEffect(() => {
     if (isInitialLoad && !authLoading && !profileLoading) {
       logger.info("Initial auth load complete");

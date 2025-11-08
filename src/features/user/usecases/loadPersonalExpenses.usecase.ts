@@ -10,7 +10,6 @@ export const loadPersonalExpenses = createAsyncThunk<
   "user/loadPersonalExpenses",
   async (_, { rejectWithValue, extra, getState }) => {
     try {
-      // Get current user ID
       const state = getState();
       const userId = state.auth?.user?.id;
 
@@ -21,7 +20,6 @@ export const loadPersonalExpenses = createAsyncThunk<
         });
       }
 
-      // Load expenses via gateway
       return await extra.userGateway.loadPersonalExpenses(userId);
     } catch (error) {
       return rejectWithValue({

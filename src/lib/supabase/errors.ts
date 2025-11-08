@@ -1,8 +1,3 @@
-/**
- * Maps Supabase errors to user-friendly messages
- * Handles RPC error codes, network errors, and generic errors
- */
-
 interface SupabaseError {
   code?: string;
   message?: string;
@@ -11,17 +6,14 @@ interface SupabaseError {
 }
 
 export function mapSupabaseError(error: unknown): string {
-  // Handle null/undefined
   if (!error) {
     return "An unexpected error occurred";
   }
 
-  // Extract error properties
   const err = error as SupabaseError;
   const code = err.code;
   const message = err.message?.toLowerCase() || "";
 
-  // RPC custom errors (P0001 with DETAIL)
   if (code === "P0001" && err.details) {
     switch (err.details) {
       case "invalid_token":
@@ -47,7 +39,6 @@ export function mapSupabaseError(error: unknown): string {
     }
   }
 
-  // PostgreSQL native errors
   if (code) {
     switch (code) {
       case "PGRST116":
@@ -70,7 +61,6 @@ export function mapSupabaseError(error: unknown): string {
     }
   }
 
-  // Network errors
   if (
     message.includes("fetch failed") ||
     message.includes("network") ||
@@ -79,7 +69,6 @@ export function mapSupabaseError(error: unknown): string {
     return "Vérifiez votre connexion internet et réessayez";
   }
 
-  // Auth errors
   if (message.includes("invalid email") || message.includes("email")) {
     return "Veuillez entrer une adresse email valide";
   }
@@ -92,23 +81,17 @@ export function mapSupabaseError(error: unknown): string {
     return "Vous n'avez pas la permission d'effectuer cette action";
   }
 
-  // Validation errors
   if (message.includes("validation") || message.includes("invalid")) {
     return "Veuillez vérifier vos données et réessayer";
   }
 
-  // Default error message
   return err.message || "Une erreur est survenue. Veuillez réessayer.";
 }
 
-/**
- * Creates an error object with a user-friendly message
- */
 export function createUserFriendlyError(error: unknown): Error {
   const friendlyMessage = mapSupabaseError(error);
   const err = new Error(friendlyMessage);
 
-  // Preserve original error for debugging
   if (error instanceof Error) {
     err.cause = error;
   }

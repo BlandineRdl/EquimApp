@@ -1,8 +1,3 @@
-/**
- * Rate limiter with persistent storage
- * Implements exponential backoff for failed attempts
- */
-
 interface RateLimitData {
   attempts: number;
   lastAttempt: number;
@@ -11,10 +6,8 @@ interface RateLimitData {
 
 const STORAGE_PREFIX = "@ratelimit:";
 
-// In-memory storage as fallback for Expo Go
 const memoryStorage = new Map<string, string>();
 
-// Dynamic import of AsyncStorage
 type AsyncStorageType = {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<void>;
@@ -23,9 +16,7 @@ type AsyncStorageType = {
 let AsyncStorage: AsyncStorageType | null = null;
 try {
   AsyncStorage = require("@react-native-async-storage/async-storage").default;
-} catch (_e) {
-  // Silent: Expected in Expo Go, using in-memory storage fallback
-}
+} catch (_e) {}
 
 export class RateLimiter {
   private key: string;
@@ -56,7 +47,6 @@ export class RateLimiter {
         return JSON.parse(data);
       }
     } catch (error) {
-      // If we can't read from storage, allow the attempt
       console.error("RateLimiter: Error reading from storage", error);
     }
 
@@ -81,21 +71,15 @@ export class RateLimiter {
     }
   }
 
-  /**
-   * Check if an action is allowed
-   * Returns { allowed: boolean, retryAfter?: number }
-   */
   async canAttempt(): Promise<{ allowed: boolean; retryAfter?: number }> {
     const data = await this.getData();
     const now = Date.now();
 
-    // Check if currently blocked
     if (data.blockedUntil && now < data.blockedUntil) {
       const retryAfter = Math.ceil((data.blockedUntil - now) / 1000);
       return { allowed: false, retryAfter };
     }
 
-    // If blocked period expired, reset
     if (data.blockedUntil && now >= data.blockedUntil) {
       await this.reset();
       return { allowed: true };
@@ -104,29 +88,16 @@ export class RateLimiter {
     return { allowed: true };
   }
 
-  /**
-   * Record a failed attempt
-   * Implements exponential backoff
-   */
   async recordFailure(): Promise<void> {
     const data = await this.getData();
     const now = Date.now();
 
     const newAttempts = data.attempts + 1;
 
-    // Calculate block duration using exponential backoff
-    // Block for: baseDelay * 2^(attempts - maxAttempts)
-    // Example with baseDelay=1000, maxAttempts=5:
-    // - Attempt 1-5: No block
-    // - Attempt 6: 1s block (1000 * 2^1)
-    // - Attempt 7: 2s block (1000 * 2^2)
-    // - Attempt 8: 4s block (1000 * 2^3)
-    // - etc.
     let blockedUntil: number | null = null;
     if (newAttempts >= this.maxAttempts) {
       const exponent = newAttempts - this.maxAttempts + 1;
       const delayMs = this.baseDelayMs * 2 ** exponent;
-      // Cap at 5 minutes
       const cappedDelayMs = Math.min(delayMs, 5 * 60 * 1000);
       blockedUntil = now + cappedDelayMs;
     }
@@ -138,16 +109,10 @@ export class RateLimiter {
     });
   }
 
-  /**
-   * Record a successful attempt and reset the counter
-   */
   async recordSuccess(): Promise<void> {
     await this.reset();
   }
 
-  /**
-   * Reset the rate limiter
-   */
   async reset(): Promise<void> {
     await this.setData({
       attempts: 0,
@@ -156,9 +121,6 @@ export class RateLimiter {
     });
   }
 
-  /**
-   * Get current rate limit status
-   */
   async getStatus(): Promise<RateLimitData> {
     return await this.getData();
   }

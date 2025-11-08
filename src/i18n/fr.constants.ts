@@ -1,6 +1,3 @@
-// French text constants
-// TODO: Replace with proper i18n solution (react-i18next or similar) when adding multi-language support
-
 export const AUTH_TEXT = {
   SIGN_IN: {
     WELCOME_TITLE: "Bienvenue sur Equim",

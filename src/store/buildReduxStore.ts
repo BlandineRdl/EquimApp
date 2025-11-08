@@ -27,10 +27,8 @@ export interface Dependencies {
   groupGateway: GroupGateway;
 }
 
-// Configuration conditionnelle pour éviter l'erreur dans les tests
 const isTestEnvironment = process.env.NODE_ENV === "test";
 
-// Import conditionnel pour éviter l'erreur dans les tests
 type DevToolsEnhancer = () => (
   next: (store: unknown) => unknown,
 ) => (store: unknown) => unknown;
@@ -46,7 +44,6 @@ if (!isTestEnvironment) {
 }
 
 export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
-  // Create group listeners with injected dependency
   const groupListeners = dependencies.groupGateway
     ? createGroupListeners(dependencies.groupGateway)
     : null;
@@ -74,7 +71,6 @@ export const initReduxStore = (dependencies: Partial<Dependencies> = {}) => {
         .prepend(notificationListeners.middleware)
         .prepend(onboardingListeners.middleware);
 
-      // Only add group listeners if groupGateway is provided
       if (groupListeners) {
         return middleware.prepend(groupListeners.middleware);
       }

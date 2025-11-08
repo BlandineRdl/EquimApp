@@ -1,19 +1,3 @@
-/**
- * Supabase Integration Test Setup
- *
- * This file provides utilities for running integration tests against Supabase.
- *
- * IMPORTANT: Integration tests require:
- * 1. A test Supabase project (separate from production)
- * 2. Environment variables: SUPABASE_TEST_URL and SUPABASE_TEST_ANON_KEY
- * 3. Test user credentials for authentication
- *
- * Usage:
- * - Set SKIP_INTEGRATION_TESTS=true to skip integration tests
- * - Use setupSupabaseTest() in beforeAll() to initialize test client
- * - Use cleanupSupabaseTest() in afterAll() to cleanup
- */
-
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../types/database.types";
 
@@ -24,7 +8,6 @@ export interface SupabaseTestConfig {
   testUserPassword?: string;
 }
 
-// Check if integration tests should be skipped
 export const shouldSkipIntegrationTests = (): boolean => {
   return (
     process.env.SKIP_INTEGRATION_TESTS === "true" ||
@@ -33,7 +16,6 @@ export const shouldSkipIntegrationTests = (): boolean => {
   );
 };
 
-// Get test configuration from environment
 export const getTestConfig = (): SupabaseTestConfig => {
   const url = process.env.SUPABASE_TEST_URL;
   const anonKey = process.env.SUPABASE_TEST_ANON_KEY;
@@ -52,7 +34,6 @@ export const getTestConfig = (): SupabaseTestConfig => {
   };
 };
 
-// Create a test Supabase client
 export const createTestClient = (
   config?: SupabaseTestConfig,
 ): SupabaseClient<Database> => {
@@ -67,7 +48,6 @@ export const createTestClient = (
   });
 };
 
-// Test data cleanup helper
 export class SupabaseTestHelper {
   private client: SupabaseClient<Database>;
   private createdGroupIds: string[] = [];
@@ -77,30 +57,19 @@ export class SupabaseTestHelper {
     this.client = client;
   }
 
-  /**
-   * Track a group for cleanup
-   */
   trackGroup(groupId: string): void {
     this.createdGroupIds.push(groupId);
   }
 
-  /**
-   * Track a profile for cleanup
-   */
   trackProfile(profileId: string): void {
     this.createdProfileIds.push(profileId);
   }
 
-  /**
-   * Clean up all created test data
-   */
   async cleanup(): Promise<void> {
-    // Delete groups (cascades to members and expenses)
     for (const groupId of this.createdGroupIds) {
       await this.client.from("groups").delete().eq("id", groupId);
     }
 
-    // Delete profiles
     for (const profileId of this.createdProfileIds) {
       await this.client.from("profiles").delete().eq("id", profileId);
     }
@@ -109,9 +78,6 @@ export class SupabaseTestHelper {
     this.createdProfileIds = [];
   }
 
-  /**
-   * Get current authenticated user
-   */
   async getCurrentUser() {
     const {
       data: { user },
@@ -119,9 +85,6 @@ export class SupabaseTestHelper {
     return user;
   }
 
-  /**
-   * Sign in with test user credentials
-   */
   async signInTestUser(email?: string, password?: string): Promise<void> {
     const config = getTestConfig();
     const testEmail = email || config.testUserEmail;
@@ -143,17 +106,11 @@ export class SupabaseTestHelper {
     }
   }
 
-  /**
-   * Sign out current user
-   */
   async signOut(): Promise<void> {
     await this.client.auth.signOut();
   }
 }
 
-/**
- * Setup function for integration tests
- */
 export const setupSupabaseTest = async (): Promise<{
   client: SupabaseClient<Database>;
   helper: SupabaseTestHelper;
@@ -165,7 +122,6 @@ export const setupSupabaseTest = async (): Promise<{
   const client = createTestClient();
   const helper = new SupabaseTestHelper(client);
 
-  // Sign in test user if credentials are available
   try {
     await helper.signInTestUser();
   } catch (error) {
@@ -175,9 +131,6 @@ export const setupSupabaseTest = async (): Promise<{
   return { client, helper };
 };
 
-/**
- * Cleanup function for integration tests
- */
 export const cleanupSupabaseTest = async (
   helper: SupabaseTestHelper,
 ): Promise<void> => {
